@@ -1,0 +1,23 @@
+KernelStack  = 0x00000000003FC000
+UserStack    = 0x00000000003FE000
+
+	.include "../syscalls.h"
+
+	.text
+
+	.global _start
+
+Magic:		.ascii	"IJ64"
+CodeLen:	.quad	CodeLength
+DataLen:	.quad	DataLength
+
+_start:	movq $KernelStack, %rdi
+	movb $0xFF, %al
+	movq $ALLOCPAGE, %r9
+	syscall
+	movq $UserStack, %rdi
+	movb $0xFF, %al
+	movq $ALLOCPAGE, %r9
+	syscall
+	movq $(UserStack + 0x1000), %rsp
+	call main
