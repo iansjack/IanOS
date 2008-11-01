@@ -1,21 +1,8 @@
 #include "cmemory.h"
 #include "ckstructs.h"
+#include "fat.h"
 
 extern struct Task * currentTask;
-
-struct DirEntry
-{
-	char name[11];
-	unsigned char attribute;
-	unsigned char reserved[10];
-	unsigned char date[4];
-	short int startingCluster;
-	int fileSize;
-};
-
-long RootDir;
-long DataStart;
-char SectorsPerCluster;
 
 /*
 ======================================================
@@ -34,26 +21,20 @@ void ReadSector(char * buffer, long sector)
 */
 void InitializeHD()
 {
-	short sectorsPerFAT = 0;
-	short reservedSectors = 0;
 	char * buffer = (char *) DiskBuffer;
-	char * temp;
-	int * buff = 0;
-	short * buff2 = 0;
-	int bootSector = 0;
+	struct MBR * mbr;
+	struct BootSector * bootSect;
+	unsigned int bootSector = 0;
 	
 	ReadSector(buffer, 0L);
-	buff = (int *)(buffer + 0x1BE + 8);
-	bootSector = (int) buff[0];
+	mbr = (struct MBR *) buffer;
+	bootSector = (mbr->PT[0]).LBA;
 	ReadSector(buffer, (long)bootSector);
-	SectorsPerCluster = buffer[0xD];
-	buff2 = (short *)(buffer + 0x16);
-	sectorsPerFAT = buff2[0];
-	buff2 = (short *)(buffer + 0x0E);
-	reservedSectors = buff2[0];
-	RootDir = sectorsPerFAT * 2 + reservedSectors + bootSector;
-	buff2 = (short *)(buffer + 0x11);
-	DataStart = buff2[0] / 16 + RootDir;
+	bootSect = (struct BootSector *) buffer;
+	RootDir = (bootSect->sectorsPerFat) * 2
+				+ bootSect->reservedSectors
+				+ bootSector;
+	DataStart = (bootSect->rootEntries) / 16 + RootDir;
 }
 
 /*
@@ -69,7 +50,7 @@ long FindFile(char name[11])
 	struct DirEntry * currentEntry;
 
 	currentEntry = (struct DirEntry *) DiskBuff - 1;
-	while (done == 1)
+	while ((done == 1) && (currentEntry < (struct DirEntry *) DiskBuff + 16))
 	{
 		currentEntry++;
 		done = 0;
@@ -77,27 +58,38 @@ long FindFile(char name[11])
 		for (i = 0; i < 11; i++)
 			if (currentEntry->name[i] != name[i]) done = 1;
 	}
+	if (currentEntry == (struct DirEntry *) DiskBuff + 16) return 0;
 	return (long) currentEntry;
 }
 
 /*
 ===================================
 Open a file. Fills in FCB info
+Returns 0 on success
+ 		1 if file does not exist
 ===================================
 */
-void OpenFile(char name[11], struct FCB * fHandle)
+int OpenFile(char name[11], struct FCB * fHandle)
 {
 	char * buffer = (char *)DiskBuffer;
 	
 	ReadSector(buffer, RootDir);
 	struct DirEntry * entry = (struct DirEntry *)FindFile(name);
-	fHandle->startSector = (entry->startingCluster - 2) * SectorsPerCluster + DataStart;
-	fHandle->fileCursor = 0;
-	fHandle->bufCursor = 0;
-	fHandle->length = entry->fileSize;
-	fHandle->filebuf = (char *)AllocMem(512, (struct MemStruct *)(currentTask->firstfreemem));
-	ReadSector(fHandle->filebuf, fHandle->startSector);
-	fHandle->nextSector = fHandle->startSector + 1;
+	if (entry != 0) 
+	{	
+		fHandle->startSector = (entry->startingCluster - 2) * SectorsPerCluster + DataStart;
+		fHandle->fileCursor = 0;
+		fHandle->bufCursor = 0;
+		fHandle->length = entry->fileSize;
+		fHandle->filebuf = (char *)AllocMem(512, (struct MemStruct *)(currentTask->firstfreemem));
+		ReadSector(fHandle->filebuf, fHandle->startSector);
+		fHandle->nextSector = fHandle->startSector + 1;
+		return 0;
+	}
+	else
+	{
+		return 1;
+	}
 }
 
 /*
