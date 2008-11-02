@@ -23,43 +23,49 @@ void InitializeHD()
 {
 	char * buffer = (char *) DiskBuffer;
 	struct MBR * mbr;
-	struct BootSector * bootSect;
+	struct BootSector * bs;
 	unsigned int bootSector = 0;
 	
 	ReadSector(buffer, 0L);
 	mbr = (struct MBR *) buffer;
 	bootSector = (mbr->PT[0]).LBA;
 	ReadSector(buffer, (long)bootSector);
-	bootSect = (struct BootSector *) buffer;
-	RootDir = (bootSect->sectorsPerFat) * 2
-				+ bootSect->reservedSectors
-				+ bootSector;
-	DataStart = (bootSect->rootEntries) / 16 + RootDir;
+	bs = (struct BootSector *) buffer;
+	RootDir = (bs->sectorsPerFat) * 2 + bs->reservedSectors	+ bootSector;
+	DataStart = (bs->rootEntries) / 16 + RootDir;
 }
 
 /*
-============================================================================
-Find the root directory entry for the file whose name is pointed to by Name
+==============================================================================
+Find the root directory entry for the file whose name is pointed to by "name".
 Return the address of the directory entry
-============================================================================
+==============================================================================
 */
 long FindFile(char name[11])
 {
 	short int done = 1;
 	long * DiskBuff = (long *)DiskBuffer;
-	struct DirEntry * currentEntry;
-
-	currentEntry = (struct DirEntry *) DiskBuff - 1;
-	while ((done == 1) && (currentEntry < (struct DirEntry *) DiskBuff + 16))
+	//struct DirEntry * currentEntry;
+	struct DirEntry * entries;
+	
+	//currentEntry = (struct DirEntry *) DiskBuff - 1;
+	//while ((done == 1) && (currentEntry < (struct DirEntry *) DiskBuff + 16))
+	entries = (struct DirEntry *) DiskBuff;
+	short int n;
+	for (n = 0; n < 16; n++)
 	{
-		currentEntry++;
+	//	currentEntry++;
 		done = 0;
-		int i;
+		short int i;
 		for (i = 0; i < 11; i++)
-			if (currentEntry->name[i] != name[i]) done = 1;
+			//if (currentEntry->name[i] != name[i]) done = 1;
+			if (entries[n].name[i] != name[i]) 
+				done = 1;
+		if (done == 0) return (long) &entries[n];
 	}
-	if (currentEntry == (struct DirEntry *) DiskBuff + 16) return 0;
-	return (long) currentEntry;
+	//if (currentEntry == (struct DirEntry *) DiskBuff + 16) return 0;
+	//return (long) currentEntry;
+	return 0;
 }
 
 /*
