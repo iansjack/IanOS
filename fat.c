@@ -33,6 +33,7 @@ void InitializeHD()
 	bs = (struct BootSector *) buffer;
 	RootDir = (bs->sectorsPerFat) * 2 + bs->reservedSectors	+ bootSector;
 	DataStart = (bs->rootEntries) / 16 + RootDir;
+	SectorsPerCluster = bs->sectorsPerCluster;
 }
 
 /*
@@ -45,26 +46,19 @@ long FindFile(char name[11])
 {
 	short int done = 1;
 	long * DiskBuff = (long *)DiskBuffer;
-	//struct DirEntry * currentEntry;
 	struct DirEntry * entries;
 	
-	//currentEntry = (struct DirEntry *) DiskBuff - 1;
-	//while ((done == 1) && (currentEntry < (struct DirEntry *) DiskBuff + 16))
 	entries = (struct DirEntry *) DiskBuff;
 	short int n;
 	for (n = 0; n < 16; n++)
 	{
-	//	currentEntry++;
 		done = 0;
 		short int i;
 		for (i = 0; i < 11; i++)
-			//if (currentEntry->name[i] != name[i]) done = 1;
 			if (entries[n].name[i] != name[i]) 
 				done = 1;
 		if (done == 0) return (long) &entries[n];
 	}
-	//if (currentEntry == (struct DirEntry *) DiskBuff + 16) return 0;
-	//return (long) currentEntry;
 	return 0;
 }
 
