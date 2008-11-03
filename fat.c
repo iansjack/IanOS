@@ -21,16 +21,15 @@ void ReadSector(char * buffer, long sector)
 */
 void InitializeHD()
 {
-	char * buffer = (char *) DiskBuffer;
 	struct MBR * mbr;
 	struct BootSector * bs;
 	unsigned int bootSector = 0;
 	
-	ReadSector(buffer, 0L);
-	mbr = (struct MBR *) buffer;
+	ReadSector(DiskBuffer, 0L);
+	mbr = (struct MBR *) DiskBuffer;
 	bootSector = (mbr->PT[0]).LBA;
-	ReadSector(buffer, (long)bootSector);
-	bs = (struct BootSector *) buffer;
+	ReadSector(DiskBuffer, (long)bootSector);
+	bs = (struct BootSector *) DiskBuffer;
 	RootDir = (bs->sectorsPerFat) * 2 + bs->reservedSectors	+ bootSector;
 	DataStart = (bs->rootEntries) / 16 + RootDir;
 	SectorsPerCluster = bs->sectorsPerCluster;
@@ -45,10 +44,10 @@ Return the address of the directory entry
 long FindFile(char name[11])
 {
 	short int done = 1;
-	long * DiskBuff = (long *)DiskBuffer;
 	struct DirEntry * entries;
 	
-	entries = (struct DirEntry *) DiskBuff;
+	ReadSector(DiskBuffer, RootDir);
+	entries = (struct DirEntry *) DiskBuffer;
 	short int n;
 	for (n = 0; n < 16; n++)
 	{
@@ -71,9 +70,6 @@ Returns 0 on success
 */
 int OpenFile(char name[11], struct FCB * fHandle)
 {
-	char * buffer = (char *)DiskBuffer;
-	
-	ReadSector(buffer, RootDir);
 	struct DirEntry * entry = (struct DirEntry *)FindFile(name);
 	if (entry != 0) 
 	{	
@@ -147,12 +143,11 @@ long ReadFile(struct FCB * fHandle, char * buffer, long noBytes)
 */
 void LoadFile(char name[11])
 {
-	char * buffer = (char *)DiskBuffer;
 	struct FCB fHandle;
 	
 	OpenFile(name, &fHandle);
 	int size = fHandle.length;
 	int count = 0;
-	ReadFile(&fHandle, buffer, size);
+	ReadFile(&fHandle, DiskBuffer, size);
 	//CloseFile(&fHandle);
 }

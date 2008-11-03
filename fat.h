@@ -50,5 +50,6 @@ struct MBR
 unsigned long RootDir;
 unsigned long DataStart;
 unsigned char SectorsPerCluster;
+unsigned char DiskBuffer[512];
 
 #endif
