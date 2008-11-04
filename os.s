@@ -42,6 +42,9 @@ start64:
 	movq $UserData, TS.firstfreemem(%r15)
 	movq $1, TS.pid(%r15)
 
+	mov $0x11000, %rcx
+	movq $0, (%rcx)
+	movq $0xFE0, 8(%rcx)
 	call InitializeHD
 
 	mov $StaticPort, %r14
@@ -82,14 +85,9 @@ start64:
 	rep movsb
 
 	mov $kbTaskCode, %rdi
-
 	call NewKernelTask
 
-	mov $0x11000, %rcx
-	movq $0, (%rcx)
-	movq $0xFE0, 8(%rcx)
 	mov $UserCode, %rcx		  	# Task 1
-
 	pushfq
 	pop %r11
 	or $0x200, %r11		  		# This will enable interrupts when we sysret

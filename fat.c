@@ -25,6 +25,8 @@ void InitializeHD()
 	struct BootSector * bs;
 	unsigned int bootSector = 0;
 	
+	DiskBuffer = AllocKMem(512);
+	
 	ReadSector(DiskBuffer, 0L);
 	mbr = (struct MBR *) DiskBuffer;
 	bootSector = (mbr->PT[0]).LBA;
