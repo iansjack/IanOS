@@ -47,8 +47,10 @@ struct MBR
 	struct	PartTable PT[4];
 };
 
+unsigned long FirstFAT;
 unsigned long RootDir;
 unsigned long DataStart;
+unsigned short BytesPerSector;
 unsigned char SectorsPerCluster;
 unsigned char * DiskBuffer;
 

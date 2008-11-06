@@ -53,14 +53,24 @@ struct MemStruct
 	long size;
 };
 
+struct clusterListEntry
+{
+	struct clusterListEntry * next;
+	unsigned short cluster;
+};
+
 struct FCB
 {
-	int	 length;
-	long startSector;
-	long nextSector;
-	long fileCursor;
-	long bufCursor;
-	char * filebuf;
+	unsigned int	length;
+	unsigned long	startSector;
+	unsigned long	nextSector;
+	unsigned long	sectorInCluster;
+	unsigned short	currentCluster;
+	struct clusterListEntry * clusterList;
+	struct clusterListEntry * currentClusterEntry;
+	unsigned long	fileCursor;
+	unsigned short	bufCursor;
+	unsigned char * filebuf;
 };
 
 #endif

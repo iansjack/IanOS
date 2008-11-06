@@ -5,6 +5,16 @@
 extern struct Task * currentTask;
 
 /*
+==============================
+Convert a cluster to a sector.
+==============================
+*/
+unsigned int ClusterToSector(int cluster)
+{
+	return((cluster - 2) * SectorsPerCluster + DataStart);
+}
+
+/*
 ======================================================
 Read one sector from the hard disk to the disk buffer
 ======================================================
@@ -30,11 +40,13 @@ void InitializeHD()
 	ReadSector(DiskBuffer, 0L);
 	mbr = (struct MBR *) DiskBuffer;
 	bootSector = (mbr->PT[0]).LBA;
+	FirstFAT = bootSector + 1;
 	ReadSector(DiskBuffer, (long)bootSector);
 	bs = (struct BootSector *) DiskBuffer;
 	RootDir = (bs->sectorsPerFat) * 2 + bs->reservedSectors	+ bootSector;
 	DataStart = (bs->rootEntries) / 16 + RootDir;
 	SectorsPerCluster = bs->sectorsPerCluster;
+	BytesPerSector = bs->bytesPerSector;
 }
 
 /*
@@ -74,14 +86,37 @@ int OpenFile(char name[11], struct FCB * fHandle)
 {
 	struct DirEntry * entry = (struct DirEntry *)FindFile(name);
 	if (entry != 0) 
-	{	
-		fHandle->startSector = (entry->startingCluster - 2) * SectorsPerCluster + DataStart;
-		fHandle->fileCursor = 0;
-		fHandle->bufCursor = 0;
+	{
+		fHandle->currentCluster = entry->startingCluster;
+		fHandle->clusterList = AllocKMem(sizeof(struct clusterListEntry));															  
+		fHandle->clusterList->next = 0;
+		fHandle->clusterList->cluster = fHandle->currentCluster;
+		// Fill in the FAT-chain list
+		if (entry->fileSize > BytesPerSector * SectorsPerCluster)
+		{
+			fHandle->currentClusterEntry = fHandle->clusterList;
+			int currentCluster = fHandle->currentClusterEntry->cluster;
+			while (currentCluster != 0xFFFF)
+			{
+				unsigned short * DiskBuffer = AllocKMem(512);
+				ReadSector((unsigned char *)DiskBuffer, FirstFAT + (currentCluster / (BytesPerSector / 2)));
+				int nextCluster = DiskBuffer[currentCluster % (BytesPerSector / 2)];
+				if (nextCluster != 0xFFFF)
+				{
+					fHandle->currentClusterEntry->next = AllocKMem(sizeof(struct clusterListEntry));
+					fHandle->currentClusterEntry = fHandle->currentClusterEntry->next;
+					fHandle->currentClusterEntry->cluster = nextCluster;
+				}
+				currentCluster = nextCluster;
+			}
+		}
+		fHandle->startSector = ClusterToSector(entry->startingCluster);
+		fHandle->fileCursor = fHandle->bufCursor = 0;
 		fHandle->length = entry->fileSize;
-		fHandle->filebuf = (char *)AllocMem(512, (struct MemStruct *)(currentTask->firstfreemem));
+		fHandle->filebuf = (char *)AllocKMem(512);
 		ReadSector(fHandle->filebuf, fHandle->startSector);
 		fHandle->nextSector = fHandle->startSector + 1;
+		fHandle->sectorInCluster = 1;
 		return 0;
 	}
 	else
@@ -113,13 +148,10 @@ CloseFile(struct FCB * fHandle)
 */
 long ReadFile(struct FCB * fHandle, char * buffer, long noBytes)
 {
+	if (noBytes > fHandle->length) return 0;
+	
 	long bytesRead = 0;
 	
-	if (fHandle->bufCursor == 512)
-	{
-		ReadSector(fHandle->filebuf, fHandle->nextSector);
-		fHandle->nextSector++;
-	}
 	while (bytesRead < noBytes)
 	{
 		while (fHandle->bufCursor < 512 && bytesRead < noBytes)
@@ -128,8 +160,17 @@ long ReadFile(struct FCB * fHandle, char * buffer, long noBytes)
 			bytesRead++;
 			fHandle->bufCursor++;
 		}
-		if (fHandle->bufCursor == 512)
+		// If we have read past the end of the buffer we need to load the
+		// next sector into the buffer. 
+		if (fHandle->bufCursor == 512 && bytesRead < noBytes) 
 		{
+			if (fHandle->sectorInCluster++ > SectorsPerCluster)
+			{
+				fHandle->currentClusterEntry = fHandle->currentClusterEntry->next;
+				fHandle->currentCluster = fHandle->currentClusterEntry->cluster;
+				fHandle->nextSector = ClusterToSector(fHandle->currentCluster);
+				fHandle->sectorInCluster = 1;
+			}
 			ReadSector(fHandle->filebuf, fHandle->nextSector);
 			fHandle->bufCursor = 0;
 			fHandle->nextSector++;
