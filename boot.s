@@ -161,13 +161,25 @@ NextSector:
 	cld
 	rep movsb
 
-enable_a20:
+#enable_a20:
+	xor %cx, %cx
+IBEmm0:
 	cli
 	in  $0x64, %al
 	test $2, %al
-	jnz enable_a20
-	mov $0xBF, %al
+	jnz IBEmm0
+	mov $0xD1, %al
 	out %al, $0x64
+	xor %cx, %cx
+
+IBEmm1:
+	cli
+	in  $0x64, %al
+	test $2, %al
+	jnz IBEmm1
+	mov $0xDF, %al
+	out %al, $0x60
+	xor %cx, %cx
 
 # load register gdt and enable Protected Mode
 	lgdt (gdt_48)
