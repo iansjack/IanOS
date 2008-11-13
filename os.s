@@ -25,6 +25,10 @@ start64:
 	wrmsr
 	mov $0xC0000083, %ecx
 	mov $0, %edx
+	mov $0, %eax
+	wrmsr
+	mov $0xC0000084, %ecx
+	mov $0, %edx
 	mov $SysCalls, %eax
 	wrmsr
 	call InitIDT
@@ -36,6 +40,13 @@ start64:
 	lidt idt_64
 
 # Final preparations before starting tasking
+	mov $0xFFF, %rcx
+	mov $TaskStruct, %rdx
+	mov $0, %al
+ag:	mov %al, (%rcx, %rdx, 1)
+	dec %cx
+	jne ag
+
 	mov $TaskStruct, %r15
 	movq $TaskStruct, TS.nexttask(%r15)
 	movb $0, TS.waiting(%r15)		  	# We don't want task1 to be waiting when it starts
@@ -45,6 +56,7 @@ start64:
 	mov $0x11000, %rcx
 	movq $0, (%rcx)
 	movq $0xFE0, 8(%rcx)
+
 	call InitializeHD
 
 	mov $StaticPort, %r14
