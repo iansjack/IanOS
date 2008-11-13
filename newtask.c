@@ -51,31 +51,33 @@ void NewTask(char * name)
 	char header[3];
 
 	fHandle = (struct FCB *)AllocKMem(sizeof(struct FCB));
-	OpenFile(name, fHandle);
-	asm("cli");
-	stack = (long *)&tempstack - 5;
-	task->rsp = (long)stack;
-	stack[0] = UserCode;
-	stack[1] = user64 + 3;
-	stack[2] = 0x2202;
-	stack[3] = UserData + PageSize;
-	stack[4] = udata64 + 3;
-	task->waiting = 0;
-	task->cr3 = VCreatePageDir();
-	task->ds = udata64 + 3;
-	ReadFile(fHandle, header, 4);
-	ReadFile(fHandle, (char *)&codelen, 8);
-	ReadFile(fHandle, (char *)&datalen, 8);
-	ReadFile(fHandle, (char *)TempUserCode, codelen);
-	ReadFile(fHandle, (char *)TempUserData, datalen);
-	data = (long *)(TempUserData + datalen);
-	data[0] = 0;
-	data[1] = PageSize - datalen - 0x10;
-	task->firstfreemem = UserData + datalen;
-	CloseFile(fHandle);
+	if (OpenFile(name, fHandle) == 0)
+	{
+		asm("cli");
+		stack = (long *)&tempstack - 5;
+		task->rsp = (long)stack;
+		stack[0] = UserCode;
+		stack[1] = user64 + 3;
+		stack[2] = 0x2202;
+		stack[3] = UserData + PageSize;
+		stack[4] = udata64 + 3;
+		task->waiting = 0;
+		task->cr3 = VCreatePageDir();
+		task->ds = udata64 + 3;
+		ReadFile(fHandle, header, 4);
+		ReadFile(fHandle, (char *)&codelen, 8);
+		ReadFile(fHandle, (char *)&datalen, 8);
+		ReadFile(fHandle, (char *)TempUserCode, codelen);
+		ReadFile(fHandle, (char *)TempUserData, datalen);
+		data = (long *)(TempUserData + datalen);
+		data[0] = 0;
+		data[1] = PageSize - datalen - 0x10;
+		task->firstfreemem = UserData + datalen;
+		CloseFile(fHandle);
+		LinkTask(task);
+		asm("sti");
+	}
 	DeallocMem(fHandle);
-	LinkTask(task);
-	asm("sti");
 }
 
 /*
