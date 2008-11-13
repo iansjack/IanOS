@@ -1,4 +1,4 @@
-CFLAGS = -fpack-struct -O
+CFLAGS = -fpack-struct -O -ffixed-r15
 
 OBJS = 	startup.o memory32.o pagetab32.o hwsetup.o os.o gates.o messages.o memory.o keyboard.o \
 		fat.o syscalls.o newtask.o tasking.o messaging.o interrupts.o kernlib.o tas1.o
