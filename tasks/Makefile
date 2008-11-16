@@ -1,6 +1,6 @@
 CFLAGS = -fpack-struct -ffixed-r15 -O -I ..
-LIBS = ../library/libsyscalls.a ../library/liblib.a
-TASKS = TASK1.BIN TASK2.BIN TASK3.BIN
+LIBS = ../library/liblib.a ../library/libsyscalls.a 
+TASKS = TASK1.BIN TASK2.BIN TASK3.BIN TASK4.BIN
 
 all: $(TASKS) 
 
@@ -22,6 +22,12 @@ task2.o: task2.c
 TASK3.BIN: task3.o inittask.o
 	ld -Tlink.ld task3.o $(LIBS) -oTASK3.BIN
 	mcopy -o TASK3.BIN c: 
+
+task3.o: task3.c
+
+TASK4.BIN: task4.o inittask.o
+	ld -Tlink.ld task4.o $(LIBS) -oTASK4.BIN
+	mcopy -o TASK4.BIN c: 
 
 task3.o: task3.c
 
