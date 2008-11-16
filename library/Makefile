@@ -1,5 +1,6 @@
-LIBOBJS = clearscr.o writestring.o getticks.o writedouble.o sendreceive.o writechar.o send.o
-SYSCALLSOBJS = sys_AllocMem.o sys_CreateTask.o sys_DeallocMem.o sys_KillTask.o sys_ReceiveMessage.o
+LIBOBJS = clearscr.o writestring.o getticks.o writedouble.o sendreceive.o writechar.o send.o getchar.o
+SYSCALLSOBJS = sys_AllocMem.o sys_CreateTask.o sys_CreateKTask.o sys_DeallocMem.o sys_KillTask.o \
+	sys_ReceiveMessage.o sys_SendMessage.o sys_Sleep.o
 
 all: liblib.a libsyscalls.a
 
