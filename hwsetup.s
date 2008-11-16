@@ -49,6 +49,7 @@ HwSetup:
 	call InBuffEmpty
 	mov $0x45, %al
 	out %al, $0x60
+
 # enable interrupts
 	mov $0b11111000, %al	# enable keyboard + timer interrupt
 	out %al, $0x21

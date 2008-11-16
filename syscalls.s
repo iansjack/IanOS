@@ -23,6 +23,8 @@ CallNo:	.quad	AllocatePage64	# ALLOCPAGE
 	.quad	Dealloc_Mem			# DEALLOCMEM
 	.quad	Send_Receive		# SENDRECEIVE
 	.quad	Kill_Task			# KILLTASK
+	.quad	Halt				# HALT
+	.quad   NewKerneltask		# CREATEKTASK
 
 SysCalls:
 	jmp *(CallNo - 8)(,%r9, 8)
@@ -233,3 +235,20 @@ Kill_Task:
 	call KillTask
 	pop  %rcx
 	sysretq
+
+Halt:
+	sti
+	hlt
+	sysretq
+
+#=================================================================
+# Create a new kernel task from the code pointed to by RDI
+# Affects RAX, RDI
+#=================================================================
+NewKerneltask:
+	push %rcx
+	call NewKernelTask
+	int  $22
+	pop %rcx
+	sysretq
+

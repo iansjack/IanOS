@@ -15,6 +15,7 @@
 TaskSwitch:
 #saveTaskState:
 	push %r15
+.again:
 	mov  currentTask, %r15
 # Is there another task ready to run?
 .nexttask:
@@ -36,6 +37,7 @@ TaskSwitch:
 	hlt
 	#cli
 	jmp  .nexttask
+	#jmp .again
 
 #==============================================================
 # Save the current task and switch to the one specified in R15

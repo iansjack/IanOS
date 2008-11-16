@@ -96,8 +96,8 @@ ag:	mov %al, (%rcx, %rdx, 1)
 	cld
 	rep movsb
 
-	mov $kbTaskCode, %rdi
-	call NewKernelTask
+	#mov $kbTaskCode, %rdi
+	#call NewKernelTask
 
 	mov $UserCode, %rcx		  	# Task 1
 	pushfq

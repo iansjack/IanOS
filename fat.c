@@ -55,10 +55,22 @@ Find the root directory entry for the file whose name is pointed to by "name".
 Return the address of the directory entry
 ==============================================================================
 */
-long FindFile(char name[11])
+long FindFile(char name[13])
 {
 	short int done = 1;
 	struct DirEntry * entries;
+	
+	// Convert file name to DirEntry form
+	char dirname[11];
+	short int i = 0; 
+	short int j = 0;
+	while (name[i] != '.' && i < 8)
+		dirname[j++] = name[i++];
+	if (i == 8 && name[i] != '.') return 0;
+	while (j < 8) dirname[j++] = ' ';
+	i++;
+	while (name[i] != 0 && j < 11)
+		dirname[j++] = name[i++];
 	
 	ReadSector(DiskBuffer, RootDir);
 	entries = (struct DirEntry *) DiskBuffer;
@@ -68,7 +80,7 @@ long FindFile(char name[11])
 		done = 0;
 		short int i;
 		for (i = 0; i < 11; i++)
-			if (entries[n].name[i] != name[i]) 
+			if (entries[n].name[i] != dirname[i]) 
 				done = 1;
 		if (done == 0) return (long) &entries[n];
 	}

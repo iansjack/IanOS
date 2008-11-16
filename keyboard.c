@@ -21,7 +21,6 @@ void kbTaskCode()
 	asm("mov $(0x3FF000 - 0x18), %rsp");
 	kbBufStart = kbBufCurrent = kbBufCount = 0;
 	
-	KWriteString("The keyboard task is now running", 15, 0);
 	while (1)
 	{
 		ReceiveMessage(KbdPort, &KbdMsg); 
@@ -49,7 +48,7 @@ The lower-case keyboard table.
 ==============================
 */
 char KbdTable[] = {'@', '@', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '@',
-			'@', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '@',
+			'@', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', 13,
 		 	'@', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', '#', '\'', '`', '@', '#',
 		 	     'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/',
 		 	'@', '@', '@', ' ', '@', '@', '@', '@', '@', '@', '@', '@', '@',

@@ -34,6 +34,7 @@
 
 #define PageSize	0x1000
 #define KbdPort 	StaticPort + sizeof(struct MessagePort)
+#define ConsolePort KbdPort + sizeof(struct MessagePort)
 
 #define OsCodeSeg 	0x8
 #define OsDataSeg 	0x10

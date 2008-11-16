@@ -91,7 +91,6 @@ void NewKernelTask(void * TaskCode)
 	struct Task * task = nextfreetss();
 	long * data;
 
-	//KWriteString("Entering NewKernelTask", 21, 50);
 	asm("cli");
 	stack = (long *)&tempstack - 5;
 	task->rsp = (long)stack;
@@ -109,7 +108,6 @@ void NewKernelTask(void * TaskCode)
 	data[1] = 0xFFE;
 	task->firstfreemem = UserData;
 	asm("sti");
-	//KWriteString("Exiting NewKernelTask", 22, 50);
 }
 
 /*

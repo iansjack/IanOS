@@ -1,7 +1,7 @@
 CFLAGS = -fpack-struct -O -ffixed-r15
 
 OBJS = 	startup.o memory32.o pagetab32.o hwsetup.o os.o gates.o messages.o memory.o keyboard.o \
-		fat.o syscalls.o newtask.o tasking.o messaging.o interrupts.o kernlib.o tas1.o
+		console.o fat.o syscalls.o newtask.o tasking.o messaging.o interrupts.o kernlib.o tas1.o
 
 all: bootdisk
 	cd library; make all
@@ -11,7 +11,7 @@ IanOS.bin: $(OBJS)
 	ld --print-map -Tlink.ld $(OBJS) library/liblib.a library/libsyscalls.a -oIanOS.bin>linkmap 
 
 bootdisk: bootsect.bin 32sect IanOS.bin
-	cat bootsect.bin 32sect IanOS.bin >IanOS.fdd
+	cat bootsect.bin 32sect IanOS.bin floppy >IanOS.fdd
 
 bootsect.bin: boot.o
 	ld -Tbootlink.ld boot.o -obootsect.bin
@@ -40,6 +40,8 @@ messages.o: messages.c
 memory.o: memory.c cmemory.h ckstructs.h
 
 keyboard.o: keyboard.c cmemory.h ckstructs.h
+
+console.o: console.c cmemory.h ckstructs.h
 
 fat.o: fat.c cmemory.h ckstructs.h
 

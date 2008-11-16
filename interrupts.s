@@ -283,8 +283,8 @@ WaitForInt:
 	.global Timer.interval
 	.global Timer.task
 
-Ticks:		.quad 0
+Ticks:			.quad 0
 TimeSliceCount: .byte 5
 Timer.active: 	.byte 0
 Timer.interval:	.quad 0
-Timer.task:	.quad 0
+Timer.task:		.quad 0
