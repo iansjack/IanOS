@@ -50,6 +50,7 @@ struct MessagePort
 struct MemStruct
 {
 	struct MemStruct * next;
+//	struct MemStruct * previous;
 	long size;
 };
 

@@ -71,6 +71,7 @@ void NewTask(char * name)
 		ReadFile(fHandle, (char *)TempUserData, datalen);
 		data = (long *)(TempUserData + datalen);
 		data[0] = 0;
+		//data[1] = 0;
 		data[1] = PageSize - datalen - 0x10;
 		task->firstfreemem = UserData + datalen;
 		CloseFile(fHandle);

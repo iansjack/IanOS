@@ -1,8 +1,6 @@
 #include "cmemory.h"
 #include "ckstructs.h"
 
-struct Message ConsoleMsg;
-
 /*
 ====================================================
 This is the task that listens for keyboard requests.
@@ -10,21 +8,48 @@ This is the task that listens for keyboard requests.
 */
 void consoleTaskCode()
 {
+	struct MessagePort * CP = ConsolePort;
+	
+	short int column = 0;
+	short int row = 0;
+	struct Message ConsoleMsg;
+	
 	CreatePTE(AllocPage64(), KernelStack);
 	CreatePTE(AllocPage64(), UserStack);
 	asm("mov $(0x3FF000 - 0x18), %rsp");
 	
 	char * VideoBuffer = (char *)0xB8000;
+
+	CP->waitingProc = 0;
+	CP->msgQueue = 0;
 	
 	while (1)
 	{
 		ReceiveMessage(ConsolePort, &ConsoleMsg); 
-		if (ConsoleMsg.byte == 1)
+		switch (ConsoleMsg.byte == 1)
 		{
-			VideoBuffer[0] = (unsigned char)ConsoleMsg.quad;
-		}
-		else
-		{
+			case 1:
+				switch (ConsoleMsg.quad)
+				{
+					case 9:
+						column--;
+						break;
+					case 13:
+						column = 0;
+						row++;
+						break;
+					default:
+						VideoBuffer[160 * row + 2 * column] = (unsigned char)ConsoleMsg.quad;
+						column++;
+						if (column == 80)
+						{
+							column = 0;
+							row++;
+						}
+				}
+				break;
+			default:
+				break;
 		}
 	}
 }

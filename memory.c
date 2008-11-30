@@ -80,9 +80,9 @@ Allocates the memory and returns its address in RAX
 */
 void * AllocMem(long sizeRequested, struct MemStruct * list)
 {
-	sizeRequested += sizeof(struct MemStruct);
+	//sizeRequested += sizeof(struct MemStruct);
 	while (list->size < sizeRequested) list = list->next;
-	if (list->size <= sizeRequested + 0x10)
+	if (list->size <= sizeRequested + sizeof(struct MemStruct))
 	{
 		list->size = 0;
 	}
@@ -90,9 +90,10 @@ void * AllocMem(long sizeRequested, struct MemStruct * list)
 	{
 		void * temp = (void *) list;
 		temp += sizeRequested;
+		temp += sizeof(struct MemStruct);
 		((struct MemStruct *)temp)->next = list->next;
 		list->next = (struct MemStruct *) temp;
-		list->next->size = list->size - sizeRequested;
+		list->next->size = list->size - sizeRequested - sizeof(struct MemStruct);
 		list->size = 0;
 	}
 	return list + 1;
@@ -108,7 +109,7 @@ void DeallocMem(void * list)
 {
 	struct MemStruct * l = (struct MemStruct *)list;
 	l--;
-	l->size = (void *)l->next - (void *)l;
+	l->size = (int)l->next - (int)l - sizeof(struct MemStruct);
 }
 
 /*

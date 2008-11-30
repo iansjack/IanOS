@@ -120,6 +120,7 @@ int OpenFile(char name[11], struct FCB * fHandle)
 					fHandle->currentClusterEntry->cluster = nextCluster;
 				}
 				currentCluster = nextCluster;
+				DeallocMem(DiskBuffer);
 			}
 		}
 		fHandle->startSector = ClusterToSector(entry->startingCluster);

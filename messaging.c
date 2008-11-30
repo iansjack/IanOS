@@ -29,6 +29,7 @@ void SendMessage(struct MessagePort * MP, struct Message * Msg)
 		task->waiting = 0;
 		SwTasks15(task);
 	}
+	DeallocMem(temp);
 }
 
 /*
@@ -47,6 +48,7 @@ void ReceiveMessage(struct MessagePort * MP, struct Message * Msg)
 	struct Message * temp = MP->msgQueue;
 	MP->msgQueue = temp->nextMessage;
 	copyMem((unsigned char *)temp, (unsigned char *)Msg, sizeof(struct Message));
+//	DeallocMem(temp);
 }
 
 /*
@@ -73,4 +75,5 @@ void SendReceiveMessage(struct MessagePort * MP, struct Message *Msg)
 	Msg->quad = (long)tempMP;
 	SendMessage(MP, Msg);
 	ReceiveMessage(tempMP, Msg);
+	DeallocMem(tempMP);
 }
