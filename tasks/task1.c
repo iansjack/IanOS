@@ -6,16 +6,18 @@
 void main(void)
 {
 	struct Message *taskMsg;
-	int row = 0;
+	//int row = 0;
 	int column = 0;
-	char commandline[12];
+	char commandline[80];
 
 	ClearScr();
 	WriteString("IanOS Version 0.01 - 2008", 0, 0);
-	row++;
-	WriteString("#> ", row, 0);
-	column = 3;
-	WriteChar('_', row, column);
+	writeconsolechar(13);
+	writeconsolechar('#');
+	writeconsolechar('>');
+	writeconsolechar(' ');
+	writeconsolechar('_');
+	writeconsolechar(9);
 	sys_CreateTask("TASK2.BIN");
 	while (1)
 	{
@@ -24,10 +26,13 @@ void main(void)
 		{
 			case 13:
 				column = 0;
-				row++;
-				WriteString("#> ", row, 0);
-				column = 3;
-				WriteChar('_', row, column);
+				writeconsolechar(' ');
+				writeconsolechar(13);
+				writeconsolechar('#');
+				writeconsolechar('>');
+				writeconsolechar(' ');
+				writeconsolechar('_');
+				writeconsolechar(9);
 				// Convert commandline[] to uppercase.
 				char i;
 				for (i = 0; i < 12; i++)
@@ -36,11 +41,14 @@ void main(void)
 						commandline[i] = commandline[i] - 0x20;
 				}
 				sys_CreateTask(commandline);
+				// Clear commandline[]
+				for (i = 0; i < 12; i++) commandline[i] = 0;
 				break;
 			default:
-				commandline[column - 3] = c;
-				WriteChar(c, row, column++);
-				WriteChar('_', row, column);
+				commandline[column++] = c;
+				writeconsolechar(c);
+				writeconsolechar('_');
+				writeconsolechar(9);
 				break;
 		}
 	}
