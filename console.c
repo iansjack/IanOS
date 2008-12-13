@@ -8,7 +8,9 @@ This is the task that listens for keyboard requests.
 */
 void consoleTaskCode()
 {
-	struct MessagePort * CP = ConsolePort;
+	//struct MessagePort * CP = (struct MessagePort *)ConsolePort;
+	((struct MessagePort *)ConsolePort)->waitingProc = 0;
+	((struct MessagePort *)ConsolePort)->msgQueue = 0;
 	
 	short int column = 0;
 	short int row = 0;
@@ -20,9 +22,6 @@ void consoleTaskCode()
 	
 	char * VideoBuffer = (char *)0xB8000;
 
-	CP->waitingProc = 0;
-	CP->msgQueue = 0;
-	
 	while (1)
 	{
 		ReceiveMessage(ConsolePort, &ConsoleMsg); 

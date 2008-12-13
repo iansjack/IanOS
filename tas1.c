@@ -12,7 +12,7 @@ void tas1(void)
 	sys_CreateKTask(kbTaskCode);
 	sys_Sleep(10);
 	sys_CreateKTask(consoleTaskCode);
-	sys_Sleep(10);
+	sys_Sleep(100);
 	sys_CreateTask("TASK1.BIN");
 	sys_KillTask();
 }

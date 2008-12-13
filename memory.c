@@ -7,6 +7,7 @@ struct MemStruct * firstFreeKMem = (struct MemStruct *)0x11000;	//#dq FFKM
 static long nextKPage = 0x12;									//#dq (FFKM shr 12) + 1
 
 unsigned char * PMap = (unsigned char *) PageMap;
+long NoOfAllocations;
 
 /*
 =====================================================
@@ -80,14 +81,17 @@ Allocates the memory and returns its address in RAX
 */
 void * AllocMem(long sizeRequested, struct MemStruct * list)
 {
-	//sizeRequested += sizeof(struct MemStruct);
 	while (list->size < sizeRequested) list = list->next;
+	// We now have found a free memory block with enough (or more space)
+	// Is there enough space for another link?
 	if (list->size <= sizeRequested + sizeof(struct MemStruct))
 	{
+		// No. Just allocate the whole block
 		list->size = 0;
 	}
 	else
 	{
+		// Yes, so create the new link
 		void * temp = (void *) list;
 		temp += sizeRequested;
 		temp += sizeof(struct MemStruct);
@@ -96,6 +100,7 @@ void * AllocMem(long sizeRequested, struct MemStruct * list)
 		list->next->size = list->size - sizeRequested - sizeof(struct MemStruct);
 		list->size = 0;
 	}
+	NoOfAllocations++;
 	return list + 1;
 }
 
@@ -110,6 +115,7 @@ void DeallocMem(void * list)
 	struct MemStruct * l = (struct MemStruct *)list;
 	l--;
 	l->size = (int)l->next - (int)l - sizeof(struct MemStruct);
+	NoOfAllocations--;
 }
 
 /*

@@ -29,7 +29,7 @@ void SendMessage(struct MessagePort * MP, struct Message * Msg)
 		task->waiting = 0;
 		SwTasks15(task);
 	}
-	DeallocMem(temp);
+	//DeallocMem(temp);
 }
 
 /*
@@ -39,7 +39,7 @@ Receive a message from a message port
 */
 void ReceiveMessage(struct MessagePort * MP, struct Message * Msg) 
 {
-	if (MP->msgQueue == 0)
+	while (MP->msgQueue == 0)
 	{
 		MP->waitingProc = currentTask;
 		currentTask->waiting = 0x80;
@@ -48,7 +48,7 @@ void ReceiveMessage(struct MessagePort * MP, struct Message * Msg)
 	struct Message * temp = MP->msgQueue;
 	MP->msgQueue = temp->nextMessage;
 	copyMem((unsigned char *)temp, (unsigned char *)Msg, sizeof(struct Message));
-//	DeallocMem(temp);
+	DeallocMem(temp);
 }
 
 /*

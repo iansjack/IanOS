@@ -21,8 +21,8 @@ void kbTaskCode()
 	asm("mov $(0x3FF000 - 0x18), %rsp");
 	kbBufStart = kbBufCurrent = kbBufCount = 0;
 	
-	((struct MessagePort *)ConsolePort)->waitingProc = 0;
-	((struct MessagePort *)ConsolePort)->msgQueue = 0;
+	((struct MessagePort *)KbdPort)->waitingProc = 0;
+	((struct MessagePort *)KbdPort)->msgQueue = 0;
 	while (1)
 	{
 		ReceiveMessage(KbdPort, &KbdMsg); 
