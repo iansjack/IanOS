@@ -3,5 +3,6 @@
 
 char getchar(void);
 void send(struct Message * msg);
+void writeconsolechar(char c);
 
 #endif
