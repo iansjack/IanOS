@@ -1,6 +1,7 @@
 CFLAGS = -fpack-struct -ffixed-r15 -O -I ..
 LIBS = ../library/liblib.a ../library/libsyscalls.a 
-LIBOBJS = clearscr.o writestring.o getticks.o writedouble.o sendreceive.o writechar.o send.o getchar.o writeconsolechar.o
+LIBOBJS = clearscr.o writestring.o getticks.o writedouble.o sendreceive.o writechar.o send.o getchar.o \
+	writeconsolechar.o writeconsolestring.o
 SYSCALLSOBJS = sys_AllocMem.o sys_CreateTask.o sys_CreateKTask.o sys_DeallocMem.o sys_KillTask.o \
 	sys_ReceiveMessage.o sys_SendMessage.o sys_Sleep.o
 
@@ -15,4 +16,7 @@ libsyscalls.a: $(SYSCALLSOBJS)
 clean:
 	rm $(LIBOBJS) $(SYSCALLSOBJS)
 
-writeconsolechar.o: writeconsolechar.c
+writeconsolechar.o: writeconsolechar.c ../console.h
+
+writeconsolestring.o: writeconsolestring.c ../console.h
+
