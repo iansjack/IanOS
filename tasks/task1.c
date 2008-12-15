@@ -11,12 +11,8 @@ void main(void)
 	char commandline[80];
 
 	ClearScr();
-	WriteString("IanOS Version 0.01 - 2008", 0, 0);
-	writeconsolechar(13);
-	writeconsolechar('#');
-	writeconsolechar('>');
-	writeconsolechar(' ');
-	writeconsolechar('_');
+	writeconsolestring("IanOS Version 0.1 - 2008\r");
+	writeconsolestring("#> _");
 	writeconsolechar(9);
 	sys_CreateTask("TASK2.BIN");
 	while (1)
@@ -26,13 +22,9 @@ void main(void)
 		{
 			case 13:
 				column = 0;
-				writeconsolechar(' ');
-				writeconsolechar(13);
-				writeconsolechar('#');
-				writeconsolechar('>');
-				writeconsolechar(' ');
-				writeconsolechar('_');
+				writeconsolestring(" \r#> _");
 				writeconsolechar(9);
+
 				// Convert commandline[] to uppercase.
 				char i;
 				for (i = 0; i < 12; i++)
@@ -41,6 +33,7 @@ void main(void)
 						commandline[i] = commandline[i] - 0x20;
 				}
 				sys_CreateTask(commandline);
+
 				// Clear commandline[]
 				for (i = 0; i < 12; i++) commandline[i] = 0;
 				break;
