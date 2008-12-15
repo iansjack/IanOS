@@ -57,6 +57,10 @@ ag:	mov %al, (%rcx, %rdx, 1)
 	movq $0, (%rcx)
 	movq $0xFE0, 8(%rcx)
 
+	mov $0x1F0000, %rcx
+	movq $0, (%rcx)
+	movq $0xFE0, 8(%rcx)
+
 	call InitializeHD
 
 	mov $StaticPort, %r14

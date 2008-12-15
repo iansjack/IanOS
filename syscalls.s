@@ -25,6 +25,7 @@ CallNo:	.quad	AllocatePage64	# ALLOCPAGE
 	.quad	Kill_Task			# KILLTASK
 	.quad	Halt				# HALT
 	.quad   NewKerneltask		# CREATEKTASK
+	.quad	Alloc_Shared_Mem	# ALLOCSHAREDMEM
 
 SysCalls:
 	jmp *(CallNo - 8)(,%r9, 8)
@@ -250,5 +251,15 @@ NewKerneltask:
 	call NewKernelTask
 	int  $22
 	pop %rcx
+	sysretq
+
+#==============================================================
+# Allocate some shared memory. RDI = amount to allocate
+# Returns in RAX address of allocated memory.
+#==============================================================
+Alloc_Shared_Mem:
+	push %rcx
+	call AllocSharedMem
+	pop  %rcx
 	sysretq
 

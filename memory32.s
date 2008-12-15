@@ -69,13 +69,22 @@ MemLoopEnd:
 	movb $0, (%ebx, %ecx)
 	loop .again3
 
-	# 0x000A0000 - 0x00100000
+	# 0x000A0000 - 0x00100000, Ports, ROM, VideoMem, etc.
 	mov $(PageMap + 0xA0), %ebx
 	mov $0x60, %ecx
 .ag2:	movb $1, (%ebx)
 	inc %ebx
 	decl nPagesFree
 	loop .ag2
+
+	# 0x001F0000 - 0x00200000, Shared Memory
+	mov $(PageMap + 0x1F0), %ebx
+	mov $0x10, %ecx
+.ag3:	movb $1, (%ebx)
+	inc %ebx
+	decl nPagesFree
+	loop .ag3
+
 	ret
 
 #===========================================

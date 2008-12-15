@@ -5,6 +5,7 @@ unsigned char oMemMax;
 long nPagesFree;
 struct MemStruct * firstFreeKMem = (struct MemStruct *)0x11000;	//#dq FFKM
 static long nextKPage = 0x12;									//#dq (FFKM shr 12) + 1
+struct MemStruct * firstFreeSharedMem = (struct MemStruct *)0x1F0000;
 
 unsigned char * PMap = (unsigned char *) PageMap;
 long NoOfAllocations;
@@ -143,3 +144,27 @@ void * AllocKMem(long sizeRequested)
 	return temp;
 }
 
+/*
+===============================================================================
+Allocate some kernel memory from the heap. sizeRequested = amount to allocate
+Returns in RAX address of allocated memory.
+===============================================================================
+*/
+void * AllocSharedMem(long sizeRequested)
+{
+	void * temp = 0;
+	while (temp == 0)
+	{
+		temp = AllocMem(sizeRequested, firstFreeSharedMem);
+		if (temp == 0)
+		{
+			//firstFreeKMem = (struct MemStruct*)(nextKPage << 12);
+			//CreatePTE(AllocPage64(), nextKPage);
+			//nextKPage++;
+			//struct MemStruct * tempmem = firstFreeKMem;
+			//while (tempmem->next != 0) tempmem = tempmem->next;
+			//tempmem->size += PageSize;
+		}
+	}
+	return temp;
+}

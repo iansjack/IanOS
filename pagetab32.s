@@ -56,7 +56,7 @@ CreatePageDir:
 #=====================================================================
 CreatePT164:
 	mov %eax, %esi
-	mov $0x200, %ecx
+	mov $0x1F0, %ecx
 	mov $0, %ebx
 	mov $1, %eax
 	#mov $7, %eax
@@ -74,6 +74,25 @@ again:	movl $0, (%ebx, %esi)
 	add $0x1000, %eax
 .notdata:
 	loop again
+.shared:
+	mov $0x10, %ecx
+	mov $0x1F0007, %eax
+	mov $0xf80, %ebx
+#	mov $PageMap, %edx
+again2:	
+#	movl $0, (%ebx, %esi)
+#	movl $0, 4(%ebx, %esi)
+#	cmpb $0, (%edx)
+#	je  .notused2
+#	cmpb $0xFF, (%edx)
+#	je  .notused2			# well - used by task 1, but we don't want to map it
+	mov %eax, (%ebx, %esi)
+.notused2:
+#	inc %edx
+	add $8, %ebx
+	add $0x1000, %eax
+.notdata2:
+	loop again2
 	ret
 
 #==========================================

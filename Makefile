@@ -41,7 +41,7 @@ memory.o: memory.c cmemory.h ckstructs.h
 
 keyboard.o: keyboard.c cmemory.h ckstructs.h
 
-console.o: console.c cmemory.h ckstructs.h
+console.o: console.c cmemory.h ckstructs.h console.h
 
 fat.o: fat.c cmemory.h ckstructs.h
 
