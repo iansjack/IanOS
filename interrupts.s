@@ -217,7 +217,6 @@ Ps:	mov $160, %ax
 HD_PORT=0x1F0
 int21:	mov  $HD_PORT+7, %dx
 .again2:
-#	KWRITE_DOUBLE $0x30, $20, $70
 	in  %dx, %al
 	test $0x80, %al
 	jnz .again2
@@ -246,24 +245,21 @@ int21:	mov  $HD_PORT+7, %dx
 	inc %dx		      		# 0x1F7
 	mov $0x20, %ax
 	out %al, %dx
+	cli
 	push %rdi
-#	KWRITE_DOUBLE $0x31, $20, $70
 	mov $HDINT, %rdi
 	call WaitForInt
-#	KWRITE_DOUBLE $0x32, $20, $70
 	pop %rdi
 .again3:
 	in  %dx, %al
 	test $0x80, %al
 	jnz .again3
-#	KWRITE_DOUBLE $0x33, $20, $70
 	mov $HD_PORT, %dx
 	mov $0, %eax
 	mov $256, %rcx
 	cld
 	rep
 	insw
-#	KWRITE_DOUBLE $0x34, $20, $70
 	iretq
 
 #===============================================================================
@@ -273,6 +269,7 @@ WaitForInt:
 	mov  currentTask, %r15
 	mov  %rdi, %rax
 	mov  %al, TS.waiting(%r15)
+	sti
 	SWITCH_TASKS		       # The current task is no longer runnable
 	ret
 
