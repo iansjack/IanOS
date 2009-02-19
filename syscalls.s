@@ -7,7 +7,8 @@
 
 	.global SysCalls
 
-CallNo:	.quad	AllocatePage64	# ALLOCPAGE
+CallNo:	
+	.quad	AllocatePage64		# ALLOCPAGE
 	.quad	PrintString			# PRINTSTRING
 	.quad	PrintDouble			# PRINTDOUBLE
 	.quad	PrintChar			# PRINTCHAR

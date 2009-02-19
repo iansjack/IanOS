@@ -13,6 +13,30 @@ short int row;
 char * VideoBuffer;
 struct Message ConsoleMsg;
 
+void printchar(unsigned char c)
+{
+	switch (c)
+	{
+		case 0:
+			break;
+		case BACKSPACE:
+			if (column > 0) column--;
+			break;
+		case CR:
+			column = 0;
+			row++;
+			break;
+		default:
+			VideoBuffer[160 * row + 2 * column] = c;
+			column++;
+			if (column == 80)
+			{
+				column = 0;
+				row++;
+			}
+	}
+}
+
 void consoleTaskCode()
 {
 	CreatePTE(AllocPage64(), KernelStack);
@@ -42,7 +66,17 @@ void consoleTaskCode()
 					printchar(*s);
 					s++;
 				} 
-				DeallocMem(ConsoleMsg.quad);
+				DeallocMem((void *)ConsoleMsg.quad);
+				break;
+			case CLRSCR:
+				for (row = 0; row < 25; row++)
+					for (column = 0; column < 80; column++)
+					{
+						VideoBuffer[160 * row + 2 * column] = ' ';
+						VideoBuffer[160 * row + 2 * column + 1] = 7;
+					}
+				column = 0;
+				row = 0;
 				break;
 			default:
 				break;
@@ -50,24 +84,3 @@ void consoleTaskCode()
 	}
 }
 
-void printchar(unsigned char c)
-{
-	switch (c)
-	{
-		case 9:
-			if (column > 0) column--;
-			break;
-		case 13:
-			column = 0;
-			row++;
-			break;
-		default:
-			VideoBuffer[160 * row + 2 * column] = c;
-			column++;
-			if (column == 80)
-			{
-				column = 0;
-				row++;
-			}
-	}
-}

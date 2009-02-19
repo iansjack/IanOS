@@ -2,7 +2,7 @@
 #include "ckstructs.h"
 #include "library/syscalls.h"
 
-void main(void)
+int main(void)
 {
 	WriteString("Task 4 is now running.", 14, 50);
 	//writeconsolechar('A');
@@ -10,4 +10,5 @@ void main(void)
 	{
 		WriteDouble(GetTicks(), 23, 60);
 	}
+	return 0;
 }

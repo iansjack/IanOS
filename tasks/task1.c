@@ -2,28 +2,33 @@
 #include "cmemory.h"
 #include "library/syscalls.h"
 #include "library/lib.h"
+#include "console.h"
 
-void main(void)
+int main(void)
 {
 	struct Message *taskMsg;
-	//int row = 0;
 	int column = 0;
 	char commandline[80];
 
-	ClearScr();
+	consoleclrscr();
 	writeconsolestring("IanOS Version 0.1 - 2008\r");
-	writeconsolestring("#> _");
-	writeconsolechar(9);
+	writeconsolestring("#> _\b");
 	sys_CreateTask("TASK2.BIN");
 	while (1)
 	{
 		char c = getchar();
 		switch (c)
 		{
-			case 13:
+			case BACKSPACE:
+				if (column > 0)
+				{	
+					writeconsolestring(" \b\b_\b");
+					commandline[column--] = 0;
+				}
+				break;
+			case CR:
 				column = 0;
-				writeconsolestring(" \r#> _");
-				writeconsolechar(9);
+				writeconsolestring(" \r#> _\b");
 
 				// Convert commandline[] to uppercase.
 				char i;
@@ -40,10 +45,10 @@ void main(void)
 			default:
 				commandline[column++] = c;
 				writeconsolechar(c);
-				writeconsolechar('_');
-				writeconsolechar(9);
+				writeconsolestring("_\b");
 				break;
 		}
 	}
+	return 0;
 }
 

@@ -26,10 +26,6 @@ HDINT = 14
 KbInt:	push %rax
 	push %rbx
 	in   $0x60, %al		 # MUST read byte from keyboard - else no more ints
-	test $0x80, %al		 # only interested in key make events
-	jnz  .kbdone
-	mov  $KbdTable, %ebx
-	xlat (%ebx)
 	mov  $kbBuffer, %ebx
 	addl kbBufCurrent, %ebx
 	mov  %al, (%ebx)

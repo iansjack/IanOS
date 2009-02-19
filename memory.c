@@ -115,7 +115,7 @@ void DeallocMem(void * list)
 {
 	struct MemStruct * l = (struct MemStruct *)list;
 	l--;
-	l->size = (int)l->next - (int)l - sizeof(struct MemStruct);
+	l->size = (long)l->next - (long)l - sizeof(struct MemStruct);
 	NoOfAllocations--;
 }
 

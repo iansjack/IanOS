@@ -51,12 +51,13 @@ HwSetup:
 	out %al, $0x60
 
 # enable interrupts
-	mov $0b11111000, %al	# enable keyboard + timer interrupt
+#	mov $0b11111000, %al	# enable keyboard + timer interrupt
+	mov $0b11111010, %al	# enable keyboard + timer interrupt
 	out %al, $0x21
 
 # reset ide controller
-	mov $0b00000100, %al
-	out %al, $0x3f6
+#	mov $0b00000100, %al
+#	out %al, $0x3f6
 # enable hd interrupt
 	mov $0b10111111, %al
 	out %al, $0xa1
