@@ -1,0 +1,27 @@
+<<T Documentation>>
+<<H1 Documentation>>
+<<HR>>
+<<H3 Programmer's Manuals>>
+The most important information that you require is that produced by the manufacturer of the chip. We are extremely fortunate that both AMD and Intel make the Programmer's Manuals, and many other useful documents, available at no charge on their web sites.
+<<PAR>>
+<<IN <<A http://developer.amd.com/documentation/guides/Pages/default.aspx AMD documentation>> >>
+<<IN+ <<A http://www.intel.com/products/processor/manuals/index.htm Intel documentation>> >>
+Whichever make of processor you have I would strongly recommend looking at both sets of documents. The differences between the actual chips are minimal, but the manuals provide interestingly different slants on them.
+<<PAR>>
+From here on I will refer exclusively to the AMD manuals. A reference to <<I AMD2>> (for example) means <<I AMD64 Architecture Programmer's Manual Volume 2: System Programming>>.
+
+<<H3 Books>>
+Some books that I found extremely useful are:
+<<PAR>>
+<<IN Richard Burgess, <<I Developing Your Own 32-Bit Operating System>>, Sams Publishing, 1995. ISBN 0672306557.>>
+<<IN Hans-Peter Messmer, <<I The Indispensable PC Hardware Book, 2nd edition>>, Addison-Wesley, 1995. ISBN 0201876973.>>
+<<IN Marshall Kirk McKusick <<I et al., The Design and Implementation of the 4.4 BSD Operating System>>, Addison-Wesley, 1996, ISBN 0201549794.>>
+<<IN Wolfgang Maurer, <<I Professional Linux Kernel Architecture>>, Wrox, 2008. ISBN 9780470343432.>>
+<<IN+ Amit Singh, <<I Mac OS X Internals. A Systems Approach>>, Addison-Wesley, 2007. ISBN 0321278542.>>
+These two aren't OS-related but will probably be of interest to anyone who appreciates the intellectual challenge of writing an operating system:
+<<PAR>>
+<<IN Douglas Hoftstatder, <<I Godel, Escher, Bach: An Eternal Golden Braid (20th anniversary edition)>>, Penguin Books Ltd, 2000. ISBN 0140289208.>>
+<<IN Roger Penrose, <<I The Road to Reality: A Complete Guide to the Laws of the Universe>>, Vintage, 2006. ISBN 0099440687.>>
+<<PAR>>
+<<HR>>
+

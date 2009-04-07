@@ -1,0 +1,8 @@
+<<T syntax.html>><<H1 Assembler Syntax>><<HR>>There are two distinct forms of syntax used for x86 programming.<br><<H3 Intel syntax>>This is the syntax that you are probably most familiar with. It is used by, amongst others, <<S nasm>> and <<S fasm>>. A typical line of code looks like
+<<PAR>>
+<<D+ mov   eax, 1234>>This moves the value 1234 into register eax. Note that the destination is on the left of the comma and the destination on the right.<br><<H3 AT&amp;T syntax>>The same line in AT&amp;T syntax would read<<PAR>><<D+ mov   $1234, %eax>>The most obvious difference is that the source is now on the left of the comma and the destination on the right. To me this seems more natural as I read it as "move 1234 into register eax".
+<<PAR>>
+I use the AT&amp;T syntax. The main reason for this is that it is the "natural" syntax for the <<S gcc>> toolset. (If you look at the assembler code produced by <<S gcc>> you will see that it is in AT&amp;T syntax.) This makes life easier, for me at any rate, when mixing C and assembler.
+<<PAR>>
+If you Google "assembler syntax" you'll find several pages explaining the AT&amp;T syntax, including <<A http://sig9.com/articles/att-syntax this one>>.
+<<PAR>><<HR>>

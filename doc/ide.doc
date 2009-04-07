@@ -1,0 +1,8 @@
+<<T Hard Disk>><<H1 Hard Disk>>
+<<CONT>>
+<<HR>>The device driver for the hard disk consists entirely of a software interrupt routine, <<X int21>> in <<F interrupts.s>>, and a hardware interrupt routine, <<X HdInt>> (the hard disk controller will trigger this interrupt when it has finished its work). Currently only disk reads are catered for; a call to <<X int21>> will load one sector from the hard disk (specified by register <<C esi>>) into a buffer (specified by register <<C rdi>>). This is very straightforward; the appropriate registers in the IDE controller are set and then, when the controller signifies that it is ready (hence the <<C call WaitForInt>>), a simple loop reads the data into the buffer. Note that this code only works with a straightforward IDE controller (it'll be fine with <<S SimNow>> and <<S qemu>>), not SATA or SCSI controllers. (I'll try to find a reference giving details of the IDE controller.)
+<<PAR>>
+Similarly, <<X HdInt>> is not complicated. It clears the interrupt and then checks through the tasks in turn to find the first one that is waiting for an interrupt from the disk controller (There must be at least one, else why is the disk controller doing any work? If nothing is waiting for it something has gone seriously wrong!) Having found a waiting task a specific task switch to that task is made.
+<<PAR>>
+I realize that there are problems with this device driver. In particular, it doesn't guard against two simultaneous requests. (And it only reads from the disk; we'll need to implement writing at some stage.) Logically this needs to be rewritten as a kernel task, which will make queuing of requests easy. (So much to do, so little time!)<<HR>><<CONT>>
+

@@ -1,0 +1,36 @@
+<<T Memory Management>>
+<<H1 Memory Management>>
+<<CONT>>
+<<HR>>
+The files <<F memory.h>> and <<F cmemory.h>> define the memory map for IanOS, the former for inclusion in assembly files the latter in C files. It is important to ensure that these two files remain synchronized. All memory is allocated in 4K pages and the memory space is treated as a linear array of addressed from 0x0000000000000000 to 0xFFFFFFFFFFFFFFFF. At the risk of repeating the famous "640K" quote, you are unlikely to run into problems with available memory space!
+<<PAR>>
+Basic memory allocation is handled in the files <<F memory32.s>>, <<F pagetab32.s>>, and <<F memory.c>>. The first two files deal with allocation of pages and creation of Page Tables whilst still in 32-bit mode (we need to be able to do this as we can't switch to 64-bit mode until paging is enabled, and we'll need some Page Tables to do this).
+<<PAR>>
+<<H3 Page Tables>>
+Each process (task, whatever you like to call it) will have it's own Page Table. The process's code will be located at 0x300000 and it's data at 0x310000. It will also have a separate user stack and kernel stack (the stack used when the process is running kernel code) located at 0x3FC000 and 0x3FE000. Of course, the physical addresses will be different for each process. Because a process's Page Table will only contain entries for it's own memory it cannot access memory belonging to another process. (The Page Table will also contain entries for the kernel memory, but this is only used by system calls.)
+<<PAR>>
+To understand the routines that create the Page Tables it is absolutely essential that you fully understand how paging works in 64-bit mode.  Study section 5.3 of <<I AMD2>> (remembering that we are using 4K pages exclusively). I find that these routines are some of the most conceptually difficult in the system; a couple of months  after writing them I had great difficult in understanding exactly what was going on  (a sure sign that I didn't use enough comments - I'll try to remedy that).
+<<PAR>>
+In the memory header files you'll see entries for <<C PageTableL4>>, etc.  The purpose of these is to provide virtual addresses pointing to the physical pages  in which the page table is stored. We need to be able to do this so that we can  access the Page Table in order to create or delete entries as memory is allocated/deallocated.  There are also some <<C TempPTL>> entries; these server a similar purpose whilst  we are actually creating the Page Table.
+<<PAR>>
+Creation of a Page Table for a new task is handled by the routine <<X VCreatePageDir>> in <<F memory.c>>. The five declarations at the start of this routine allow us to easily refer to the temporary locations as either integers or void pointers. A page is allocated for the top level directory and it's address is stored in <<C PD>>; this is the value that will be placed in register <<C CR3>> when the task is running. Next a page is allocated for the next level directory and its address is placed into the top-level directory. This process is repeated for the next level. This directory needs to point to two tables; one corresponding to memory locations 0x000000 - 0x1FFFFF (the kernel memory) the other to locations 0x200000 - 0x3FFFFF (the task memory). The first of these tables is shared by all tasks and the kernel, and it is essential that any changes made to it are reflected in all tasks. The easiest way to ensure this is to use just the one table; the pointer from the current Page Table is copied to the new one by the line:
+<<PAR>>
+<<D+ TPTL2[0] = PTL12[3];>>
+The next line creates the other table. The next five lines then create the virtual addresses pointing to the new Page Table, and then entries are created for the task code (at 0x300000) and task data (at 0x310000). This is quite restrictive in the amount of memory available for each task but this is only a Mickey Mouse system; there is nothing conceptually difficult about allowing (much) more memory. Finally the routine returns the pointer to the Page Table. 
+<<PAR>>
+The resulting Page Table looks something like:
+<<PAR>>
+<img src="pt.jpg" width="495" height="291" alt="" border="0">
+<<H3 Page Allocation>>
+The function <<X AllocPage64>> allocates one page of memory, returning a pointer to the physical address of the page; the array <<C PMap>> records which pages are allocated. After allocating a page a Page Table entry will be created for it by the function <<X CreatePTE>>; this is called with the physical address of the page and the required virtual address as parameters, and returns the physical address. (Currently this function only handles a restricted range of the available memory space; eventually it will be modified to cover the whole virtual address space.)
+<<H3 Heap Memory>>
+The kernel and each separate tasks all have their own heaps to provide dynamic memory allocation. Memory on these heaps is managed by simple linked lists. Each memory block starts with a header (defined in <<F ckstructs.h>>) recording the size of the block and the address of the next block. Memory is allocated by the function <<X AllocMem>>. If there isn't a free block large enough to accommodate the request (plus the size of the header) then <<X AllocMem>> returns 0; otherwise it returns the address of the newly allocated block.
+<<PAR>>
+The function <<X AllocKMem>> allocates memory on the kernel heap, automatically adding another page of memory to the heap if necessary. (For some reason I haven't yet written a corresponding function for user memory, but this is trivial.)
+<<PAR>>
+Memory is deallocated by the function <<X DeAllocMem>> which suffices for both user memory and kernel memory. Note that none of these functions will be called directly by user programs; system calls are provided which encapsulate these functions.
+<<PAR>>
+<<HR>>
+<<CONT>>
+
+

@@ -1,0 +1,6 @@
+<<T Miscellaneous>>
+<<H1 Miscellaneous Code>>
+<<HR>>
+There's a selection of other source files, code to handle the FAT file system, library routines, and user tasks, that I haven't yet documented. (Who knows - one day, if I get bored.) I hope that most of this code is fairly simple stuff, and I've tried to comment it where necessary. The FAT code is perhaps the most difficult (and it's very incomplete at present). It's not my intention that IanOS will rely of the FAT file system forever - apart from anything else, writing my own file system seems like a fun product.
+<<HR>>
+<<CONT>>

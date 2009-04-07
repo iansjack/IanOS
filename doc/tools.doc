@@ -1,0 +1,26 @@
+<<T Tools>>
+<<H1 Tools>>
+<<HR>>
+<<H3 Host OS>>
+I'm guessing that anyone who is interested in OS internals is probably already running some flavour of Linux. I'm sure that this sort of development could be done on a Windows machine (which is how I started doing it), but the wealth of available tools make Linux the obvious choice. And as you're doing 64-bit development it's probably going to be a lot easier if your hosting it on a 64-bit OS. I use Fedora 8 (64-bit). If you're not happy to install a version of Linux directly onto your computer you could always use a virtual PC of some sort.
+
+<<H3 Virtual PCs>>
+It's highly unlikely that you'll be running your OS directly on a physical computer (at least not until it's fairly mature). Apart from the chance of destroying everything else on your PC, debugging is extremely difficult unless you use some sort of emulator. Far and away the best emulator to use for this sort of development is AMD's <<A http://developer.amd.com/tools/simnow/Pages/default.aspx <<S SimNow>>.>> This truely wonderful, free software will allow you full debugging control over your OS. I can't think how I could possibly have got as far as getting my processor into 64-bit mode without using the facilities of this emulator to see exactly what was happening. The only drawbacks with it are that it runs a little slowly   (between 1/10 and 1/100 of the speed of the physical processor) and that there is no particularly easy way of transferring data between the host and the virtual machine.
+<<PAR>>
+(If you look at the documentation for <<S SimNow>> you'll see that it's stated requirements are a host Athlon64 or Opteron. Don't worry - it works fine on the Intel 64-bit chips.)
+<<PAR>>
+I also use <<A http://fabrice.bellard.free.fr/qemu/ <<S qemu>>.>> This is much faster than <<S SimNow>>, but lacks the debugging facilities. <<S qemu>> can read and write to disks created for use with <<S SimNow>>.
+
+<<H3 Compilers>>
+I use the <<S gcc>> toolset exclusively. There are other assemblers available but I find that the <<S gcc>> assembler, <<S as,>> has all of the facilities that I require. Also it's very easy to combine assembler modules and C modules. (I started out writing everything in assembler but eventually realised that it's much easier to use C where possible.)
+
+<<H3 Editors>>
+There are a host of programmer's editors available for Linux. My (current) favourite is the <<S Anjuata>> IDE. You will also need a hex editor; I use <<S ghex>>.
+
+<<H3 Source Control>>
+If you're really diligent about making notes of everything you do (I'm not) you may be able to do without source control. But it's saved me a lot of work to be able to easily revert to a previous version of a file when I've gone down a dead end. I find that <<S subversion>> works very well for me.
+  
+<<H3 Miscellaneous>>
+To access the hard disk image that we use you will need to have <<S mtools>> installed on your system. Most likely it will already be installed (check if the file <<S /etc/mtools.conf>> exists.
+<<PAR>>
+<<HR>>

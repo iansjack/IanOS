@@ -1,0 +1,7 @@
+<<T Boot Process>><<H1 Overview of Boot Process>>
+<<CONT>>
+<<HR>>To get to Long Mode we need to follow the sequence:<br>  <ul>    <li>Load code into memory</li>    <li>Relocate code and data to the appropriate locations</li>    <li>Set up a Global Descriptor Table</li>    <li>Switch to Protected Mode</li>    <li>Set up an Interrupt Descriptor Table</li>    <li>Set up some Page Descriptor Tables</li>    <li>Enable Long Mode</li>    <li>Enable Paging</li>  </ul>Note the last three steps - unlike Protected Mode, if you want to use Long Mode then you must use Paging; even after you enable Long Mode it doesn't take effect until you also enable Paging. In many ways that's the most difficult part of getting the cpu working as a 64-bit processor.<<PAR>>
+The code covering this process can be found in the files:
+<<PAR>><<IN <<A bootsector.html <<S boot.asm>> >> >><<IN <<A startup.html <<S startup.s>> >> >><<IN <<S memory32.s>> >><<IN <<S pagetab32.s>> >><<IN+ <<S hwsetup.s>> >><<HR>>
+<<CONT>>
+

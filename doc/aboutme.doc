@@ -1,0 +1,19 @@
+<<T About me>>
+<<H1 About Me>>
+<<HR>>
+Just a little background, in case you want to check my credentials. If not, read no further!
+<<PAR>>
+I was born at the end of World War II, between VE and VJ days - I'll leave it for you to work out how old that makes me and to be amazed that I can use a computer, let alone write this stuff. Got a Mathematics degree from the University of York and then worked for a couple of publishing companies. The last 17 years of my working life were spent in computer support, a little programming, and network management.
+<<PAR>>
+I got interested in computers when the first personal ones appeared, starting with a kit called UK101 (this was a project published in the magazine <<I Practical Electronics>>. When I say kit, I really mean kit - every electronic component, every integrated circuit had to be hand soldered. Even the keyboard was made by soldering 50-odd switches onto the printed circuit. I guess there must have been well over a thousand soldered joints in that. It had a 6502 processor, which is where my interest in assembler started. There then followed a Dragon 32 (6809), Sharp MZ700 (Z80), Sinclair QL (68008), a couple of Amigas (68000, 68020, 68030), and several PCs (8088, 80386, 80486, Pentium, Athlon, Athlon 64, Intel core 2 Duo, Athlon dual core). I've also got a couple of Buffalo LinkStation Lives (ARM). I retired a few years back and was lucky enough to be given a Mac Mini (PPC) by my colleagues.
+<<PAR>>
+As well as assembler programming I enjoy playing with C, C++, Objective-C, Eiffel, Smalltalk, and Perl. (There's plenty of other languages that I dabble with, but those are the main ones that I use.)
+<<PAR>>
+I run a variety of operating systems, either natively of via VmWare Server - Windows 98, 2000, XP64, 7, 2008 Server, Fedora Linux 9, 10, and 11, Gentoo Linux (both on a PC and the PPC version on the Mac), OS X, FreeBSD, NetBSD, Open Solaris, QNX, and even OS/2 (remember that anyone?). You might gather that operating systems interest me. The work I present here is done on the Fedora 9 installation.
+<<PAR>>
+When I'm not playing with my computers I spend most of the time gardening, walking my dogs, reading, or playing my guitars. I am trying to teach myself classical guitar, and do a little fingerpicking om my Levin LN26 (a beautiful guitar - thy don't make them anymore). One day I'm going to build my own guitar.
+<<PAR>>
+You don't get a photo - I wouldn't want to frighten the horses, but to make up for it, here's one of my lovely girl.
+<<PAR>>
+<img src="poppy.png">
+<<HR>>

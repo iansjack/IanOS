@@ -1,0 +1,9 @@
+<<T Note>>
+<<H1 A Note About the Source Code>>
+<<HR>>
+I have used the program <<S global>> to create a hypertext version of the source code. It needed a little tweaking to get cross-references to the assembler source code, but should be OK now. Hopefully, navigation of this source code is fairly self-explanatory.
+<<PAR>>
+As I had this source code online I thought that it would be a good idea to link function references in the documentation to the code. Also, where file names are mentioned they are linked. I didn't want to mess the pages up with too many underlined links, so I have made these ones plain - they just show as blue text. Links in the text to other pages, or external sites, are always underlined.
+<<PAR>>
+<<HR>>
+
