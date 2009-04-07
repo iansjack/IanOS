@@ -91,7 +91,7 @@ long FindFile(char name[13])
 ===================================
 Open a file. Fills in FCB info
 Returns 0 on success
- 		1 if file does not exist
+ 	1 if file does not exist
 ===================================
 */
 int OpenFile(char name[11], struct FCB * fHandle)

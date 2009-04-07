@@ -32,11 +32,11 @@ here:
 	bts  $5, %eax				# Physical Address extension bit
 	mov  %eax, %cr4
 
-	mov  $0xc0000080, %ecx		# These 2 instructions read the Extended Feature
-	rdmsr						# Enable register
+	mov  $0xc0000080, %ecx			# These 2 instructions read the Extended Feature
+	rdmsr					# Enable register
 	bts  $0, %eax				# This enables the syscall/sysret instructions
 	bts  $8, %eax				# bit 8 of this register is Long Mode Enable (but we won't
-	wrmsr						# actually be in Long Mode until paging is enabled)
+	wrmsr					# actually be in Long Mode until paging is enabled)
 
 	mov  %cr0, %eax				# enable paging
 	bts  $31, %eax

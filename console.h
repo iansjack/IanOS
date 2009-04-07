@@ -6,6 +6,6 @@
 #define CLRSCR		3
 
 #define BACKSPACE	8
-#define CR			13
+#define CR		13
 
 #endif

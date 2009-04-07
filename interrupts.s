@@ -222,21 +222,21 @@ int21:	mov  $HD_PORT+7, %dx
 	inc %dx		      		# 0x1F3
 	mov %esi, %eax
 	and $0xFF, %al
-	out %al, %dx	      	# lba lo
+	out %al, %dx	      		# lba lo
 	inc %dx		      		# 0x1F4
 	mov %esi, %eax
 	and $0xFF, %ah
 	mov %ah, %al
-	out %al, %dx	      	# lba mid
+	out %al, %dx	      		# lba mid
 	inc %dx		      		# 0x1F5
 	mov %esi, %eax
 	shr $16, %eax
 	and $0xFF, %al
-	out %al, %dx	      	# lba hi
+	out %al, %dx	      		# lba hi
 	inc %dx		      		# 0x1F6
 	and $0xF, %ah
 	mov %ah, %al
-	add $0x40, %al	      	# lba mode/drive /lba top
+	add $0x40, %al	      		# lba mode/drive /lba top
 	out %al, %dx
 	inc %dx		      		# 0x1F7
 	mov $0x20, %ax

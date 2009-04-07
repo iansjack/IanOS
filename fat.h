@@ -13,8 +13,8 @@ struct DirEntry
 
 struct BootSector
 {
-	char			jump[3];
-	char			oemLable[8];
+	char		jump[3];
+	char		oemLable[8];
 	unsigned short	bytesPerSector;
 	unsigned char	sectorsPerCluster;
 	unsigned short	reservedSectors;

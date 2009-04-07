@@ -146,7 +146,7 @@ void * AllocKMem(long sizeRequested)
 
 /*
 ===============================================================================
-Allocate some kernel memory from the heap. sizeRequested = amount to allocate
+Allocate some shared memory from the heap. sizeRequested = amount to allocate
 Returns in RAX address of allocated memory.
 ===============================================================================
 */

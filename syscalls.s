@@ -9,24 +9,25 @@
 
 CallNo:	
 	.quad	AllocatePage64		# ALLOCPAGE
-	.quad	PrintString			# PRINTSTRING
-	.quad	PrintDouble			# PRINTDOUBLE
-	.quad	PrintChar			# PRINTCHAR
-	.quad	Newtask 			# CREATETASK
-	.quad	ClearScreen			# CLEARSCREEN
-	.quad	GetTicks			# GETTICKS
-	.quad	Sleep				# SLEEP
-	.quad	LoadAFile			# LOADFILE
-	.quad	Alloc_Mem			# ALLOCMEM
+	.quad	PrintString		# PRINTSTRING
+	.quad	PrintDouble		# PRINTDOUBLE
+	.quad	PrintChar		# PRINTCHAR
+	.quad	Newtask 		# CREATETASK
+	.quad	ClearScreen		# CLEARSCREEN
+	.quad	GetTicks		# GETTICKS
+	.quad	Sleep			# SLEEP
+	.quad	LoadAFile		# LOADFILE
+	.quad	Alloc_Mem		# ALLOCMEM
 	.quad	Alloc_Message_Port	# ALLOCMSGPORT
 	.quad	Send_Message		# SENDMESSAGE
 	.quad	Receive_Message 	# RECEIVEMESSAGE
-	.quad	Dealloc_Mem			# DEALLOCMEM
+	.quad	Dealloc_Mem		# DEALLOCMEM
 	.quad	Send_Receive		# SENDRECEIVE
-	.quad	Kill_Task			# KILLTASK
-	.quad	Halt				# HALT
+	.quad	Kill_Task		# KILLTASK
+	.quad	Halt			# HALT
 	.quad   NewKerneltask		# CREATEKTASK
 	.quad	Alloc_Shared_Mem	# ALLOCSHAREDMEM
+	.quad	GetCR3			# GETCR3
 
 SysCalls:
 	jmp *(CallNo - 8)(,%r9, 8)
@@ -246,6 +247,9 @@ Halt:
 #=================================================================
 # Create a new kernel task from the code pointed to by RDI
 # Affects RAX, RDI
+# Note - we really, really shouldn't have a system call to create
+# a new kernel task! On the other hand, it calls code compiled
+# into the kernel, so no real harm done.
 #=================================================================
 NewKerneltask:
 	push %rcx
@@ -262,5 +266,12 @@ Alloc_Shared_Mem:
 	push %rcx
 	call AllocSharedMem
 	pop  %rcx
+	sysretq
+
+#==============================================================
+# Return the value of CR3 in RAX
+#==============================================================
+GetCR3:
+	mov %cr3, %rax
 	sysretq
 

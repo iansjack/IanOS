@@ -12,26 +12,26 @@ _start:
 	jmp Bootup
 	nop
 
-Herald:			.ascii "MYOSVER1"
+Herald:		.ascii "MYOSVER1"
 nBytesPerSect:	.word 0x0200
 nSectPerClstr:	.byte 0x01
-nRsvdSect:		.word 0x0001
-nFATS:			.byte 0x02
+nRsvdSect:	.word 0x0001
+nFATS:		.byte 0x02
 nRootDirEnts:	.word 0x00E0
 nTotalSectors:	.word 0x0B40
-bMedia:			.byte 0xF0
+bMedia:		.byte 0xF0
 nSectPerFAT:	.word 0x0009
 nSectPerTrack:	.word 0x0012
-nHeads:			.word 0x0002
-nHidden: 		.long 0x00000000
+nHeads:		.word 0x0002
+nHidden: 	.long 0x00000000
 nTotalSect32:	.long 0x00000000
-bBootDrive:		.byte 0x00
-ResvdByte:		.byte 0x00
-ExtBootSig:		.byte 0x29
-nOSSectors:		.word 0x0080
-ResvsWord:		.word 0x3F51
-Volname:		.ascii "RICH       "
-FatType:		.ascii "FAT12   "
+bBootDrive:	.byte 0x00
+ResvdByte:	.byte 0x00
+ExtBootSig:	.byte 0x29
+nOSSectors:	.word 0x0080
+ResvsWord:	.word 0x3F51
+Volname:	.ascii "RICH       "
+FatType:	.ascii "FAT12   "
 
 # Relocate boot sector to 0x90000
 Bootup:
@@ -204,19 +204,19 @@ mygdt:	.quad	0x0	       					# null descriptor - first entry in GDT must be null
 GDTlength = . - mygdt
 
 gdt_48: 	.word	0x800	  # allow up to 512 entries in GDT
-			.double	0x00000000
+		.double	0x00000000
 
 MsgBadDisk:	.byte 0x0D,0x0A
-			.ascii "Bad Boot Disk!"
-			.byte 0x00
+		.ascii "Bad Boot Disk!"
+		.byte 0x00
 MsgLoad: 	.byte 0x0D,0x0A
-			.ascii "Loading IanOS"
-			.byte 0x00
+		.ascii "Loading IanOS"
+		.byte 0x00
 MsgDot:		.byte '.',0
 
 #====================================================================================
 # Ensure that the bootsector is 512 bytes and add a boot signature at the end of it
 #====================================================================================
 
-			.org  510
+		.org  510
 BootSig:	.word 0xAA5F
