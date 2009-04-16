@@ -29,7 +29,6 @@ void SendMessage(struct MessagePort * MP, struct Message * Msg)
 		task->waiting = 0;
 		SwTasks15(task);
 	}
-	//DeallocMem(temp);
 }
 
 /*
@@ -72,7 +71,7 @@ Send a message to a message port and wait for a reply
 void SendReceiveMessage(struct MessagePort * MP, struct Message *Msg)
 {
 	struct MessagePort * tempMP = AllocMessagePort();
-	Msg->quad = (long)tempMP;
+	Msg->tempPort = (long)tempMP;
 	SendMessage(MP, Msg);
 	ReceiveMessage(tempMP, Msg);
 	DeallocMem(tempMP);

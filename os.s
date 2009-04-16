@@ -47,6 +47,7 @@ ag:	mov %al, (%rcx, %rdx, 1)
 
 	mov $TaskStruct, %r15			# Set up skeleton task structure for first task
 	movq $TaskStruct, TS.nexttask(%r15)
+	movq $TaskStruct, TS.r15(%r15)
 	movb $0, TS.waiting(%r15)		# We don't want task1 to be waiting when it starts
 	movq $UserData, TS.firstfreemem(%r15)
 	movq $1, TS.pid(%r15)
@@ -58,15 +59,6 @@ ag:	mov %al, (%rcx, %rdx, 1)
 	mov $0x1F0000, %rcx			# initialize shared memory list
 	movq $0, (%rcx)
 	movq $0xFE0, 8(%rcx)
-
-	call InitializeHD			# intialize FAT file system
-
-#	mov $StaticPort, %r14
-#	movq $0xFFFFFFFFFFFFFFFF, MP.waitingProc(%r14)	# Initialize StaticPort
-#	movq $0, MP.msgQueue(%r14)
-#	mov $KbdPort, %r14
-#	movq $0xFFFFFFFFFFFFFFFF, MP.waitingProc(%r14)	# Initialize KbdPort
-#	movq $0, MP.msgQueue(%r14)
 
 	mov $0xFF, %al
 	call AllocPage64			# Page for kernel stack
@@ -99,6 +91,8 @@ ag:	mov %al, (%rcx, %rdx, 1)
 	rep movsb
 
 	mov $UserCode, %rcx		  	# Task 1
+	mov $TaskStruct, %r15
+	mov %r15, currentTask
 	pushfq
 	pop %r11
 	or $0x200, %r11		  		# This will enable interrupts when we sysret

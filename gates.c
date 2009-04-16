@@ -14,13 +14,13 @@ struct Gate
 {
 	unsigned short offsetlo; // 	: 16;
 	unsigned short segselect; // 	: 16;
-	unsigned ist 		: 3;
+	unsigned ist 			: 3;
 	unsigned			: 1;
 	unsigned			: 1;
 	unsigned			: 3;
-	unsigned type		: 4;
+	unsigned type			: 4;
 	unsigned			: 1;
-	unsigned dpl		: 2;
+	unsigned dpl			: 2;
 	unsigned p			: 1;
 	unsigned short offsetmid; //	: 16;
 	unsigned int offsethi; //	: 32;
@@ -31,17 +31,17 @@ struct TSSDescriptor
 {
 	unsigned short limitlo;
 	unsigned short baselo;
-	unsigned basemid1	: 8;
-	unsigned type		: 4;
+	unsigned basemid1		: 8;
+	unsigned type			: 4;
 	unsigned			: 1;
-	unsigned dpl		: 2;
+	unsigned dpl			: 2;
 	unsigned p			: 1;
-	unsigned limithi	: 4;
-	unsigned avl		: 1;
+	unsigned limithi		: 4;
+	unsigned avl			: 1;
 	unsigned			: 1;
 	unsigned			: 1;
 	unsigned g			: 1;
-	unsigned basemid2	: 8;
+	unsigned basemid2		: 8;
 	unsigned int basehi;
 	unsigned			: 32;
 };

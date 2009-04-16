@@ -4,7 +4,7 @@
 
 /*
 ====================================================
-This is the task that listens for keyboard requests.
+This is the task that listens for console requests.
 ====================================================
 */
 
@@ -46,7 +46,7 @@ void consoleTaskCode()
 	column = 0;
 	row = 0;
 	VideoBuffer = (char *)0xB8000;
-	((struct MessagePort *)ConsolePort)->waitingProc = 0;
+	((struct MessagePort *)ConsolePort)->waitingProc = -1L;
 	((struct MessagePort *)ConsolePort)->msgQueue = 0;
 
 	unsigned char * s;

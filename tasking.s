@@ -36,6 +36,7 @@ TaskSwitch:
 	sti
 	hlt
 	#cli
+	#ret
 	jmp  .nexttask
 	#jmp .again
 

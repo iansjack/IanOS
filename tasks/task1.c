@@ -9,14 +9,19 @@ int main(void)
 	struct Message *taskMsg;
 	int column = 0;
 	char commandline[80];
+	char buffer[512];
+	char * name = sys_AllocSharedMem(80);
 
 	consoleclrscr();
 	writeconsolestring("IanOS Version 0.1 - 2008\r");
 	writeconsolestring("#> _\b");
 	sys_CreateTask("TASK2.BIN");
+	sys_Sleep(10);
+    
 	while (1)
 	{
 		char c = getchar();
+	    
 		switch (c)
 		{
 			case BACKSPACE:
@@ -37,7 +42,8 @@ int main(void)
 					if (commandline[i] >= 'a' & commandline[i] <= 'z') 
 						commandline[i] = commandline[i] - 0x20;
 				}
-				sys_CreateTask(commandline);
+				for (i = 0; i < 80; i++) name[i] = commandline[i];
+				sys_CreateTask(name);
 
 				// Clear commandline[]
 				for (i = 0; i < 12; i++) commandline[i] = 0;

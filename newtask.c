@@ -1,5 +1,6 @@
 #include "ckstructs.h"
 #include "cmemory.h"
+#include "filesystem.h"
 
 extern struct Task * currentTask;
 extern long * tempstack;
@@ -8,6 +9,29 @@ extern unsigned char * PMap; // = (unsigned char *) PageMap;
 extern long nPagesFree;
 
 static long nextpid = 2;
+
+long ReadFromFile(struct FCB * fHandle, char * buffer, long noBytes)
+{
+	long retval;
+    
+	struct Message * FSMsg;
+	FSMsg = (struct Message *)AllocKMem(sizeof(struct Message));
+	char * buff = AllocKMem(noBytes);
+	int i;
+	for (i = 0; i < noBytes; i++) buff[i] = buffer[i];
+
+	FSMsg->nextMessage = 0;
+	FSMsg->byte = READFILE;
+	FSMsg->quad = fHandle;
+	FSMsg->quad2 = buff;
+	FSMsg->quad3 = noBytes;
+	SendReceiveMessage(FSPort, FSMsg);
+	for (i = 0; i < noBytes; i++) buffer[i] = buff[i];
+	DeallocMem(buff);
+	retval = FSMsg->quad;
+	DeallocMem(FSMsg);
+	return retval;
+}
 
 /*
 ============================================
@@ -49,13 +73,24 @@ void NewTask(char * name)
 	struct FCB * fHandle;
 	long codelen, datalen;
 	char header[3];
+	int result;
+	struct Message * FSMsg;
 
 	fHandle = (struct FCB *)AllocKMem(sizeof(struct FCB));
-	if (OpenFile(name, fHandle) == 0)
+	FSMsg = (struct Message *)AllocKMem(sizeof(struct Message));
+
+	// Open file
+	FSMsg->nextMessage = 0;
+	FSMsg->byte = OPENFILE;
+	FSMsg->quad = name;
+	FSMsg->quad2 = fHandle;
+	SendReceiveMessage(FSPort, FSMsg);
+    
+	if (FSMsg->quad == 0)
 	{
-		asm("cli");
 		stack = (long *)&tempstack - 5;
 		task->rsp = (long)stack;
+		task->r15 = task;
 		stack[0] = UserCode;
 		stack[1] = user64 + 3;
 		stack[2] = 0x2202;
@@ -64,21 +99,28 @@ void NewTask(char * name)
 		task->waiting = 0;
 		task->cr3 = VCreatePageDir();
 		task->ds = udata64 + 3;
-		ReadFile(fHandle, header, 4);
-		ReadFile(fHandle, (char *)&codelen, 8);
-		ReadFile(fHandle, (char *)&datalen, 8);
-		ReadFile(fHandle, (char *)TempUserCode, codelen);
-		ReadFile(fHandle, (char *)TempUserData, datalen);
+		ReadFromFile(fHandle, header, 4);
+		ReadFromFile(fHandle, (char *)&codelen, 8);
+		ReadFromFile(fHandle, (char *)&datalen, 8);
+		ReadFromFile(fHandle, (char *)TempUserCode, codelen);
+		ReadFromFile(fHandle, (char *)TempUserData, datalen);
 		data = (long *)(TempUserData + datalen);
 		data[0] = 0;
-		//data[1] = 0;
 		data[1] = PageSize - datalen - 0x10;
 		task->firstfreemem = UserData + datalen;
-		CloseFile(fHandle);
+		
+		//Close file
+		FSMsg->nextMessage = 0;
+		FSMsg->byte = CLOSEFILE;
+		FSMsg->quad = fHandle;
+		SendReceiveMessage(FSPort, FSMsg);
+	    
+		asm("cli");
 		LinkTask(task);
 		asm("sti");
 	}
 	DeallocMem(fHandle);
+	DeallocMem(FSMsg);
 }
 
 /*
@@ -95,6 +137,7 @@ void NewKernelTask(void * TaskCode)
 	asm("cli");
 	stack = (long *)&tempstack - 5;
 	task->rsp = (long)stack;
+	task->r15 = task;
 	stack[0] = (long)TaskCode;
 	stack[1] = code64;
 	stack[2] = 0x2202;
@@ -143,3 +186,4 @@ void KillTask(void)
 	}
 	SwTasks15(temp->nexttask);
 }
+

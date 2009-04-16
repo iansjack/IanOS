@@ -101,7 +101,6 @@ void * AllocMem(long sizeRequested, struct MemStruct * list)
 		list->next->size = list->size - sizeRequested - sizeof(struct MemStruct);
 		list->size = 0;
 	}
-	NoOfAllocations++;
 	return list + 1;
 }
 
@@ -114,9 +113,10 @@ This will deallocate both user and kernel memory
 void DeallocMem(void * list)
 {
 	struct MemStruct * l = (struct MemStruct *)list;
+
 	l--;
-	l->size = (long)l->next - (long)l - sizeof(struct MemStruct);
-	NoOfAllocations--;
+	if (l->size == 0)
+		l->size = (long)l->next - (long)l - sizeof(struct MemStruct);
 }
 
 /*

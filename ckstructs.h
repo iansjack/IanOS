@@ -39,6 +39,9 @@ struct Message
 	struct Message * nextMessage;
 	unsigned char byte;
 	long quad;
+	long quad2;
+	long quad3;
+	long tempPort;
 };
 
 struct MessagePort

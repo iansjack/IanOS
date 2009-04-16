@@ -33,10 +33,9 @@
 // Free			0x0000000000400000 - 0xFFFFFFFFFFFFFFFF
 
 #define PageSize	0x1000
-//#define KbdPort 	StaticPort + sizeof(struct MessagePort)
 #define KbdPort		0x6F010L
-//#define ConsolePort 	StaticPort + 2 * sizeof(struct MessagePort)
 #define ConsolePort	0x6F020L
+#define FSPort		0x6F030L
 
 #define OsCodeSeg 	0x8
 #define OsDataSeg 	0x10

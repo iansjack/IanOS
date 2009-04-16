@@ -161,7 +161,7 @@ Sleep:	push %rcx
 #====================================================
 LoadAFile:
 	push %rcx
-	call LoadFile
+#	call LoadFile
 	pop %rcx
 	sysretq
 

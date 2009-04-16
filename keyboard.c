@@ -13,7 +13,6 @@
 #define CTRLED	4
 #define ALTED	8
 
-struct Message KbdMsg;
 long kbBufStart;
 long kbBufCurrent;
 unsigned char kbBufCount;
@@ -58,21 +57,40 @@ This is the task that listens for keyboard requests.
 */
 void kbTaskCode()
 {
+
 	CreatePTE(AllocPage64(), KernelStack);
 	CreatePTE(AllocPage64(), UserStack);
 	asm("mov $(0x3FF000 - 0x18), %rsp");
 	kbBufStart = kbBufCurrent = kbBufCount = modifier = 0;
 	asm("mov $0b11111000, %al");	// enable keyboard + timer interrupt"
 	asm("out %al, $0x21");
-	
-	((struct MessagePort *)KbdPort)->waitingProc = 0;
+	kbTaskCode2();
+}
+
+/*
+===========================================================
+This is to prevent a rather subtle bug. Declared variables
+were being allocated before the stack was in place. Thus
+when the stack was created not enough room was allowed for 
+them. Encapsulating the main program within a small calling
+function eliminates this.
+===========================================================
+*/
+void kbTaskCode2()
+{
+	unsigned char temp;
+	struct MessagePort * tempPort;
+	struct Message * KbdMsg;
+
+	KbdMsg = AllocKMem(sizeof(struct Message));
+			   
+	((struct MessagePort *)KbdPort)->waitingProc = -1L;
 	((struct MessagePort *)KbdPort)->msgQueue = 0;
 	while (1)
 	{
-		ReceiveMessage(KbdPort, &KbdMsg); 
-		if (KbdMsg.byte == 1)
+		ReceiveMessage(KbdPort, KbdMsg); 
+		if (KbdMsg->byte == 1)
 		{
-			unsigned char temp;
 			temp = 0x80;
 			while (temp >= 0x80)
 			{
@@ -132,9 +150,10 @@ void kbTaskCode()
 				}
 			}
 							
-			struct MessagePort * tempPort = (struct MessagePort *)KbdMsg.quad;
-			KbdMsg.quad = 0L;
-			KbdMsg.byte = temp;
+			tempPort = (struct MessagePort *)KbdMsg->tempPort;
+			KbdMsg->nextMessage = 0;
+			KbdMsg->quad = 0L;
+			KbdMsg->byte = temp;
 			SendMessage(tempPort, KbdMsg);
 		}
 		else

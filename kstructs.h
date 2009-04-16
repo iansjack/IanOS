@@ -30,11 +30,13 @@ TS.pid = 187
 TS.size = 195
 
 Msg.nextMessage = 0
-Msg.byte = 8
-Msg.quad = 9
-Msg.size = 17
+Msg.byte	= 8
+Msg.quad	= 9
+Msg.quad2       = 17
+Msg.quad3       = 25
+Msg.size	= 33
 
-MP.waitingProc = 0
-MP.msgQueue = 8
-MP.size = 16
+MP.waitingProc  = 0
+MP.msgQueue     = 8
+MP.size		= 16
 
