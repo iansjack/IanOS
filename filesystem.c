@@ -220,7 +220,7 @@ void LoadFile(char name[11])
 // The actual filesystem task
 //=============================
  
-void fsTaskCode2()
+void fsTaskCode()
 {
 	struct Message * FSMsg;
 	struct MessagePort * tempPort;
@@ -265,12 +265,3 @@ void fsTaskCode2()
 		}   
 	}    
 }
-
-void fsTaskCode()
-{
-	//CreatePTE(AllocPage64(), KernelStack);
-	//CreatePTE(AllocPage64(), UserStack);
-	asm("mov $(0x3FF000 - 0x18), %rsp");
-	fsTaskCode2();
-}   
-

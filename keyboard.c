@@ -47,19 +47,20 @@ char KbdTableS[] = {0, 0/*esc*/, '!', '"', '#', '$', '%', '^', '&', '*', '(', ')
 			0/*larrow*/, '5'/*num5*/, 0/*rarrow*/, '+'/*numplus*/, 0/*end*/,
 		 	0/*darrow*/, 0/*pdown*/, 0/*ins*/, 0/*del*/, 0, 0, '|', 0/*F11*/, 0/*F12*/};
 
-//===========================================================
-// This is to prevent a rather subtle bug. Declared variables
-// were being allocated before the stack was in place. Thus
-// when the stack was created not enough room was allowed for 
-// them. Encapsulating the main program within a small calling
-// function eliminates this.
-//===========================================================
+//=====================================================
+// This is the task that listens for keyboard requests.
+//=====================================================
 
-void kbTaskCode2()
+void kbTaskCode()
 {
 	unsigned char temp;
 	struct MessagePort * tempPort;
 	struct Message * KbdMsg;
+
+	kbBufStart = kbBufCurrent = kbBufCount = modifier = 0;
+	
+	asm("mov $0b11111000, %al");	// enable keyboard + timer interrupt"
+	asm("out %al, $0x21");
 
 	KbdMsg = AllocKMem(sizeof(struct Message));
 			   
@@ -141,18 +142,3 @@ void kbTaskCode2()
 	}
 }
 
-//=====================================================
-// This is the task that listens for keyboard requests.
-//=====================================================
-
-void kbTaskCode()
-{
-
-	//CreatePTE(AllocPage64(), KernelStack);
-	//CreatePTE(AllocPage64(), UserStack);
-	asm("mov $(0x3FF000 - 0x18), %rsp");
-	kbBufStart = kbBufCurrent = kbBufCount = modifier = 0;
-	asm("mov $0b11111000, %al");	// enable keyboard + timer interrupt"
-	asm("out %al, $0x21");
-	kbTaskCode2();
-}

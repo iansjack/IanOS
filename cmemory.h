@@ -20,6 +20,8 @@
 #define TempPTL12    	0x0000000000094000L
 #define TempUserCode 	0x0000000000095000L
 #define TempUserData 	0x0000000000096000L
+#define TempKStack 	0x0000000000097000L
+#define TempUStack 	0x0000000000098000L
 #define PageTableL4  	0x0000000000200000L	// we will create the tables and fill in
 #define PageTableL3  	0x0000000000201000L 	// the physical addresses
 #define PageTableL2  	0x0000000000202000L	// 

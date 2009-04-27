@@ -47,9 +47,9 @@ void * VCreatePageDir(void)
 	// 1 Page for User Data
 	TPTL12[0x110] = CreatePTE(AllocPage64(), TempUserData);
 	// 1 Page for kernel stack
-	TPTL12[0x1FC] = CreatePTE(AllocPage64(), TempUserData);
+	TPTL12[0x1FC] = CreatePTE(AllocPage64(), TempKStack);
 	// 1 Page for user stack
-	TPTL12[0x1FE] = CreatePTE(AllocPage64(), TempUserData);
+	TPTL12[0x1FE] = CreatePTE(AllocPage64(), TempUStack);
 	return PD;
 }
 

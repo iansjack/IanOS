@@ -37,10 +37,6 @@ void printchar(unsigned char c)
 
 void consoleTaskCode()
 {
-	//CreatePTE(AllocPage64(), KernelStack);
-	//CreatePTE(AllocPage64(), UserStack);
-	asm("mov $(0x3FF000 - 0x18), %rsp");
-
 	column = 0;
 	row = 0;
 	VideoBuffer = (char *)0xB8000;

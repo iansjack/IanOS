@@ -90,14 +90,6 @@ void NewTask(char * name)
     
 	if (FSMsg->quad == 0)
 	{
-		stack = (long *) &tempstack - 5;
-		task->rsp = (long) stack;
-		task->r15 = (long) task;
-		stack[0] = UserCode;
-		stack[1] = user64 + 3;
-		stack[2] = 0x2202;
-		stack[3] = UserData + PageSize;
-		stack[4] = udata64 + 3;
 		task->waiting = 0;
 		task->cr3 = VCreatePageDir();
 		task->ds = udata64 + 3;
@@ -110,6 +102,14 @@ void NewTask(char * name)
 		data[0] = 0;
 		data[1] = PageSize - datalen - 0x10;
 		task->firstfreemem = UserData + datalen;
+		stack = (long *) (TempUStack + PageSize) - 5;
+		task->rsp = (long *) (UserStack + PageSize) - 5;
+		task->r15 = (long) task;
+		stack[0] = UserCode;
+		stack[1] = user64 + 3;
+		stack[2] = 0x2202;
+		stack[3] = UserStack + PageSize;
+		stack[4] = udata64 + 3;
 		
 		//Close file
 		FSMsg->nextMessage = 0;
@@ -135,17 +135,17 @@ struct Task * NewKernelTask(void * TaskCode)
 	struct Task * task = nextfreetss();
 	long * data;
 
-	stack = (long *)&tempstack - 5;
-	task->rsp = (long) stack;
+	task->waiting = 0;
+	task->cr3 = VCreatePageDir();
+	task->ds = data64;
+	stack = (long *) (TempUStack + PageSize) - 5;
+	task->rsp = (long *) (UserStack + PageSize) - 5;
 	task->r15 = (long) task;
 	stack[0] = (long) TaskCode;
 	stack[1] = code64;
 	stack[2] = 0x2202;
-	stack[3] = (long) &tempstack0;
+	stack[3] = (long) UserStack + PageSize;
 	stack[4] = data64;
-	task->waiting = 0;
-	task->cr3 = VCreatePageDir();
-	task->ds = data64;
 	asm("cli");
 	LinkTask(task);
 	data = (long *) TempUserData;
@@ -315,10 +315,6 @@ void moveTaskToEndOfQueue()
 
 void dummyTask()
 {
-	CreatePTE(AllocPage64(), KernelStack);
-	CreatePTE(AllocPage64(), UserStack);
-	asm("mov $(0x3FF000 - 0x18), %rsp");
-
 	while (1)
 	{
 	}

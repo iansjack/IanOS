@@ -11,13 +11,4 @@ Magic:		.ascii	"IJ64"
 CodeLen:	.quad	CodeLength
 DataLen:	.quad	DataLength
 
-_start:	#movq $KernelStack, %rdi
-#	movb $0xFF, %al
-#	movq $ALLOCPAGE, %r9
-#	syscall
-#	movq $UserStack, %rdi
-#	movb $0xFF, %al
-#	movq $ALLOCPAGE, %r9
-#	syscall
-	movq $(UserStack + 0x1000), %rsp
-	call main
+_start:		call main
