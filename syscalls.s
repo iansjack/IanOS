@@ -28,6 +28,7 @@ CallNo:
 	.quad   NewKerneltask		# CREATEKTASK
 	.quad	Alloc_Shared_Mem	# ALLOCSHAREDMEM
 	.quad	GetCR3			# GETCR3
+	.quad	NewLPtask		# CREATELPTASK
 
 SysCalls:
 	jmp *(CallNo - 8)(,%r9, 8)
@@ -115,7 +116,7 @@ PrintChar:
 Newtask:
 	push %rcx
 	call NewTask
-	int  $22
+	int  $20
 	pop %rcx
 	sysretq
 
@@ -254,7 +255,7 @@ Halt:
 NewKerneltask:
 	push %rcx
 	call NewKernelTask
-	int  $22
+	int $20
 	pop %rcx
 	sysretq
 
@@ -275,3 +276,15 @@ GetCR3:
 	mov %cr3, %rax
 	sysretq
 
+#=================================================================
+# Create the low-priority task from the code pointed to by RDI
+# Affects RAX, RDI
+# Note - we really, really shouldn't have a system call to create
+# this task! We only want it to happen once.
+#=================================================================
+NewLPtask:
+	push %rcx
+	call NewLowPriTask
+	int $20
+	pop %rcx
+	sysretq

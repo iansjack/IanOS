@@ -38,6 +38,7 @@ start64:
 	lidt idt_64
 
 # Final preparations before starting tasking
+	call InitMem64
 	mov $0xFFF, %rcx			# Zero page of memory locations for task structures
 	mov $TaskStruct, %rdx
 	mov $0, %al
@@ -46,8 +47,8 @@ ag:	mov %al, (%rcx, %rdx, 1)
 	jne ag
 
 	mov $TaskStruct, %r15			# Set up skeleton task structure for first task
-	movq $TaskStruct, TS.nexttask(%r15)
-	movq $TaskStruct, TS.r15(%r15)
+	movq $0, TS.nexttask(%r15)
+	movq %r15, TS.r15(%r15)
 	movb $0, TS.waiting(%r15)		# We don't want task1 to be waiting when it starts
 	movq $UserData, TS.firstfreemem(%r15)
 	movq $1, TS.pid(%r15)
@@ -93,6 +94,10 @@ ag:	mov %al, (%rcx, %rdx, 1)
 	mov $UserCode, %rcx		  	# Task 1
 	mov $TaskStruct, %r15
 	mov %r15, currentTask
+	mov %r15, runnableTasksHead
+	mov %r15, runnableTasksTail
+	movq $0, blockedTasksHead
+	movq $0, blockedTasksTail
 	pushfq
 	pop %r11
 	or $0x200, %r11		  		# This will enable interrupts when we sysret

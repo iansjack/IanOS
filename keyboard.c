@@ -19,11 +19,10 @@ unsigned char kbBufCount;
 unsigned char kbBuffer[128];
 unsigned char modifier;
 
-/*
-==============================
-The unshifted keyboard table.
-==============================
-*/
+//==============================
+// The unshifted keyboard table.
+//==============================
+
 char KbdTableU[] = {0, 0/*esc*/, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 8/*backspace*/,
 			0/*tab*/, 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', 13,
 		 	0/*ctrl*/, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`', 0/*lshift*/, '#',
@@ -34,11 +33,10 @@ char KbdTableU[] = {0, 0/*esc*/, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0
 			0/*larrow*/, 0/*num5*/, 0/*rarrow*/, 0/*numplus*/, 0/*end*/,
 		 	0/*darrow*/, 0/*pdown*/, 0/*ins*/, 0/*del*/, 0, 0, '\\', 0/*F11*/, 0/*F12*/};
 
-/*
-==============================
-The shifted keyboard table.
-==============================
-*/
+//==============================
+// The shifted keyboard table.
+//==============================
+
 char KbdTableS[] = {0, 0/*esc*/, '!', '"', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', 8/*backspace*/,
 			0/*tab*/, 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', 13,
 			0/*ctrl*/, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '@', '`', 0/*lshift*/, '#',
@@ -49,33 +47,14 @@ char KbdTableS[] = {0, 0/*esc*/, '!', '"', '#', '$', '%', '^', '&', '*', '(', ')
 			0/*larrow*/, '5'/*num5*/, 0/*rarrow*/, '+'/*numplus*/, 0/*end*/,
 		 	0/*darrow*/, 0/*pdown*/, 0/*ins*/, 0/*del*/, 0, 0, '|', 0/*F11*/, 0/*F12*/};
 
+//===========================================================
+// This is to prevent a rather subtle bug. Declared variables
+// were being allocated before the stack was in place. Thus
+// when the stack was created not enough room was allowed for 
+// them. Encapsulating the main program within a small calling
+// function eliminates this.
+//===========================================================
 
-/*
-====================================================
-This is the task that listens for keyboard requests.
-====================================================
-*/
-void kbTaskCode()
-{
-
-	CreatePTE(AllocPage64(), KernelStack);
-	CreatePTE(AllocPage64(), UserStack);
-	asm("mov $(0x3FF000 - 0x18), %rsp");
-	kbBufStart = kbBufCurrent = kbBufCount = modifier = 0;
-	asm("mov $0b11111000, %al");	// enable keyboard + timer interrupt"
-	asm("out %al, $0x21");
-	kbTaskCode2();
-}
-
-/*
-===========================================================
-This is to prevent a rather subtle bug. Declared variables
-were being allocated before the stack was in place. Thus
-when the stack was created not enough room was allowed for 
-them. Encapsulating the main program within a small calling
-function eliminates this.
-===========================================================
-*/
 void kbTaskCode2()
 {
 	unsigned char temp;
@@ -84,7 +63,7 @@ void kbTaskCode2()
 
 	KbdMsg = AllocKMem(sizeof(struct Message));
 			   
-	((struct MessagePort *)KbdPort)->waitingProc = -1L;
+	((struct MessagePort *)KbdPort)->waitingProc = (struct Task *) -1L;
 	((struct MessagePort *)KbdPort)->msgQueue = 0;
 	while (1)
 	{
@@ -162,3 +141,18 @@ void kbTaskCode2()
 	}
 }
 
+//=====================================================
+// This is the task that listens for keyboard requests.
+//=====================================================
+
+void kbTaskCode()
+{
+
+	CreatePTE(AllocPage64(), KernelStack);
+	CreatePTE(AllocPage64(), UserStack);
+	asm("mov $(0x3FF000 - 0x18), %rsp");
+	kbBufStart = kbBufCurrent = kbBufCount = modifier = 0;
+	asm("mov $0b11111000, %al");	// enable keyboard + timer interrupt"
+	asm("out %al, $0x21");
+	kbTaskCode2();
+}

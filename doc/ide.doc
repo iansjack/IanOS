@@ -4,5 +4,5 @@
 <<PAR>>
 Similarly, <<X HdInt>> is not complicated. It clears the interrupt and then checks through the tasks in turn to find the first one that is waiting for an interrupt from the disk controller (There must be at least one, else why is the disk controller doing any work? If nothing is waiting for it something has gone seriously wrong!) Having found a waiting task a specific task switch to that task is made.
 <<PAR>>
-I realize that there are problems with this device driver. In particular, it doesn't guard against two simultaneous requests. (And it only reads from the disk; we'll need to implement writing at some stage.) Logically this needs to be rewritten as a kernel task, which will make queuing of requests easy. (So much to do, so little time!)<<HR>><<CONT>>
+I realize that there are potential problems with this device driver. In particular, it doesn't guard against two simultaneous requests. (And it only reads from the disk; we'll need to implement writing at some stage.) This is not as important in practice as it might at first seem. Requests to the driver only come from a single task, the filesystem task, in the form of queued messages. There should, therefore, be no question of simultaneous accesses to the disk.<<HR>><<CONT>>
 

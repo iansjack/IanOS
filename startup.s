@@ -25,7 +25,7 @@ here:
 	mov $tempstack, %esp
 
 	# create 64-bit page tables
-	call CreatePageDir	    	# task1
+	call CreatePageDir	    		# task1
 	mov  %eax, %cr3
 
 	mov  %cr4, %eax

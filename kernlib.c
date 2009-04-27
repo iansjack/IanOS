@@ -1,29 +1,26 @@
-/*
-==============================
-Switch to the next ready task
-==============================
-*/
+//==============================
+// Switch to the next ready task
+//==============================
+
 void SwTasks()
 {
 	asm("int $20");
 }
 
-/*
-==========================
-Switch to a specific task
-==========================
-*/
+//==========================
+// Switch to a specific task
+//==========================
+
 void SwTasks15(task)
 {
 	asm("mov %rdi, %r15");
 	asm("int $22");
 }
 
-/*
-==========================================
-A utility function to copy a memory range
-==========================================
-*/
+//==========================================
+// A utility function to copy a memory range
+//==========================================
+
 void copyMem(unsigned char source[], unsigned char dest[], long size)
 {
 	int i;
@@ -31,16 +28,14 @@ void copyMem(unsigned char source[], unsigned char dest[], long size)
 		dest[i] = source[i];
 }
 
-/*
-==========================================================================
-A kernel library function to write a null-terminated string to the screen.
-==========================================================================
-*/
+//===========================================================================
+// A kernel library function to write a null-terminated string to the screen.
+//===========================================================================
+
 void KWriteString(char * str, int row, int col)
 {
 	char * VideoBuffer = (char *)0xB8000;
 
-	asm("cli");
 	asm("push %rax");
 	asm("push %rbx");
 	asm("push %rcx");
@@ -60,19 +55,16 @@ void KWriteString(char * str, int row, int col)
 	asm("pop %rcx");
 	asm("pop %rbx");
 	asm("pop %rax");
-	asm("sti");
 }
 
-/*
-==========================================================================
-A kernel library function to write a quad character to the screen.
-==========================================================================
-*/
+//==========================================================================
+// A kernel library function to write a quad character to the screen.
+//==========================================================================
+
 void KWriteHex(long c, int row) //, int col)
 {
 	char * VideoBuffer = (char *)0xB8000;
 
-	//asm("cli");
 	asm("push %rax");
 	asm("push %rbx");
 	asm("push %rcx");
@@ -98,7 +90,4 @@ void KWriteHex(long c, int row) //, int col)
 	asm("pop %rcx");
 	asm("pop %rbx");
 	asm("pop %rax");
-	//asm("sti");
 }
-
-

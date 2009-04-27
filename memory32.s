@@ -11,6 +11,13 @@
 # Find top of memory
 #==================================
 InitMemManagement:
+	# zero os data memory
+#	movl $0x10000, %eax
+#	movl $0x10000, %ecx
+#.zero:
+#	movb $0, (%eax, %ecx)
+#	loop .zero
+
 	movl $0, NoOfAllocations
 	movl $256, nPagesFree
 	mov $0x0019FFFC, %eax

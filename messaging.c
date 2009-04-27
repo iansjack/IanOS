@@ -2,12 +2,13 @@
 #include "cmemory.h"
 
 extern struct Task * currentTask;
+
 void * AllocKMem(long);
-/*
-=================================
-Send a message to a message port
-=================================
-*/
+
+//=================================
+// Send a message to a message port
+//=================================
+
 void SendMessage(struct MessagePort * MP, struct Message * Msg)
 {
 	struct Message * temp = (struct Message *)AllocKMem(sizeof(struct Message));
@@ -27,21 +28,23 @@ void SendMessage(struct MessagePort * MP, struct Message * Msg)
 		struct Task * task = MP->waitingProc;
 		MP->waitingProc = (struct Task *)-1L;
 		task->waiting = 0;
+		UnBlockTask(task);
 		SwTasks15(task);
 	}
 }
 
-/*
-======================================
-Receive a message from a message port
-======================================
-*/
+
+//======================================
+// Receive a message from a message port
+//======================================
+
 void ReceiveMessage(struct MessagePort * MP, struct Message * Msg) 
 {
 	while (MP->msgQueue == 0)
 	{
 		MP->waitingProc = currentTask;
 		currentTask->waiting = 0x80;
+		BlockTask(currentTask);			
 		SwTasks();
 	}
 	struct Message * temp = MP->msgQueue;
@@ -50,11 +53,10 @@ void ReceiveMessage(struct MessagePort * MP, struct Message * Msg)
 	DeallocMem(temp);
 }
 
-/*
-========================
-Allocate a message port
-========================
-*/
+//========================
+// Allocate a message port
+//========================
+
 struct MessagePort * AllocMessagePort()
 {
 	struct MessagePort * temp = AllocKMem(sizeof(struct MessagePort));
@@ -63,11 +65,11 @@ struct MessagePort * AllocMessagePort()
 	return temp;
 } 
 
-/*
-======================================================
-Send a message to a message port and wait for a reply
-======================================================
-*/
+
+//======================================================
+// Send a message to a message port and wait for a reply
+//======================================================
+
 void SendReceiveMessage(struct MessagePort * MP, struct Message *Msg)
 {
 	struct MessagePort * tempMP = AllocMessagePort();
@@ -76,3 +78,4 @@ void SendReceiveMessage(struct MessagePort * MP, struct Message *Msg)
 	ReceiveMessage(tempMP, Msg);
 	DeallocMem(tempMP);
 }
+

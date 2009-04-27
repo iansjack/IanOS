@@ -2,11 +2,9 @@
 #include "ckstructs.h"
 #include "console.h"
 
-/*
-====================================================
-This is the task that listens for console requests.
-====================================================
-*/
+//====================================================
+// This is the task that listens for console requests.
+//====================================================
 
 short int column;
 short int row;
@@ -46,7 +44,7 @@ void consoleTaskCode()
 	column = 0;
 	row = 0;
 	VideoBuffer = (char *)0xB8000;
-	((struct MessagePort *)ConsolePort)->waitingProc = -1L;
+	((struct MessagePort *)ConsolePort)->waitingProc = (struct Task *) -1L;
 	((struct MessagePort *)ConsolePort)->msgQueue = 0;
 
 	unsigned char * s;
@@ -83,4 +81,3 @@ void consoleTaskCode()
 		}
 	}
 }
-

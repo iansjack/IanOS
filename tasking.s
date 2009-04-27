@@ -13,32 +13,22 @@
 # If there's no runnable task at all then halt the processor until the next interrupt.
 #===================================================================================================
 TaskSwitch:
-#saveTaskState:
-	push %r15
 .again:
 	mov  currentTask, %r15
+	push %r15
+	push %rax
+	push %rdx
+	call moveTaskToEndOfQueue
+	pop  %rdx
+	pop  %rax
 # Is there another task ready to run?
 .nexttask:
-	mov  TS.nexttask(%r15), %r15
-	cmp  currentTask, %r15
-	je   .nonefound
-	cmpb $0, TS.waiting(%r15)
-	jne  .nexttask
+	mov  runnableTasksHead, %r15
+	cmp  $0, %r15
+	jne  TS1
+# There's no other runnable task, so pick the low-priority task
+	mov  lowPriTask, %r15
 	jmp  TS1
-.nonefound:
-# No other task is runnable. Is the current task runnable? If so just keep running it
-	cmpb $0, TS.waiting(%r15)
-	jne  .notaskrunnable
-	pop  %r15
-	ret
-# There's no runnable task, so just idle until the next interrupt
-.notaskrunnable:
-	sti
-	hlt
-	#cli
-	#ret
-	jmp  .nexttask
-	#jmp .again
 
 #==============================================================
 # Save the current task and switch to the one specified in R15
@@ -97,13 +87,8 @@ TS1:	xchg currentTask, %r15
 	.global currentTask
 	.global TSS64
 
-currentTask:	.quad TaskStruct
-
 TSS64:	.long 0
 	.long tempstack0
-#	.long tempstack
 	.rept 0x2C
 	.long 0
 	.endr
-
-

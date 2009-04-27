@@ -2,9 +2,9 @@
 	.include "memory.h"
 	.include "kstructs.h"
 
-SLEEPINT = 2
-KBDINT = 1
-HDINT = 14
+KBDINT 		= 1
+SLEEPINT 	= 2
+HDINT 		= 3
 
 	.text
 
@@ -34,18 +34,22 @@ KbInt:	push %rax
 	cmpl $128, kbBufCurrent
 	jne  .kbistaskwaiting
 	movl $0, kbBufCurrent
+
 	# is any task waiting for keyboard input? If so re-enable it
+
 .kbistaskwaiting:
-	mov  currentTask, %r15
+	mov  blockedTasksHead, %r15
 .kbagain:
 	cmpb $KBDINT, TS.waiting(%r15)
 	jne  .kbgoon
 	movb $0, TS.waiting(%r15)
-	int  $22
+	mov  %r15, %rdi
+	call UnBlockTask
+	SWITCH_TASKS_R15
 	jmp  .kbdone
 .kbgoon:
 	mov  TS.nexttask(%r15), %r15
-	cmpq currentTask, %r15
+	cmpq $0, %r15
 	jne  .kbagain
 .kbdone:
 	pop  %rbx
@@ -69,6 +73,8 @@ TimerInt:
 	mov  Timer.task, %r15
 	movb $0, TS.waiting(%r15)
 	movb $0, Timer.active
+	mov  %r15, %rdi
+	call UnBlockTask
 .notimer:
 	pop  %rax
 	decb TimeSliceCount
@@ -82,17 +88,19 @@ TimerInt:
 #=====================
 HdInt:	push %rax
 .istaskwaiting:
-	mov  currentTask, %r15
 	mov  $0x20, %al
 	out  %al, $0x20
 	out  %al, $0xA0
+	mov  blockedTasksHead, %r15
 .again: cmpb $HDINT, TS.waiting(%r15)
 	jne  .goon
 	movb $0, TS.waiting(%r15)
+	mov  %r15, %rdi
+	call UnBlockTask
 	SWITCH_TASKS_R15
 	jmp  .done2
 .goon:	mov  TS.nexttask(%r15), %r15
-	cmpq currentTask, %r15
+	cmpq $0, %r15
 	jne  .again
 .done2:	pop  %rax
 	iretq
@@ -243,8 +251,10 @@ int21:	mov  $HD_PORT+7, %dx
 	out %al, %dx
 	cli
 	push %rdi
+	push %rdx
 	mov $HDINT, %rdi
 	call WaitForInt
+	pop %rdx
 	pop %rdi
 .again3:
 	in  %dx, %al
@@ -265,6 +275,8 @@ WaitForInt:
 	mov  currentTask, %r15
 	mov  %rdi, %rax
 	mov  %al, TS.waiting(%r15)
+	mov  %r15, %rdi
+	call BlockTask
 	sti
 	SWITCH_TASKS		       # The current task is no longer runnable
 	ret
@@ -277,7 +289,7 @@ WaitForInt:
 	.global Timer.task
 
 Ticks:			.quad 0
-TimeSliceCount: .byte 5
-Timer.active: 	.byte 0
-Timer.interval:	.quad 0
+TimeSliceCount: 	.byte 5
+Timer.active: 		.byte 0
+Timer.interval:		.quad 0
 Timer.task:		.quad 0

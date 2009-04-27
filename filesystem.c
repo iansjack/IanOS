@@ -5,31 +5,31 @@
 
 extern struct Task * currentTask;
 
-/*
-==============================
-Convert a cluster to a sector.
-==============================
-*/
+
+//===============================
+// Convert a cluster to a sector.
+//===============================
+
 unsigned int ClusterToSector(int cluster)
 {
 	return((cluster - 2) * SectorsPerCluster + DataStart);
 }
 
-/*
-======================================================
-Read one sector from the hard disk to the disk buffer
-======================================================
-*/
+
+//======================================================
+// Read one sector from the hard disk to the disk buffer
+//======================================================
+
 void ReadSector(char * buffer, long sector)
 {
 	asm("int $21");
 }
 
-/*
-=====================================
- Read in some parameters from the HD
-=====================================
-*/
+
+//=====================================
+// Read in some parameters from the HD
+//=====================================
+
 void InitializeHD()
 {
 	struct MBR * mbr;
@@ -50,12 +50,11 @@ void InitializeHD()
 	BytesPerSector = bs->bytesPerSector;
 }
 
-/*
-==============================================================================
-Find the root directory entry for the file whose name is pointed to by "name".
-Return the address of the directory entry
-==============================================================================
-*/
+//===============================================================================
+// Find the root directory entry for the file whose name is pointed to by "name".
+// Return the address of the directory entry
+//===============================================================================
+
 long FindFile(char name[13])
 {
 	short int done = 1;
@@ -88,13 +87,13 @@ long FindFile(char name[13])
 	return 0;
 }
 
-/*
-===================================
-Open a file. Fills in FCB info
-Returns 0 on success
- 	1 if file does not exist
-===================================
-*/
+
+//===================================
+// Open a file. Fills in FCB info
+// Returns 0 on success
+// 	1 if file does not exist
+//===================================
+
 int OpenFile(char name[11], struct FCB * fHandle)
 {
 	struct DirEntry * entry = (struct DirEntry *)FindFile(name);
@@ -139,11 +138,10 @@ int OpenFile(char name[11], struct FCB * fHandle)
 	}
 }
 
-/*
-============================================
-Close a file and release all it's resources
-============================================
-*/
+//============================================
+// Close a file and release all it's resources
+//============================================
+
 CloseFile(struct FCB * fHandle)
 {
 	struct clusterListEntry * clusters, * nextcluster;
@@ -164,12 +162,12 @@ CloseFile(struct FCB * fHandle)
 	}
 }
 
-/*
-==============================================================
- Read nBytes from the file represented by fHandle into buffer
- Returns no of bytes read
-==============================================================
-*/
+
+//==============================================================
+// Read nBytes from the file represented by fHandle into buffer
+// Returns no of bytes read
+//==============================================================
+
 long ReadFile(struct FCB * fHandle, char * buffer, long noBytes)
 {
 	if (noBytes > fHandle->length) return 0;
@@ -203,11 +201,10 @@ long ReadFile(struct FCB * fHandle, char * buffer, long noBytes)
 	return bytesRead;
 }
 
-/*
-=====================================
- Load a file into DiskBuffer
-=====================================
-*/
+//=====================================
+// Load a file into DiskBuffer
+//=====================================
+
 void LoadFile(char name[11])
 {
 	struct FCB fHandle;
@@ -216,23 +213,13 @@ void LoadFile(char name[11])
 	int size = fHandle.length;
 	int count = 0;
 	ReadFile(&fHandle, DiskBuffer, size);
-	//CloseFile(&fHandle);
+	CloseFile(&fHandle);
 }
 
-
-/*
-============================= 
-The actual filesystem task
-=============================
-*/ 
-void fsTaskCode()
-{
-	CreatePTE(AllocPage64(), KernelStack);
-	CreatePTE(AllocPage64(), UserStack);
-	asm("mov $(0x3FF000 - 0x18), %rsp");
-	fsTaskCode2();
-}   
-
+//============================= 
+// The actual filesystem task
+//=============================
+ 
 void fsTaskCode2()
 {
 	struct Message * FSMsg;
@@ -241,7 +228,7 @@ void fsTaskCode2()
 	int result;
 	FSMsg = (struct Message *)AllocKMem(sizeof(struct Message));
    
-	((struct MessagePort *)FSPort)->waitingProc = -1L;
+	((struct MessagePort *)FSPort)->waitingProc = (struct Task *) -1L;
 	((struct MessagePort *)FSPort)->msgQueue = 0;
     
 	InitializeHD();
@@ -252,24 +239,24 @@ void fsTaskCode2()
 		switch (FSMsg->byte)
 		{
 		case READSECTOR:
-			ReadSector(FSMsg->quad3, FSMsg->quad2);
-			tempPort = (struct MessagePort *)FSMsg->tempPort;
+			ReadSector((char *) FSMsg->quad3, FSMsg->quad2);
+			tempPort = (struct MessagePort *) FSMsg->tempPort;
 			SendMessage(tempPort, FSMsg);
 			break;
 		case OPENFILE:
-			result = OpenFile(FSMsg->quad, FSMsg->quad2);
-			tempPort = (struct MessagePort *)FSMsg->tempPort;
+			result = OpenFile((char *) FSMsg->quad, (struct FCB *) FSMsg->quad2);
+			tempPort = (struct MessagePort *) FSMsg->tempPort;
 			FSMsg->quad = result;
 			SendMessage(tempPort, FSMsg);
 			break;
 		case CLOSEFILE:
-			CloseFile(FSMsg->quad);
-			tempPort = (struct MessagePort *)FSMsg->tempPort;
+			CloseFile((struct FCB *) FSMsg->quad);
+			tempPort = (struct MessagePort *) FSMsg->tempPort;
 			SendMessage(tempPort, FSMsg);
 			break;
 		case READFILE:
-			result = ReadFile(FSMsg->quad, FSMsg->quad2, FSMsg->quad3);
-			tempPort = (struct MessagePort *)FSMsg->tempPort;
+			result = ReadFile((struct FCB *) FSMsg->quad, (char *) FSMsg->quad2, FSMsg->quad3);
+			tempPort = (struct MessagePort *) FSMsg->tempPort;
 			FSMsg->quad = result;
 			SendMessage(tempPort, FSMsg);
 			break;
@@ -278,3 +265,12 @@ void fsTaskCode2()
 		}   
 	}    
 }
+
+void fsTaskCode()
+{
+	CreatePTE(AllocPage64(), KernelStack);
+	CreatePTE(AllocPage64(), UserStack);
+	asm("mov $(0x3FF000 - 0x18), %rsp");
+	fsTaskCode2();
+}   
+
