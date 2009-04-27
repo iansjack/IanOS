@@ -37,8 +37,8 @@ void printchar(unsigned char c)
 
 void consoleTaskCode()
 {
-	CreatePTE(AllocPage64(), KernelStack);
-	CreatePTE(AllocPage64(), UserStack);
+	//CreatePTE(AllocPage64(), KernelStack);
+	//CreatePTE(AllocPage64(), UserStack);
 	asm("mov $(0x3FF000 - 0x18), %rsp");
 
 	column = 0;

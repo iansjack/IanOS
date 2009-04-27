@@ -148,8 +148,8 @@ void kbTaskCode2()
 void kbTaskCode()
 {
 
-	CreatePTE(AllocPage64(), KernelStack);
-	CreatePTE(AllocPage64(), UserStack);
+	//CreatePTE(AllocPage64(), KernelStack);
+	//CreatePTE(AllocPage64(), UserStack);
 	asm("mov $(0x3FF000 - 0x18), %rsp");
 	kbBufStart = kbBufCurrent = kbBufCount = modifier = 0;
 	asm("mov $0b11111000, %al");	// enable keyboard + timer interrupt"

@@ -268,8 +268,8 @@ void fsTaskCode2()
 
 void fsTaskCode()
 {
-	CreatePTE(AllocPage64(), KernelStack);
-	CreatePTE(AllocPage64(), UserStack);
+	//CreatePTE(AllocPage64(), KernelStack);
+	//CreatePTE(AllocPage64(), UserStack);
 	asm("mov $(0x3FF000 - 0x18), %rsp");
 	fsTaskCode2();
 }   

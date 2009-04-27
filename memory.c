@@ -36,15 +36,20 @@ void * VCreatePageDir(void)
 	TPTL4[0] = CreatePTE(AllocPage64(), TempPTL3);
 	TPTL3[0] = CreatePTE(AllocPage64(), TempPTL2);
 	TPTL2[0] = PTL12[3];
-	//TPTL2[0] = 0x16000L;
 	TPTL2[1] = CreatePTE(AllocPage64(), TempPTL12);
 	TPTL12[0] = (long)PD + 7;
 	TPTL12[1] = TPTL4[0];
 	TPTL12[2] = TPTL3[0];
 	TPTL12[3] = TPTL2[0];
 	TPTL12[4] = TPTL2[1];
+	// 1 Page for User Code
 	TPTL12[0x100] = CreatePTE(AllocPage64(), TempUserCode);
+	// 1 Page for User Data
 	TPTL12[0x110] = CreatePTE(AllocPage64(), TempUserData);
+	// 1 Page for kernel stack
+	TPTL12[0x1FC] = CreatePTE(AllocPage64(), TempUserData);
+	// 1 Page for user stack
+	TPTL12[0x1FE] = CreatePTE(AllocPage64(), TempUserData);
 	return PD;
 }
 
