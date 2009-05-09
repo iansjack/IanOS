@@ -13,10 +13,11 @@ open (OUTPUT, ">>HTML/HTML/MAP");
 foreach $file (@words) {
 	$nfile = $assoc{$file};
 	open (INPUT, "HTML/HTML/$nfile") || die "Can't open $nfile\n";
-	print "Processing $file\n";
+	print "Processing $nfile\n";
 	while (<INPUT>) {
-		if (/id=\'(\w+)\'.+\s+(\w+):/) {
+		if (/\'(\w+)\'\>*\s*(\w+):/) {
 			print OUTPUT "$2\t$nfile\#$1\n";
+			print "$2\t$nfile\#$1\n";
 		}
 	}
 	close INPUT;
