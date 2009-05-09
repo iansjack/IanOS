@@ -1,6 +1,11 @@
 #include "cmemory.h"
 #include "ckstructs.h"
 
+extern struct Task * currentTask;
+extern struct Task * runnableTasks[2];	// [0] = Head, [1] = Tail
+extern struct Task * blockedTasks[2];
+extern struct Task * lowPriTask;
+
 unsigned char oMemMax;
 long nPagesFree;
 struct MemStruct * firstFreeKMem ;
@@ -13,8 +18,14 @@ void InitMem64(void)
 {
 	PMap = (unsigned char *) PageMap;
 	firstFreeKMem = (struct MemStruct *)0x11000;
+	firstFreeKMem->next = 0;
+	firstFreeKMem->size = 0xFE0;
 	firstFreeSharedMem = (struct MemStruct *)0x1F0000;
+	firstFreeSharedMem->next = 0;
+	firstFreeSharedMem->size = 0xFE0;
 	nextKPage = 0x12;
+	currentTask = runnableTasks[0] = runnableTasks[1] = (struct Task *) TaskStruct;
+	lowPriTask = blockedTasks[0] = blockedTasks[1] = 0L;
 }
 
 //=====================================================
@@ -95,7 +106,21 @@ void * AllocPage64()
 
 void * AllocMem(long sizeRequested, struct MemStruct * list)
 {
-	while (list->size < sizeRequested) list = list->next;
+	while (list->size < sizeRequested)
+	{
+		if (list->next == 0)
+		// Not enough memory available. Allocate another page.
+		{
+			int temp = (int) list >> 12;
+			while (list->size < sizeRequested)
+			{
+				CreatePTE(AllocPage64(), ++temp << 12);
+				list->size += PageSize;
+			}
+		}
+		else
+			list = list->next;
+	}
 
 	// We now have found a free memory block with enough (or more space)
 	// Is there enough space for another link?
@@ -139,21 +164,7 @@ void DeallocMem(void * list)
 
 void * AllocKMem(long sizeRequested)
 {
-	void * temp = 0;
-	while (temp == 0)
-	{
-		temp = AllocMem(sizeRequested, firstFreeKMem);
-		if (temp == 0)
-		{
-			firstFreeKMem = (struct MemStruct*)(nextKPage << 12);
-			CreatePTE(AllocPage64(), nextKPage);
-			nextKPage++;
-			struct MemStruct * tempmem = firstFreeKMem;
-			while (tempmem->next != 0) tempmem = tempmem->next;
-			tempmem->size += PageSize;
-		}
-	}
-	return temp;
+	return AllocMem(sizeRequested, firstFreeKMem);
 }
 
 //===============================================================================
@@ -163,19 +174,5 @@ void * AllocKMem(long sizeRequested)
 
 void * AllocSharedMem(long sizeRequested)
 {
-	void * temp = 0;
-	while (temp == 0)
-	{
-		temp = AllocMem(sizeRequested, firstFreeSharedMem);
-		if (temp == 0)
-		{
-			//firstFreeKMem = (struct MemStruct*)(nextKPage << 12);
-			//CreatePTE(AllocPage64(), nextKPage);
-			//nextKPage++;
-			//struct MemStruct * tempmem = firstFreeKMem;
-			//while (tempmem->next != 0) tempmem = tempmem->next;
-			//tempmem->size += PageSize;
-		}
-	}
-	return temp;
+	return AllocMem(sizeRequested, firstFreeSharedMem);
 }

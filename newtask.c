@@ -3,10 +3,8 @@
 #include "filesystem.h"
 
 struct Task * currentTask;
-struct Task * runnableTasksHead;
-struct Task * runnableTasksTail;
-struct Task * blockedTasksHead;
-struct Task * blockedTasksTail;
+struct Task * runnableTasks[2];	// [0] = Head, [1] = Tail
+struct Task * blockedTasks[2];
 struct Task * lowPriTask;
 
 extern long * tempstack;
@@ -15,29 +13,6 @@ extern unsigned char * PMap;
 extern long nPagesFree;
 
 static long nextpid = 2;
-
-long ReadFromFile(struct FCB * fHandle, char * buffer, long noBytes)
-{
-	long retval;
-    
-	struct Message * FSMsg;
-	FSMsg = (struct Message *)AllocKMem(sizeof(struct Message));
-	char * buff = AllocKMem(noBytes);
-	int i;
-	for (i = 0; i < noBytes; i++) buff[i] = buffer[i];
-
-	FSMsg->nextMessage = 0;
-	FSMsg->byte = READFILE;
-	FSMsg->quad = (long) fHandle;
-	FSMsg->quad2 = (long) buff;
-	FSMsg->quad3 = noBytes;
-	SendReceiveMessage(FSPort, FSMsg);
-	for (i = 0; i < noBytes; i++) buffer[i] = buff[i];
-	DeallocMem(buff);
-	retval = FSMsg->quad;
-	DeallocMem(FSMsg);
-	return retval;
-}
 
 //============================================
 //  Find the next free entry in the task table
@@ -58,8 +33,8 @@ struct Task * nextfreetss()
 
 void LinkTask(struct Task * task)
 {
-	task->nexttask = runnableTasksHead;
-	runnableTasksHead = task;
+	task->nexttask = runnableTasks[0];
+	runnableTasks[0] = task;
 	task->pid = nextpid++;
 }
 
@@ -103,7 +78,7 @@ void NewTask(char * name)
 		data[1] = PageSize - datalen - 0x10;
 		task->firstfreemem = UserData + datalen;
 		stack = (long *) (TempUStack + PageSize) - 5;
-		task->rsp = (long *) (UserStack + PageSize) - 5;
+		task->rsp = (long)((long *) (UserStack + PageSize) - 5);
 		task->r15 = (long) task;
 		stack[0] = UserCode;
 		stack[1] = user64 + 3;
@@ -139,7 +114,7 @@ struct Task * NewKernelTask(void * TaskCode)
 	task->cr3 = VCreatePageDir();
 	task->ds = data64;
 	stack = (long *) (TempUStack + PageSize) - 5;
-	task->rsp = (long *) (UserStack + PageSize) - 5;
+	task->rsp = (long) ((long *) (UserStack + PageSize) - 5);
 	task->r15 = (long) task;
 	stack[0] = (long) TaskCode;
 	stack[1] = code64;
@@ -162,21 +137,8 @@ struct Task * NewKernelTask(void * TaskCode)
 void NewLowPriTask(void * TaskCode)
 {
 	lowPriTask = NewKernelTask(TaskCode);
-	struct Task * temp = runnableTasksHead;
-
-	// Unlink task from runnable queue
-	if (temp == lowPriTask) 
-	{
-		runnableTasksHead = temp->nexttask;
-		if (runnableTasksHead == 0) runnableTasksTail = 0;
-	}
-	else
-		while (temp)
-		{
-			if (temp->nexttask == lowPriTask) temp->nexttask = temp->nexttask->nexttask;
-			if (temp->nexttask == 0) runnableTasksTail = temp;
-			temp = temp->nexttask;
-		}
+	struct Task * temp = runnableTasks[0];
+	RemoveFromQ(lowPriTask, &runnableTasks[0], &runnableTasks[1]);
 }
 
 //=======================
@@ -186,7 +148,7 @@ void NewLowPriTask(void * TaskCode)
 void KillTask(void)
 {
 	struct Task * task = currentTask;
-	struct Task * temp = runnableTasksHead;
+	struct Task * temp = runnableTasks[0];
 
 	//Don't want to task switch whilst destroying task
 	asm("cli");
@@ -194,14 +156,14 @@ void KillTask(void)
 	// Unlink task from runnable queue
 	if (temp == task) 
 	{
-		runnableTasksHead = temp->nexttask;
-		if (runnableTasksHead == 0) runnableTasksTail = 0;
+		runnableTasks[0] = temp->nexttask;
+		if (runnableTasks[0] == 0) runnableTasks[1] = 0;
 	}
 	else
 		while (temp)
 		{
 			if (temp->nexttask == task) temp->nexttask = temp->nexttask->nexttask;
-			if (temp->nexttask == 0) runnableTasksTail = temp;
+			if (temp->nexttask == 0) runnableTasks[1] = temp;
 			temp = temp->nexttask;
 		}
 	
@@ -221,7 +183,11 @@ void KillTask(void)
 			nPagesFree++;
 		}
 	}
-	SwTasks();
+	// Reset PID so that OS knows the slot is free
+	task->pid = 0;
+	
+	//SwTasks();
+	SWTASKS;
 }
 
 //===============================================
@@ -230,34 +196,8 @@ void KillTask(void)
 
 void BlockTask(struct Task * task)
 {
-	struct Task * temp = runnableTasksHead;
-
-	// Unlink task from runnable queue
-	if (temp == task) 
-	{
-		runnableTasksHead = temp->nexttask;
-		if (runnableTasksHead == 0) runnableTasksTail = 0;
-	}
-	else
-		while (temp)
-		{
-			if (temp->nexttask == task) temp->nexttask = temp->nexttask->nexttask;
-			if (temp->nexttask == 0) runnableTasksTail = temp;
-			temp = temp->nexttask;
-		}
-
-	// Put task on to blocked queue
-	if (blockedTasksHead == 0)
-	{
-		blockedTasksHead = blockedTasksTail = task;
-		task->nexttask = 0;
-	}
-	else
-	{
-		blockedTasksTail->nexttask = task;
-		blockedTasksTail = task;
-		task->nexttask = 0;
-	}
+	RemoveFromQ(task, &runnableTasks[0], &runnableTasks[1]);
+	AddToQ(task, &blockedTasks[0], &blockedTasks[1]);
 }
 
 //===============================================
@@ -266,31 +206,9 @@ void BlockTask(struct Task * task)
 
 void UnBlockTask(struct Task * task)
 {
-	struct Task * temp = blockedTasksHead;
-
-	// Unlink task from blocked queue
-	if (temp == task) 
-		blockedTasksHead = temp->nexttask;
-	else
-		while (temp)
-		{
-			if (temp->nexttask == task) temp->nexttask = temp->nexttask->nexttask;
-			if (temp->nexttask == 0) blockedTasksTail = temp;
-			temp = temp->nexttask;
-		}
-
-	// Put task on to runnable queue
-	if (runnableTasksHead == 0)
-	{
-		runnableTasksHead = runnableTasksTail = task;
-		task->nexttask = 0;
-	}
-	else
-	{
-		runnableTasksTail->nexttask = task;
-		runnableTasksTail = task;
-		task->nexttask = 0;
-	}
+	RemoveFromQ(task, &blockedTasks[0], &blockedTasks[1]);
+	AddToQ(task, &runnableTasks[0], &runnableTasks[1]);
+	
 }
 
 //===========================================================
@@ -299,13 +217,55 @@ void UnBlockTask(struct Task * task)
 
 void moveTaskToEndOfQueue()
 {
-	struct Task * temp = runnableTasksHead;
+	struct Task * temp = runnableTasks[0];
 	if (temp->nexttask)
 	{
-		runnableTasksHead = temp->nexttask;
-		runnableTasksTail->nexttask = temp;
-		runnableTasksTail = temp;
+		runnableTasks[0] = temp->nexttask;
+		runnableTasks[1]->nexttask = temp;
+		runnableTasks[1] = temp;
 		temp->nexttask = 0;
+	}
+}
+
+//========================
+// Unlink task from queue
+//========================
+
+void RemoveFromQ(struct Task * task, struct Task ** QHead, struct Task ** QTail)
+{
+	struct Task * temp = *QHead;
+
+	if (temp == task) 
+	{
+		*QHead = temp->nexttask;
+		if (*QHead == 0) *QTail = 0;
+	}
+	else
+		while (temp)
+		{
+			if (temp->nexttask == task) temp->nexttask = temp->nexttask->nexttask;
+			if (temp->nexttask == 0) *QTail = temp;
+			temp = temp->nexttask;
+		}
+
+}
+
+//======================
+// Put task on to queue
+//======================
+
+void AddToQ(struct Task * task, struct Task ** QHead, struct Task ** QTail)
+{
+	if (*QHead == 0)
+	{
+		*QHead = *QTail = task;
+		task->nexttask = 0;
+	}
+	else
+	{
+		(*QTail)->nexttask = task;
+		*QTail = task;
+		task->nexttask = 0;
 	}
 }
 

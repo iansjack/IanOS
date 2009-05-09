@@ -70,11 +70,13 @@ struct FCB
 	unsigned long	nextSector;
 	unsigned long	sectorInCluster;
 	unsigned short	currentCluster;
-	struct clusterListEntry * clusterList;
-	struct clusterListEntry * currentClusterEntry;
+	unsigned short  startCluster;
 	unsigned long	fileCursor;
 	unsigned short	bufCursor;
 	unsigned char * filebuf;
 };
+
+#define	SWTASKS asm("int $20")
+#define SWTASKS15 asm("mov %rdi, %r15"); asm("int $22")
 
 #endif

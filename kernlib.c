@@ -1,25 +1,37 @@
-//==============================
-// Switch to the next ready task
-//==============================
+#include "ckstructs.h"
+#include "cmemory.h"
+#include "filesystem.h"
 
-void SwTasks()
+//================================================
+// Read noBytes into buffer from the file fHandle
+//================================================
+
+long ReadFromFile(struct FCB * fHandle, char * buffer, long noBytes)
 {
-	asm("int $20");
+	long retval;
+    
+	struct Message * FSMsg;
+	FSMsg = (struct Message *)AllocKMem(sizeof(struct Message));
+	char * buff = AllocKMem(noBytes);
+	int i;
+	for (i = 0; i < noBytes; i++) buff[i] = buffer[i];
+
+	FSMsg->nextMessage = 0;
+	FSMsg->byte = READFILE;
+	FSMsg->quad = (long) fHandle;
+	FSMsg->quad2 = (long) buff;
+	FSMsg->quad3 = noBytes;
+	SendReceiveMessage(FSPort, FSMsg);
+	for (i = 0; i < noBytes; i++) buffer[i] = buff[i];
+	DeallocMem(buff);
+	retval = FSMsg->quad;
+	DeallocMem(FSMsg);
+	return retval;
 }
 
-//==========================
-// Switch to a specific task
-//==========================
-
-void SwTasks15(task)
-{
-	asm("mov %rdi, %r15");
-	asm("int $22");
-}
-
-//==========================================
+//===========================================
 // A utility function to copy a memory range
-//==========================================
+//===========================================
 
 void copyMem(unsigned char source[], unsigned char dest[], long size)
 {

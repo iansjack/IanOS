@@ -23,7 +23,7 @@ TaskSwitch:
 	pop  %rax
 # Is there another task ready to run?
 .nexttask:
-	mov  runnableTasksHead, %r15
+	mov  runnableTasks, %r15
 	cmp  $0, %r15
 	jne  TS1
 # There's no other runnable task, so pick the low-priority task
@@ -88,7 +88,7 @@ TS1:	xchg currentTask, %r15
 	.global TSS64
 
 TSS64:	.long 0
-	.long tempstack0
+	.long tempstack
 	.rept 0x2C
 	.long 0
 	.endr

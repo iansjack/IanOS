@@ -40,11 +40,11 @@ start64:
 # Final preparations before starting tasking
 	call InitMem64
 	mov $0xFFF, %rcx			# Zero page of memory locations for task structures
-	mov $TaskStruct, %rdx
-	mov $0, %al
-ag:	mov %al, (%rcx, %rdx, 1)
-	dec %cx
-	jne ag
+	mov $0, %rax
+	mov $0x200, %rcx
+	mov $TaskStruct, %rdi
+	cld
+	rep stosq
 
 	mov $TaskStruct, %r15			# Set up skeleton task structure for first task
 	movq $0, TS.nexttask(%r15)
@@ -52,14 +52,6 @@ ag:	mov %al, (%rcx, %rdx, 1)
 	movb $0, TS.waiting(%r15)		# We don't want task1 to be waiting when it starts
 	movq $UserData, TS.firstfreemem(%r15)
 	movq $1, TS.pid(%r15)
-
-	mov $0x11000, %rcx			# intialize kernel heap list
-	movq $0, (%rcx)
-	movq $0xFE0, 8(%rcx)
-
-	mov $0x1F0000, %rcx			# initialize shared memory list
-	movq $0, (%rcx)
-	movq $0xFE0, 8(%rcx)
 
 	mov $0xFF, %al
 	call AllocPage64			# Page for kernel stack
@@ -87,17 +79,11 @@ ag:	mov %al, (%rcx, %rdx, 1)
 
 	mov $tas1, %rsi				# Move the task code
 	mov $UserCode, %rdi
-	mov $0x1000, %rcx			# How do we find the length of Task1? It's so small
+	mov $0x1000, %rcx			# How do we find the length of tas1? It's so small
 	cld					# that we just assume it's under 0x1000 bytes
 	rep movsb
 
 	mov $UserCode, %rcx		  	# Task 1
-	mov $TaskStruct, %r15
-	mov %r15, currentTask
-	mov %r15, runnableTasksHead
-	mov %r15, runnableTasksTail
-	movq $0, blockedTasksHead
-	movq $0, blockedTasksTail
 	pushfq
 	pop %r11
 	or $0x200, %r11		  		# This will enable interrupts when we sysret
@@ -107,9 +93,6 @@ ag:	mov %al, (%rcx, %rdx, 1)
 	.data
 
 	.global tempstack
-	.global tempstack0
-	.global firstFreeKMem
-	.global nextKPage
 
 gdt_48: .word	0x800				# Allow up to 512 entries in GDT
 	.long	GDT
@@ -117,12 +100,8 @@ gdt_48: .word	0x800				# Allow up to 512 entries in GDT
 idt_64: .word 0x800				# Allow up to 512 entries in IDT
 	.quad IDT
 
+# A minimal stack whilst the system is being initialized
 .rept 128
 	.quad 0
 .endr
 tempstack:
-
-.rept 128
-	.quad 0
-.endr
-tempstack0:

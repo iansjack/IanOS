@@ -2,7 +2,7 @@ CFLAGS = -fpack-struct -ffixed-r15
 
 OBJS = 	startup.o memory32.o pagetab32.o hwsetup.o os.o gates.o messages.o memory.o keyboard.o \
 		console.o filesystem.o syscalls.o newtask.o tasking.o messaging.o interrupts.o \
-		kernlib.o tas1.o
+		ide.o kernlib.o tas1.o
 
 all: bootdisk
 	cd library; make all
@@ -55,6 +55,8 @@ tasking.o: tasking.s memory.h kstructs.h
 messaging.o: messaging.c cmemory.h ckstructs.h
 
 interrupts.o: interrupts.s macros.s memory.h kstructs.h
+
+ide.o: ide.s
 
 kernlib.o: kernlib.c
 

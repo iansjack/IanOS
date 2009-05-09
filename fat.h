@@ -50,8 +50,10 @@ struct MBR
 unsigned long FirstFAT;
 unsigned long RootDir;
 unsigned long DataStart;
+unsigned long FATLength;
 unsigned short BytesPerSector;
 unsigned char SectorsPerCluster;
 unsigned char * DiskBuffer;
+unsigned short * FAT;
 
 #endif

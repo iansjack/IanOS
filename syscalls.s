@@ -16,7 +16,6 @@ CallNo:
 	.quad	ClearScreen		# CLEARSCREEN
 	.quad	GetTicks		# GETTICKS
 	.quad	Sleep			# SLEEP
-	.quad	LoadAFile		# LOADFILE
 	.quad	Alloc_Mem		# ALLOCMEM
 	.quad	Alloc_Message_Port	# ALLOCMSGPORT
 	.quad	Send_Message		# SENDMESSAGE
@@ -152,17 +151,6 @@ Sleep:	push %rcx
 	movb $1, Timer.active
 	mov $SLEEPINT, %rdi
 	call WaitForInt
-	pop %rcx
-	sysretq
-
-#====================================================
-# Load a file from the hard disk into the DiskBuffer
-# RDI = filename in directory format.
-# Currently this assumes that the file is 1 sector
-#====================================================
-LoadAFile:
-	push %rcx
-#	call LoadFile
 	pop %rcx
 	sysretq
 

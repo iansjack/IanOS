@@ -29,10 +29,9 @@ void SendMessage(struct MessagePort * MP, struct Message * Msg)
 		MP->waitingProc = (struct Task *)-1L;
 		task->waiting = 0;
 		UnBlockTask(task);
-		SwTasks15(task);
+		SWTASKS15;
 	}
 }
-
 
 //======================================
 // Receive a message from a message port
@@ -45,7 +44,7 @@ void ReceiveMessage(struct MessagePort * MP, struct Message * Msg)
 		MP->waitingProc = currentTask;
 		currentTask->waiting = 0x80;
 		BlockTask(currentTask);			
-		SwTasks();
+		SWTASKS;
 	}
 	struct Message * temp = MP->msgQueue;
 	MP->msgQueue = temp->nextMessage;
@@ -65,7 +64,6 @@ struct MessagePort * AllocMessagePort()
 	return temp;
 } 
 
-
 //======================================================
 // Send a message to a message port and wait for a reply
 //======================================================
@@ -78,4 +76,3 @@ void SendReceiveMessage(struct MessagePort * MP, struct Message *Msg)
 	ReceiveMessage(tempMP, Msg);
 	DeallocMem(tempMP);
 }
-

@@ -15,7 +15,6 @@ HDINT 		= 3
 	.global pf
 	.global SwitchTasks
 	.global SpecificSwitchTasks
-	.global int21
 	.global TimerInt
 	.global KbInt
 	.global HdInt
@@ -38,7 +37,7 @@ KbInt:	push %rax
 	# is any task waiting for keyboard input? If so re-enable it
 
 .kbistaskwaiting:
-	mov  blockedTasksHead, %r15
+	mov  blockedTasks, %r15
 .kbagain:
 	cmpb $KBDINT, TS.waiting(%r15)
 	jne  .kbgoon
@@ -91,7 +90,7 @@ HdInt:	push %rax
 	mov  $0x20, %al
 	out  %al, $0x20
 	out  %al, $0xA0
-	mov  blockedTasksHead, %r15
+	mov  blockedTasks, %r15
 .again: cmpb $HDINT, TS.waiting(%r15)
 	jne  .goon
 	movb $0, TS.waiting(%r15)
@@ -212,61 +211,6 @@ Ps:	mov $160, %ax
 	inc %edx
 	jmp .isItStringEnd
 .done3:	ret
-
-#===========================================================
-# Load one sector from IDE HD to memory
-# %rdi = address to load to
-# %esi = sector number
-#===========================================================
-HD_PORT=0x1F0
-int21:	mov  $HD_PORT+7, %dx
-.again2:
-	in  %dx, %al
-	test $0x80, %al
-	jnz .again2
-	mov $HD_PORT+2, %dx		# 0x1F2 - sector count
-	mov $1, %al
-	out %al, %dx
-	inc %dx		      		# 0x1F3
-	mov %esi, %eax
-	and $0xFF, %al
-	out %al, %dx	      		# lba lo
-	inc %dx		      		# 0x1F4
-	mov %esi, %eax
-	and $0xFF, %ah
-	mov %ah, %al
-	out %al, %dx	      		# lba mid
-	inc %dx		      		# 0x1F5
-	mov %esi, %eax
-	shr $16, %eax
-	and $0xFF, %al
-	out %al, %dx	      		# lba hi
-	inc %dx		      		# 0x1F6
-	and $0xF, %ah
-	mov %ah, %al
-	add $0x40, %al	      		# lba mode/drive /lba top
-	out %al, %dx
-	inc %dx		      		# 0x1F7
-	mov $0x20, %ax
-	out %al, %dx
-	cli
-	push %rdi
-	push %rdx
-	mov $HDINT, %rdi
-	call WaitForInt
-	pop %rdx
-	pop %rdi
-.again3:
-	in  %dx, %al
-	test $0x80, %al
-	jnz .again3
-	mov $HD_PORT, %dx
-	mov $0, %eax
-	mov $256, %rcx
-	cld
-	rep
-	insw
-	iretq
 
 #===============================================================================
 # Stop the current task and make it wait for the interrupt number passed in RDI
