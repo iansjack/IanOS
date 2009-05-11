@@ -8,6 +8,7 @@ int main(void)
 	while (1)
 	{
 		WriteDouble(GetTicks(), 22, 60);
+		sys_Sleep(50);
 	}
 	return 0;
 }
