@@ -2,6 +2,10 @@
 #include "cmemory.h"
 #include "filesystem.h"
 
+void RemoveFromQ(struct Task * task, struct Task ** QHead, struct Task ** QTail);
+void AddToQ(struct Task * task, struct Task ** QHead, struct Task ** QTail);
+
+
 struct Task * currentTask;
 struct Task * runnableTasks[2];	// [0] = Head, [1] = Tail
 struct Task * blockedTasks[2];

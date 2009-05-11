@@ -111,7 +111,7 @@ void * AllocMem(long sizeRequested, struct MemStruct * list)
 		if (list->next == 0)
 		// Not enough memory available. Allocate another page.
 		{
-			int temp = (int) list >> 12;
+			long temp = (long) list >> 12;
 			while (list->size < sizeRequested)
 			{
 				CreatePTE(AllocPage64(), ++temp << 12);
@@ -165,6 +165,16 @@ void DeallocMem(void * list)
 void * AllocKMem(long sizeRequested)
 {
 	return AllocMem(sizeRequested, firstFreeKMem);
+}
+
+//===============================================================================
+// Allocate some user memory from the heap. sizeRequested = amount to allocate
+// Returns in RAX address of allocated memory.
+//===============================================================================
+
+void * AllocUMem(long sizeRequested)
+{
+	return AllocMem(sizeRequested, (void *) currentTask->firstfreemem);
 }
 
 //===============================================================================

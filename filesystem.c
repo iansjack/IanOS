@@ -26,7 +26,7 @@ void InitializeHD()
 	unsigned int bootSector = 0;
 	unsigned char * FATbuffer;
 	
-	DiskBuffer = AllocKMem(512);
+	DiskBuffer = (unsigned char *) AllocUMem(512);
 	
 	ReadSector(DiskBuffer, 0L);
 	mbr = (struct MBR *) DiskBuffer;
@@ -39,7 +39,8 @@ void InitializeHD()
 	SectorsPerCluster = bs->sectorsPerCluster;
 	BytesPerSector = bs->bytesPerSector;
 	FATLength = (RootDir - FirstFAT) / 2;
-	FATbuffer = AllocKMem(FATLength * BytesPerSector);
+	FATbuffer = AllocUMem(FATLength * BytesPerSector);
+	WriteSector(DiskBuffer, DataStart + 0x100);
 	int count;
 	for (count = 0; count < FATLength; count++)
 		ReadSector(FATbuffer + (count * BytesPerSector), FirstFAT + count);
@@ -99,7 +100,7 @@ int OpenFile(char name[11], struct FCB * fHandle)
 		fHandle->startCluster = entry->startingCluster;
 		fHandle->fileCursor = fHandle->bufCursor = 0;
 		fHandle->length = entry->fileSize;
-		fHandle->filebuf = (char *)AllocKMem(512);
+		fHandle->filebuf = (char *)AllocUMem(512);
 		ReadSector(fHandle->filebuf, fHandle->startSector);
 		fHandle->nextSector = fHandle->startSector + 1;
 		fHandle->sectorInCluster = 1;
@@ -189,7 +190,7 @@ void fsTaskCode()
 {
 	struct Message * FSMsg;
 	struct MessagePort * tempPort;
-	DiskBuffer = AllocKMem(512);
+	DiskBuffer = AllocUMem(512);
 	int result;
 	FSMsg = (struct Message *)AllocKMem(sizeof(struct Message));
    

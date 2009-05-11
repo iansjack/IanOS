@@ -27,7 +27,8 @@ TS.firstdata = 163	# dq 0
 TS.firstfreemem = 171	# dq 0
 TS.nextpage = 179	# dq 0
 TS.pid = 187
-TS.size = 195
+TS.timer = 195
+TS.size = 203
 
 Msg.nextMessage = 0
 Msg.byte	= 8

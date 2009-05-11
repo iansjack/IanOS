@@ -65,15 +65,19 @@ TimerInt:
 	mov  $0x20, %al
 	out  %al, $0x20
 	incq Ticks
-	cmpb $0, Timer.active
-	je   .notimer
-	decq Timer.interval
-	jnz  .notimer
-	mov  Timer.task, %r15
-	movb $0, TS.waiting(%r15)
-	movb $0, Timer.active
+	# Check for tasks waiting on timer
+	mov  blockedTasks, %r15
+	cmp $0, %r15
+	jz   .notimer
+.again:	cmpb $SLEEPINT, TS.waiting(%r15)
+	jne  .next
+	decq TS.timer(%r15)
+	jnz  .next
 	mov  %r15, %rdi
-	call UnBlockTask
+        call UnBlockTask
+.next:	mov  TS.nexttask(%r15), %r15
+	cmp $0, %r15
+        jne  .again
 .notimer:
 	pop  %rax
 	decb TimeSliceCount
@@ -91,7 +95,8 @@ HdInt:	push %rax
 	out  %al, $0x20
 	out  %al, $0xA0
 	mov  blockedTasks, %r15
-.again: cmpb $HDINT, TS.waiting(%r15)
+.again2: 
+	cmpb $HDINT, TS.waiting(%r15)
 	jne  .goon
 	movb $0, TS.waiting(%r15)
 	mov  %r15, %rdi
@@ -100,7 +105,7 @@ HdInt:	push %rax
 	jmp  .done2
 .goon:	mov  TS.nexttask(%r15), %r15
 	cmpq $0, %r15
-	jne  .again
+	jne  .again2
 .done2:	pop  %rax
 	iretq
 

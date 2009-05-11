@@ -32,6 +32,7 @@ struct Task
 	long firstfreemem;
 	long nextpage;
 	long pid;
+	long timer;
 };
 
 struct Message

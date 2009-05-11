@@ -53,6 +53,7 @@ long CreatePTE(void * pAddress, long lAddress);
 void * AllocPage64();
 void * AllocMem(long sizeRequested, struct MemStruct * list);
 void * AllocKMem(long sizeRequested);
+void * AllocUMem (long sizeRequested);
 void DeallocMem(void * list);
 
 #endif

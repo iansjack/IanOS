@@ -2,6 +2,7 @@
 
 	.include "memory.h"
 	.include "kstructs.h"
+	.include "macros.s"
 
 	.text
 
@@ -142,15 +143,15 @@ GetTicks:
 	sysretq
 
 #=====================================================
-# Suspend the current task for for RDI 10ms intervals
+# Suspend the current task for for RDI 1ms intervals
 #=====================================================
 Sleep:	push %rcx
-	mov %rdi, Timer.interval
-	mov currentTask, %rax
-	mov %rax, Timer.task
-	movb $1, Timer.active
-	mov $SLEEPINT, %rdi
-	call WaitForInt
+	mov currentTask, %r15
+	movb $SLEEPINT, TS.waiting(%r15)
+	mov %rdi, TS.timer(%r15)
+	mov %r15, %rdi
+	call BlockTask
+	SWITCH_TASKS		       # The current task is no longer runnable
 	pop %rcx
 	sysretq
 
