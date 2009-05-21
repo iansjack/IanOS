@@ -15,8 +15,8 @@ int main(void)
 	consoleclrscr();
 	writeconsolestring("IanOS Version 0.1 - 2008\r");
 	writeconsolestring("#> _\b");
-	sys_CreateTask("TASK2.BIN");
-	sys_Sleep(10);
+	//sys_CreateTask("TASK2.BIN");
+	//sys_Sleep(10);
     
 	while (1)
 	{
