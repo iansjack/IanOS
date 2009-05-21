@@ -9,12 +9,10 @@
 	.global SysCalls
 
 CallNo:	
-	.quad	AllocatePage64		# ALLOCPAGE
 	.quad	PrintString		# PRINTSTRING
 	.quad	PrintDouble		# PRINTDOUBLE
 	.quad	PrintChar		# PRINTCHAR
 	.quad	Newtask 		# CREATETASK
-	.quad	ClearScreen		# CLEARSCREEN
 	.quad	GetTicks		# GETTICKS
 	.quad	Sleep			# SLEEP
 	.quad	Alloc_Mem		# ALLOCMEM
@@ -24,28 +22,12 @@ CallNo:
 	.quad	Dealloc_Mem		# DEALLOCMEM
 	.quad	Send_Receive		# SENDRECEIVE
 	.quad	Kill_Task		# KILLTASK
-	.quad	Halt			# HALT
 	.quad   NewKerneltask		# CREATEKTASK
 	.quad	Alloc_Shared_Mem	# ALLOCSHAREDMEM
-	.quad	GetCR3			# GETCR3
 	.quad	NewLPtask		# CREATELPTASK
 
 SysCalls:
 	jmp *(CallNo - 8)(,%r9, 8)
-
-#===========================================
-# Allocate a page of memory (64-bit version)
-# Create a PTE for it pointing to RDI
-# return in RAX the Physical Memory address
-#===========================================
-AllocatePage64:
-	push %rcx
-	call AllocPage64
-	mov %rdi, %rsi
-	mov %rax, %rdi
-	call CreatePTE
-	pop %rcx
-	sysretq
 
 #========================================================
 # Print [EDX] as string at position row BH col BL
@@ -118,21 +100,6 @@ Newtask:
 	call NewTask
 	int  $20
 	pop %rcx
-	sysretq
-
-#======================
-#Clear the console
-#======================
-ClearScreen:
-	push %rbx
-	push %rcx
-	mov  $0xB8000, %rbx
-	mov  $0xFA0, %rcx
-.again: movw $0x0720, -2(%rbx, %rcx)
-	dec  %rcx
-	loop .again
-	pop  %rcx
-	pop  %rbx
 	sysretq
 
 #=============================================================================
@@ -229,11 +196,6 @@ Kill_Task:
 	pop  %rcx
 	sysretq
 
-Halt:
-	sti
-	hlt
-	sysretq
-
 #=================================================================
 # Create a new kernel task from the code pointed to by RDI
 # Affects RAX, RDI
@@ -256,13 +218,6 @@ Alloc_Shared_Mem:
 	push %rcx
 	call AllocSharedMem
 	pop  %rcx
-	sysretq
-
-#==============================================================
-# Return the value of CR3 in RAX
-#==============================================================
-GetCR3:
-	mov %cr3, %rax
 	sysretq
 
 #=================================================================

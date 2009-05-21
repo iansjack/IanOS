@@ -123,8 +123,15 @@ SpecificSwitchTasks:		# int 22
 	call SpecificTaskSwitch
 	iretq
 
-intr:	mov $0x20, %al		 # clear int
-	out %al, $0x20
+intr:	KWRITE_STRING $Unknown_message, $0, $0
+	KWRITE_DOUBLE 0x20(%esp), $0, $60
+	KWRITE_DOUBLE 0x28(%esp), $1, $60
+	KWRITE_DOUBLE 0x30(%esp), $2, $60
+	KWRITE_DOUBLE 0x38(%esp), $3, $60
+	KWRITE_DOUBLE 0x40(%esp), $4, $60
+	KWRITE_DOUBLE 0x48(%esp), $5, $60
+	pop %rax
+	hlt
 	iretq
 
 div0:	KWRITE_STRING $div0message, $0, $0

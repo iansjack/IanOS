@@ -14,7 +14,6 @@ long ReadFromFile(struct FCB * fHandle, char * buffer, long noBytes)
 	FSMsg = (struct Message *)AllocKMem(sizeof(struct Message));
 	char * buff = AllocKMem(noBytes);
 	int i;
-	for (i = 0; i < noBytes; i++) buff[i] = buffer[i];
 
 	FSMsg->nextMessage = 0;
 	FSMsg->byte = READFILE;

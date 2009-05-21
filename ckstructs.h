@@ -54,7 +54,6 @@ struct MessagePort
 struct MemStruct
 {
 	struct MemStruct * next;
-//	struct MemStruct * previous;
 	long size;
 };
 
@@ -66,6 +65,7 @@ struct clusterListEntry
 
 struct FCB
 {
+	struct DirEntry * directory;
 	unsigned int	length;
 	unsigned long	startSector;
 	unsigned long	nextSector;
@@ -74,6 +74,7 @@ struct FCB
 	unsigned short  startCluster;
 	unsigned long	fileCursor;
 	unsigned short	bufCursor;
+	unsigned char	bufIsDirty;	// 0 = clean, 1 = dirty
 	unsigned char * filebuf;
 };
 

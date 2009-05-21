@@ -57,8 +57,8 @@ void NewTask(char * name)
 	int result;
 	struct Message * FSMsg;
 
-	fHandle = (struct FCB *)AllocKMem(sizeof(struct FCB));
-	FSMsg = (struct Message *)AllocKMem(sizeof(struct Message));
+	//fHandle = (struct FCB *) AllocKMem(sizeof(struct FCB));
+	FSMsg = (struct Message *) AllocKMem(sizeof(struct Message));
 
 	// Open file
 	FSMsg->nextMessage = 0;
@@ -67,7 +67,8 @@ void NewTask(char * name)
 	FSMsg->quad2 = (long) fHandle;
 	SendReceiveMessage(FSPort, FSMsg);
     
-	if (FSMsg->quad == 0)
+	fHandle = (struct FCB *) FSMsg->quad;
+	if (fHandle)
 	{
 		task->waiting = 0;
 		task->cr3 = VCreatePageDir();
@@ -100,7 +101,7 @@ void NewTask(char * name)
 		LinkTask(task);
 		asm("sti");
 	}
-	DeallocMem(fHandle);
+	//DeallocMem(fHandle);
 	DeallocMem(FSMsg);
 }
 

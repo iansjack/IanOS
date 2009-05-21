@@ -3,7 +3,7 @@
 
 struct DirEntry
 {
-	char name[11];
+	unsigned char name[11];
 	unsigned char attribute;
 	unsigned char reserved[10];
 	unsigned char date[4];
@@ -53,7 +53,9 @@ unsigned long DataStart;
 unsigned long FATLength;
 unsigned short BytesPerSector;
 unsigned char SectorsPerCluster;
+unsigned short RootDirectoryEntries;
 unsigned char * DiskBuffer;
 unsigned short * FAT;
+struct DirEntry * RootDirectory;
 
 #endif

@@ -5,10 +5,19 @@ OBJS = 	startup.o memory32.o pagetab32.o hwsetup.o os.o gates.o messages.o memor
 		ide.o kernlib.o tas1.o
 
 all: bootdisk
-	cd library; make all
-	cd tasks; make all
+	cd library; make all; cd ..
+	cd tasks; make all; cd ..
 
-IanOS.bin: $(OBJS)
+library/liblib.a:
+	cd library; make all; cd ..
+
+library/libsyscalls.a:
+	cd library; make all; cd ..
+
+#IanOS.o: $(OBJS) library/liblib.a library/libsyscalls.a
+#	ld -Tlink2.ld $(OBJS) library/liblib.a library/libsyscalls.a -oIanOS.o>linkmap 
+
+IanOS.bin: $(OBJS) library/liblib.a library/libsyscalls.a
 	ld --print-map -Tlink.ld $(OBJS) library/liblib.a library/libsyscalls.a -oIanOS.bin>linkmap 
 
 bootdisk: bootsect.bin 32sect IanOS.bin
@@ -48,7 +57,7 @@ filesystem.o: filesystem.c cmemory.h ckstructs.h
 
 syscalls.o: syscalls.s memory.h kstructs.h
 
-newtask.o: newtask.c cmemory.h ckstructs.h
+newtask.o: newtask.c cmemory.h ckstructs.h filesystem.h
 
 tasking.o: tasking.s memory.h kstructs.h
 
