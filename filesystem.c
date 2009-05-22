@@ -325,6 +325,21 @@ long WriteFile(struct FCB * fHandle, char * buffer, long noBytes)
 	return bytesWritten;
 }
 
+int DeleteFile(struct FCB * fHandle)
+{
+    fHandle->directory->name[0]=0xE5;
+    unsigned short int cluster = fHandle->directory->startingCluster;
+    unsigned short int nextCluster;
+    while (cluster != 0xFF)
+    {
+	nextCluster = FAT[cluster];
+    	FAT[cluster] = 0;
+	cluster = nextCluster;
+    }
+    FAT[cluster] = 0;
+    return 0;
+}
+
 //============================= 
 // The actual filesystem task
 //=============================
@@ -384,6 +399,12 @@ void fsTaskCode()
 			result = WriteFile((struct FCB *) FSMsg->quad, (char *) FSMsg->quad2, FSMsg->quad3);
 			tempPort = (struct MessagePort *) FSMsg->tempPort;
 			FSMsg->quad = result;
+			SendMessage(tempPort, FSMsg);
+			break;
+		case DELETEFILE:
+			result = DeleteFile((struct FCB *) FSMsg->quad);
+			DeallocMem ((void *) FSMsg->quad);
+			tempPort = (struct MessagePort *) FSMsg->tempPort;
 			SendMessage(tempPort, FSMsg);
 			break;
 		default:
