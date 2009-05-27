@@ -33,6 +33,7 @@ struct Task
 	long nextpage;
 	long pid;
 	long timer;
+	char * environment;
 };
 
 struct Message

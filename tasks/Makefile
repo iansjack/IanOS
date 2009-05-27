@@ -1,36 +1,36 @@
 CFLAGS = -fpack-struct -ffixed-r15 -O -I ..
 LIBS = ../library/liblib.a ../library/libsyscalls.a 
-TASKS = TASK1.BIN TASK2.BIN TASK3.BIN TASK4.BIN
+TASKS = TASK1 TASK2 TASK3 TASK4
 
 all: $(TASKS) 
 
 inittask.o: inittask.s
 	as inittask.s -o inittask.o
 
-TASK1.BIN: task1.o inittask.o
-	ld -Tlink.ld task1.o $(LIBS) -oTASK1.BIN
-	mcopy -o TASK1.BIN c: 
+TASK1: task1.o inittask.o
+	ld -Tlink.ld task1.o $(LIBS) -oTASK1
+	mcopy -o TASK1 c: 
 
 task1.o: task1.c
 
-TASK2.BIN: task2.o inittask.o
-	ld -Tlink.ld task2.o $(LIBS) -oTASK2.BIN
-	mcopy -o TASK2.BIN c: 
+TASK2: task2.o inittask.o
+	ld -Tlink.ld task2.o $(LIBS) -oTASK2
+	mcopy -o TASK2 c: 
 
 task2.o: task2.c
 
-TASK3.BIN: task3.o inittask.o
-	ld -Tlink.ld task3.o $(LIBS) -oTASK3.BIN
-	mcopy -o TASK3.BIN c: 
+TASK3: task3.o inittask.o
+	ld -Tlink.ld task3.o $(LIBS) -oTASK3
+	mcopy -o TASK3 c: 
 
 task3.o: task3.c
 
-TASK4.BIN: task4.o inittask.o
-	ld -Tlink.ld task4.o $(LIBS) -oTASK4.BIN
-	mcopy -o TASK4.BIN c: 
+TASK4: task4.o inittask.o
+	ld -Tlink.ld task4.o $(LIBS) -oTASK4
+	mcopy -o TASK4 c: 
 
-task3.o: task3.c
+task4.o: task4.c
 
 clean:
-	rm -f *.BIN *.o
+	rm -f TASK? *.o
 

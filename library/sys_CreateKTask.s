@@ -2,6 +2,7 @@
 
 	.global sys_CreateKTask
 	.global sys_CreateLPTask
+	.global sys_GetCommandLine
 
 	.text
 
@@ -12,5 +13,10 @@ sys_CreateKTask:
 
 sys_CreateLPTask:
 	mov $CREATELPTASK, %r9
+	syscall
+	ret
+
+sys_GetCommandLine:
+	mov $GETCOMMANDLINE, %r9
 	syscall
 	ret

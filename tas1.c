@@ -8,14 +8,14 @@ extern void dummyTask(void);
 
 void tas1(void)
 {
-	sys_CreateLPTask(dummyTask);
-	sys_Sleep(4);
-	sys_CreateKTask(kbTaskCode);
-	sys_Sleep(4);
-	sys_CreateKTask(consoleTaskCode);
-	sys_Sleep(4);
-	sys_CreateKTask(fsTaskCode);
-	sys_Sleep(4);
-	sys_CreateTask("TASK1.BIN");
-	sys_KillTask();
+   sys_CreateLPTask(dummyTask);
+   sys_Sleep(4);
+   sys_CreateKTask(kbTaskCode);
+   sys_Sleep(4);
+   sys_CreateKTask(consoleTaskCode);
+   sys_Sleep(4);
+   sys_CreateKTask(fsTaskCode);
+   sys_Sleep(4);
+   sys_CreateTask("TASK1", "");
+   sys_KillTask();
 }
