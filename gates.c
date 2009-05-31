@@ -1,4 +1,4 @@
-#include "cmemory.h"
+#include "memory.h"
 
 extern intr;
 extern gpf;

@@ -1,5 +1,5 @@
-#include "ckstructs.h"
-#include "cmemory.h"
+#include "kstructs.h"
+#include "memory.h"
 
 extern struct Task *currentTask;
 
@@ -13,6 +13,7 @@ void SendMessage(struct MessagePort *MP, struct Message *Msg)
    struct Message *temp = (struct Message *)AllocKMem(sizeof(struct Message));
 
    copyMem((unsigned char *)Msg, (unsigned char *)temp, sizeof(struct Message));
+   temp->pid = currentTask->pid;
    if (MP->msgQueue == 0)
    {
       MP->msgQueue = temp;

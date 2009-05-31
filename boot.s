@@ -2,7 +2,7 @@
 # This Boot Sector borrows heavily from "Write Your Own 32-bit Operating System
 #===============================================================================
 	.include "macros.s"
-	.include "memory.h"
+	.include "memory.inc"
 
 	.code16
 	.org	0

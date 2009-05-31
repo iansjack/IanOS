@@ -1,5 +1,5 @@
-#include "ckstructs.h"
-#include "cmemory.h"
+#include "kstructs.h"
+#include "memory.h"
 #include "library/syscalls.h"
 #include "library/lib.h"
 #include "console.h"

@@ -3,59 +3,59 @@
 
 struct DirEntry
 {
-	unsigned char name[11];
-	unsigned char attribute;
-	unsigned char reserved[10];
-	unsigned char date[4];
-	short int startingCluster;
-	int fileSize;
+   unsigned char name[11];
+   unsigned char attribute;
+   unsigned char reserved[10];
+   unsigned char date[4];
+   short int     startingCluster;
+   int           fileSize;
 };
 
 struct BootSector
 {
-	char		jump[3];
-	char		oemLable[8];
-	unsigned short	bytesPerSector;
-	unsigned char	sectorsPerCluster;
-	unsigned short	reservedSectors;
-	unsigned char	fats;
-	unsigned short	rootEntries;
-	unsigned short	smallSectors;
-	unsigned char	mediaDescriptor;
-	unsigned short	sectorsPerFat;
-	unsigned short	sectorsPerTrack;
-	unsigned short	heads;
-	unsigned int	hiddenSectors;
-	unsigned int	largeSectors;
+   char           jump[3];
+   char           oemLable[8];
+   unsigned short bytesPerSector;
+   unsigned char  sectorsPerCluster;
+   unsigned short reservedSectors;
+   unsigned char  fats;
+   unsigned short rootEntries;
+   unsigned short smallSectors;
+   unsigned char  mediaDescriptor;
+   unsigned short sectorsPerFat;
+   unsigned short sectorsPerTrack;
+   unsigned short heads;
+   unsigned int   hiddenSectors;
+   unsigned int   largeSectors;
 };
 
 struct PartTable
 {
-	unsigned char	status;
-	unsigned char	sectorAddress[3];
-	unsigned char	partitionType;
-	unsigned char	lastSectorAddress[3];
-	unsigned int	LBA;
-	unsigned int	sectorsInPartition;
+   unsigned char status;
+   unsigned char sectorAddress[3];
+   unsigned char partitionType;
+   unsigned char lastSectorAddress[3];
+   unsigned int  LBA;
+   unsigned int  sectorsInPartition;
 };
 
 struct MBR
 {
-	char	code[0x1B8];
-	char	diskSignature[4];
-	char	nulls[2];
-	struct	PartTable PT[4];
+   char              code[0x1B8];
+   char              diskSignature[4];
+   char              nulls[2];
+   struct  PartTable PT[4];
 };
 
-unsigned long FirstFAT;
-unsigned long RootDir;
-unsigned long DataStart;
-unsigned long FATLength;
-unsigned short BytesPerSector;
-unsigned char SectorsPerCluster;
-unsigned short RootDirectoryEntries;
-unsigned char * DiskBuffer;
-unsigned short * FAT;
-struct DirEntry * RootDirectory;
+unsigned long   FirstFAT;
+unsigned long   RootDir;
+unsigned long   DataStart;
+unsigned long   FATLength;
+unsigned short  BytesPerSector;
+unsigned char   SectorsPerCluster;
+unsigned short  RootDirectoryEntries;
+unsigned char   *DiskBuffer;
+unsigned short  *FAT;
+struct DirEntry *RootDirectory;
 
 #endif

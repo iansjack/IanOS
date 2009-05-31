@@ -1,5 +1,5 @@
-#include "cmemory.h"
-#include "ckstructs.h"
+#include "memory.h"
+#include "kstructs.h"
 #include "fat.h"
 #include "filesystem.h"
 
@@ -438,6 +438,7 @@ void fsTaskCode()
          }
          else
          {
+            fcb->pid    = FSMsg->pid;
             FSMsg->quad = (long)fcb;
          }
          SendMessage(tempPort, FSMsg);
@@ -453,6 +454,7 @@ void fsTaskCode()
          }
          else
          {
+            fcb->pid    = FSMsg->pid;
             FSMsg->quad = (long)fcb;
          }
          SendMessage(tempPort, FSMsg);

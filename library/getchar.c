@@ -1,6 +1,5 @@
-#include "../ckstructs.h"
-#include "../cmemory.h"
-#include "syscalls.h"
+#include "../kstructs.h"
+#include "../memory.h"
 
 char getchar(void)
 {

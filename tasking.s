@@ -1,5 +1,5 @@
-	.include "memory.h"
-	.include "kstructs.h"
+	.include "memory.inc"
+	.include "kstructs.inc"
 
 	.text
 

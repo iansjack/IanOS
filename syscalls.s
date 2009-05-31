@@ -1,7 +1,7 @@
 	SLEEPINT = 2
 
-	.include "memory.h"
-	.include "kstructs.h"
+	.include "memory.inc"
+	.include "kstructs.inc"
 	.include "macros.s"
 
 	.text

@@ -1,5 +1,5 @@
-#include "ckstructs.h"
-#include "cmemory.h"
+#include "kstructs.h"
+#include "memory.h"
 #include "filesystem.h"
 
 void RemoveFromQ(struct Task *task, struct Task **QHead, struct Task **QTail);

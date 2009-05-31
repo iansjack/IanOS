@@ -1,6 +1,6 @@
-	.include "memory.h"
-	.include "syscalls.h"
-	.include "kstructs.h"
+	.include "memory.inc"
+	.include "syscalls.inc"
+	.include "kstructs.inc"
 
 	.text
 

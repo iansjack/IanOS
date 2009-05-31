@@ -1,5 +1,5 @@
-#include "cmemory.h"
-#include "ckstructs.h"
+#include "memory.h"
+#include "kstructs.h"
 
 extern struct Task *currentTask;
 extern struct Task *runnableTasks[2];   // [0] = Head, [1] = Tail
@@ -13,6 +13,7 @@ static long      nextKPage;
 struct MemStruct *firstFreeSharedMem;
 unsigned char    *PMap;
 long             NoOfAllocations;
+long             memorySemaphore;
 
 void InitMem64(void)
 {
@@ -112,6 +113,8 @@ void *AllocPage64()
 //=========================================================================================
 void *AllocMem(long sizeRequested, struct MemStruct *list)
 {
+	// We want the memory allocation to be atomic, so set a semaphore before proceeding
+   SetSem(&memorySemaphore);
    while (list->size < sizeRequested)
    {
       if (list->next == 0)
@@ -147,7 +150,9 @@ void *AllocMem(long sizeRequested, struct MemStruct *list)
       list->next       = (struct MemStruct *)temp;
       list->next->size = list->size - sizeRequested - sizeof(struct MemStruct);
       list->size       = 0;
+      list->pid        = currentTask->pid;
    }
+   ClearSem(&memorySemaphore);
    return(list + 1);
 }
 
@@ -160,11 +165,14 @@ void DeallocMem(void *list)
 {
    struct MemStruct *l = (struct MemStruct *)list;
 
+	// We want the memory deallocation to be atomic, so set a semaphore before proceeding
+   SetSem(&memorySemaphore);
    l--;
    if (l->size == 0)
    {
       l->size = (long)l->next - (long)l - sizeof(struct MemStruct);
    }
+   ClearSem(&memorySemaphore);
 }
 
 

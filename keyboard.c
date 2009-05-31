@@ -1,5 +1,5 @@
-#include "cmemory.h"
-#include "ckstructs.h"
+#include "memory.h"
+#include "kstructs.h"
 
 #define KBDINT      1
 

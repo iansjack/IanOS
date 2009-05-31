@@ -1,4 +1,4 @@
-	.include "../syscalls.h"
+	.include "../syscalls.inc"
 
 	.global sys_AllocMem
 	.global sys_AllocSharedMem

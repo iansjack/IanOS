@@ -1,10 +1,10 @@
 	.include "macros.s"
-	.include "memory.h"
-	.include "kstructs.h"
+	.include "memory.inc"
+	.include "kstructs.inc"
 
-KBDINT 		= 1
-SLEEPINT 	= 2
-HDINT 		= 3
+KBDINT 	= 1
+SLEEPINT = 2
+HDINT 	= 3
 
 	.text
 
@@ -18,6 +18,8 @@ HDINT 		= 3
 	.global TimerInt
 	.global KbInt
 	.global HdInt
+	.global SetSem
+	.global ClearSem
 
 #===================
 # Keyboard interrupt
@@ -237,6 +239,30 @@ WaitForInt:
 	SWITCH_TASKS		       # The current task is no longer runnable
 	ret
 
+#==========================================
+# Set a semaphore whose address is in %rdi
+#==========================================
+SetSem:
+.sagain:
+	push %rax
+	push %rbx
+	mov  $1, %rbx
+	cmpxchg %bx, (%rdi)
+	je  .sdone
+	SWITCH_TASKS
+	jmp .sagain
+.sdone:
+	pop  %rbx
+	pop  %rax
+	ret
+
+#==========================================
+# Set a semaphore whose address is in %rdi
+#==========================================
+ClearSem:
+	movw $0, (%rdi)
+	ret
+
 	.data
 
 	.global Ticks
@@ -244,8 +270,8 @@ WaitForInt:
 	.global Timer.interval
 	.global Timer.task
 
-Ticks:			.quad 0
+Ticks:				.quad 0
 TimeSliceCount: 	.byte 5
 Timer.active: 		.byte 0
-Timer.interval:		.quad 0
-Timer.task:		.quad 0
+Timer.interval:	.quad 0
+Timer.task:			.quad 0

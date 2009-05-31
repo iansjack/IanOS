@@ -1,44 +1,88 @@
-TS.nexttask			= 0		# dq 0
-TS.waiting			= 8		# db 0	; 0 = free to run, 1 = waiting
-TS.rax				= 9		# dq 0
-TS.rbx				= 17		# dq 0
-TS.rcx				= 25		# dq 0
-TS.rdx				= 33		# dq 0
-TS.rbp				= 41		# dq 0
-TS.rsi				= 49		# dq 0
-TS.rdi				= 57		# dq 0
-TS.rsp				= 65		# dq 0
-TS.r8					= 73		# dq 0
-TS.r9					= 81		# dq 0
-TS.r10				= 89		# dq 0
-TS.r11				= 97		# dq 0
-TS.r12				= 105		# dq 0
-TS.r13				= 113		# dq 0
-TS.r14				= 121		# dq 0
-TS.r15				= 129		# dq 0
-TS.rflags			= 137		# dq 0
-TS.ds					= 145		# dw 0
-TS.es					= 147		# dw 0
-TS.fs					= 149		# dw 0
-TS.gs					= 151		# dw 0
-TS.ss					= 153		# dw 0
-TS.cr3				= 155		# dq 0
-TS.firstdata		= 163		# dq 0
-TS.firstfreemem	= 171		# dq 0
-TS.nextpage			= 179		# dq 0
-TS.pid				= 187		# dq 0
-TS.timer				= 195		# dq 0
-TS.environment		= 203		# dq 0
-TS.size				= 211		# dq 0
+#ifndef CKSTRUCTS_H
+#define CKSTRUCTS_H
 
-Msg.nextMessage	= 0
-Msg.byte				= 8
-Msg.quad				= 9
-Msg.quad2    		= 17
-Msg.quad3    		= 25
-Msg.size				= 33
+struct Task
+{
+   struct Task   *nexttask;
+   unsigned char waiting;
+   long          rax;
+   long          rbx;
+   long          rcx;
+   long          rdx;
+   long          rbp;
+   long          rsi;
+   long          rdi;
+   long          rsp;
+   long          r8;
+   long          r9;
+   long          r10;
+   long          r11;
+   long          r12;
+   long          r13;
+   long          r14;
+   long          r15;
+   long          rflags;
+   short int     ds;
+   short int     es;
+   short int     fs;
+   short int     gs;
+   short int     ss;
+   long          cr3;
+   long          firstdata;
+   long          firstfreemem;
+   long          nextpage;
+   long          pid;
+   long          timer;
+   char          *environment;
+};
 
-MP.waitingProc		= 0
-MP.msgQueue  		= 8
-MP.size				= 16
+struct Message
+{
+   struct Message *nextMessage;
+   unsigned char  byte;
+   long           quad;
+   long           quad2;
+   long           quad3;
+   long           tempPort;
+   long           pid;
+};
 
+struct MessagePort
+{
+   struct Task    *waitingProc;
+   struct Message *msgQueue;
+};
+
+struct MemStruct
+{
+   struct MemStruct *next;
+   long             size;
+   long             pid;
+};
+
+struct clusterListEntry
+{
+   struct clusterListEntry *next;
+   unsigned short          cluster;
+};
+
+struct FCB
+{
+   struct DirEntry *directory;
+   unsigned int    length;
+   unsigned long   startSector;
+   unsigned long   nextSector;
+   unsigned long   sectorInCluster;
+   unsigned short  currentCluster;
+   unsigned short  startCluster;
+   unsigned long   fileCursor;
+   unsigned short  bufCursor;
+   unsigned char   bufIsDirty;          // 0 = clean, 1 = dirty
+   unsigned char   *filebuf;
+   long            pid;
+};
+
+#define SWTASKS      asm ("int $20")
+#define SWTASKS15    asm ("mov %rdi, %r15"); asm ("int $22")
+
+#endif
