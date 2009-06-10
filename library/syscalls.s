@@ -12,6 +12,9 @@
 	.global sys_SendMessage
 	.global sys_SendReceive
 	.global sys_Sleep
+	.global sys_GetTicks
+	.global sys_WriteDouble
+	.global sys_WriteString
 
 	.text
 
@@ -73,4 +76,31 @@ sys_SendReceive:
 sys_Sleep:
 	mov $SLEEP, %r9
 	syscall
+	ret
+
+sys_GetTicks:
+	mov $GETTICKS, %r9
+	syscall
+	ret
+
+sys_WriteDouble:
+	push %rbx
+	movq %rsi, %rbx
+	movb %bl, %bh
+	movb %dl, %bl
+	movq %rdi, %rdx
+	movq $PRINTDOUBLE, %r9
+	syscall
+	pop %rbx
+	ret
+
+sys_WriteString:
+	push %rbx
+	movq %rsi, %rbx
+	movb %bl, %bh
+	movb %dl, %bl
+	movq %rdi, %rdx
+	movq $PRINTSTRING, %r9
+	syscall
+	pop %rbx
 	ret

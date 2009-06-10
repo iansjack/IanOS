@@ -1,6 +1,6 @@
 CFLAGS = -fpack-struct -ffixed-r15 -O -I ..
 LIBS = ../library/liblib.a ../library/libsyscalls.a 
-LIBOBJS = writestring.o getticks.o writedouble.o writeconsolestring.o getchar.o file.o
+LIBOBJS = writeconsolestring.o getchar.o file.o
 SYSCALLSOBJS = syscalls.o
 
 all: liblib.a libsyscalls.a
