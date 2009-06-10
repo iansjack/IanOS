@@ -10,6 +10,7 @@
 	.global sys_KillTask
 	.global sys_ReceiveMessage
 	.global sys_SendMessage
+	.global sys_SendReceive
 	.global sys_Sleep
 
 	.text
@@ -61,6 +62,11 @@ sys_ReceiveMessage:
 
 sys_SendMessage:
 	mov $SENDMESSAGE, %r9
+	syscall
+	ret
+
+sys_SendReceive:
+	mov $SENDRECEIVE, %r9
 	syscall
 	ret
 

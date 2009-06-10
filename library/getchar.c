@@ -1,5 +1,6 @@
 #include "../kstructs.h"
 #include "../memory.h"
+#include "syscalls.h"
 
 char getchar(void)
 {
@@ -9,7 +10,7 @@ char getchar(void)
    kbdMsg->nextMessage = 0;
    kbdMsg->byte        = 1;
    kbdMsg->quad        = 0;
-   SendReceive(KbdPort, kbdMsg);
+   sys_SendReceive(KbdPort, kbdMsg);
    char c = kbdMsg->byte;
    sys_DeallocMem(kbdMsg);
    return(c);

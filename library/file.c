@@ -2,6 +2,7 @@
 #include "kstructs.h"
 #include "library/syscalls.h"
 #include "filesystem.h"
+#include "syscalls.h"
 
 struct FCB *CreateFile(char *s)
 {
@@ -17,7 +18,7 @@ struct FCB *CreateFile(char *s)
    msg->nextMessage = 0;
    msg->byte        = CREATEFILE;
    msg->quad        = (long)str;
-   SendReceive(FSPort, msg);
+   sys_SendReceive(FSPort, msg);
    return((struct FCB *)msg->quad);
 }
 
@@ -36,7 +37,7 @@ struct FCB *OpenFile(char *s)
    msg->nextMessage = 0;
    msg->byte        = OPENFILE;
    msg->quad        = (long)str;
-   SendReceive(FSPort, msg);
+   sys_SendReceive(FSPort, msg);
    return((struct FCB *)msg->quad);
 }
 
@@ -48,7 +49,7 @@ struct FCB *CloseFile(struct FCB *fHandle)
    msg->nextMessage = 0;
    msg->byte        = CLOSEFILE;
    msg->quad        = (long)fHandle;
-   SendReceive(FSPort, msg);
+   sys_SendReceive(FSPort, msg);
    return((struct FCB *)msg->quad);
 }
 
@@ -68,7 +69,7 @@ long ReadFile(struct FCB *fHandle, char *buffer, long noBytes)
    FSMsg->quad        = (long)fHandle;
    FSMsg->quad2       = (long)buff;
    FSMsg->quad3       = noBytes;
-   SendReceive(FSPort, FSMsg);
+   sys_SendReceive(FSPort, FSMsg);
    for (i = 0; i < noBytes; i++)
    {
       buffer[i] = buff[i];
@@ -99,7 +100,7 @@ long WriteFile(struct FCB *fHandle, char *buffer, long noBytes)
    FSMsg->quad        = (long)fHandle;
    FSMsg->quad2       = (long)buff;
    FSMsg->quad3       = noBytes;
-   SendReceive(FSPort, FSMsg);
+   sys_SendReceive(FSPort, FSMsg);
    sys_DeallocMem(buff);
    retval = FSMsg->quad;
    sys_DeallocMem(FSMsg);
@@ -114,6 +115,6 @@ struct FCB *DeleteFile(struct FCB *fHandle)
    msg->nextMessage = 0;
    msg->byte        = DELETEFILE;
    msg->quad        = (long)fHandle;
-   SendReceive(FSPort, msg);
+   sys_SendReceive(FSPort, msg);
    return((struct FCB *)msg->quad);
 }
