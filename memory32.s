@@ -11,7 +11,7 @@
 # Find top of memory
 #==================================
 InitMemManagement:
-	movw $0, (sem)
+	movw $0, (memorySemaphore)
 	movl $0, NoOfAllocations
 	movl $256, nPagesFree
 	mov $0x0019FFFC, %eax
