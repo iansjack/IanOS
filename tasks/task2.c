@@ -3,9 +3,11 @@
 
 int main(void)
 {
-   WriteString("Hi", 22, 40);
+   sys_WriteString("Hi", 22, 40);
+	long pid = GetFSPID();
+	sys_WriteDouble(pid, 23, 20);
    struct FCB *fHandle = CreateFile("TEST.TXT");
-   WriteDouble((long)fHandle, 23, 40);
+   sys_WriteDouble((long)fHandle, 23, 40);
    if (fHandle)
    {
       WriteFile(fHandle, "1234\n", 5);

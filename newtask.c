@@ -200,6 +200,13 @@ void KillTask(void)
          nPagesFree++;
       }
    }
+	
+	// If there's any allocated shared memory, then free it
+	DeallocSharedMem(task->pid);
+	
+	// If there's any allocated kernel memory, then free it
+	DeallocKMem(task->pid);
+	
    // Reset PID so that OS knows the slot is free
    task->pid = 0;
 

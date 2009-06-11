@@ -487,6 +487,11 @@ void fsTaskCode()
          tempPort = (struct MessagePort *)FSMsg->tempPort;
          SendMessage(tempPort, FSMsg);
          break;
+				  
+		case GETPID:
+			FSMsg->quad = currentTask->pid;
+			SendMessage(tempPort, FSMsg);
+			break;
 
       default:
          break;

@@ -80,7 +80,6 @@ long ReadFile(struct FCB *fHandle, char *buffer, long noBytes)
    return(retval);
 }
 
-
 long WriteFile(struct FCB *fHandle, char *buffer, long noBytes)
 {
    long retval;
@@ -107,7 +106,6 @@ long WriteFile(struct FCB *fHandle, char *buffer, long noBytes)
    return(retval);
 }
 
-
 struct FCB *DeleteFile(struct FCB *fHandle)
 {
    struct Message *msg = (struct Message *)sys_AllocMem(sizeof(struct Message));
@@ -117,4 +115,14 @@ struct FCB *DeleteFile(struct FCB *fHandle)
    msg->quad        = (long)fHandle;
    sys_SendReceive(FSPort, msg);
    return((struct FCB *)msg->quad);
+}
+
+long GetFSPID()
+{
+   struct Message *msg = (struct Message *)sys_AllocMem(sizeof(struct Message));
+
+   msg->nextMessage = 0;
+   msg->byte        = GETPID;
+   sys_SendReceive(FSPort, msg);
+   return(msg->quad);
 }

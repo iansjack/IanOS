@@ -204,3 +204,46 @@ void *AllocSharedMem(long sizeRequested)
 {
    return(AllocMem(sizeRequested, firstFreeSharedMem));
 }
+
+//============================================================
+// Deallocate shared memory belonging to a particular process.
+//============================================================
+void DeallocSharedMem(long pid)
+{
+   struct MemStruct *l = firstFreeSharedMem;
+
+	// We want the memory deallocation to be atomic, so set a semaphore before proceeding
+   SetSem(&memorySemaphore);
+	while (l->next != 0)
+	{
+		if (l->pid == pid)
+		{
+   		l->size = (long)l->next - (long)l - sizeof(struct MemStruct);
+		}
+		l = l->next;
+	}
+   ClearSem(&memorySemaphore);
+}
+
+//============================================================
+// Deallocate kernel memory belonging to a particular process.
+//============================================================
+void DeallocKMem(long pid)
+{
+   struct MemStruct *l = firstFreeKMem;
+
+	// We want the memory deallocation to be atomic, so set a semaphore before proceeding
+   SetSem(&memorySemaphore);
+	while (l->next != 0)
+	{
+		if (l->pid == pid)
+		{
+   		l->size = (long)l->next - (long)l - sizeof(struct MemStruct);
+		}
+		l = l->next;
+	}
+   ClearSem(&memorySemaphore);
+}
+
+
+

@@ -94,6 +94,7 @@ PrintChar:
 
 #=================================================================
 # Create a new task from the file whose name is pointed to by RDI
+# Passes environment string in RSI
 # Affects RAX, RDI
 #=================================================================
 Newtask:

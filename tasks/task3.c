@@ -4,11 +4,11 @@
 
 int main(void)
 {
-   WriteString("Task 3 is now running.", 13, 50);
+   sys_WriteString("Task 3 is now running.", 13, 50);
 	writeconsolestring(sys_GetCommandLine());
    while (1)
    {
-      WriteDouble(GetTicks(), 22, 60);
+      sys_WriteDouble(sys_GetTicks(), 22, 60);
       sys_Sleep(50);
    }
    return(0);
