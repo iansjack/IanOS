@@ -34,6 +34,7 @@ struct Task
    long          pid;
    long          timer;
    char          *environment;
+	struct MessagePort * parentPort;
 };
 
 struct Message

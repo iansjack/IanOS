@@ -62,12 +62,11 @@ void kbTaskCode()
    struct MessagePort *tempPort;
    struct Message     *KbdMsg;
 
+   KbdMsg = (struct Message *)AllocKMem(sizeof(struct Message));
    kbBufStart = kbBufCurrent = kbBufCount = modifier = 0;
 
    asm ("mov $0b11111000, %al");        // enable keyboard + timer interrupt"
    asm ("out %al, $0x21");
-
-   KbdMsg = (struct Message *)AllocKMem(sizeof(struct Message));
 
    ((struct MessagePort *)KbdPort)->waitingProc = (struct Task *)-1L;
    ((struct MessagePort *)KbdPort)->msgQueue    = 0;

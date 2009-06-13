@@ -256,9 +256,9 @@ SetSem:
 	pop  %rax
 	ret
 
-#==========================================
-# Set a semaphore whose address is in %rdi
-#==========================================
+#===========================================
+# Clear a semaphore whose address is in %rdi
+#===========================================
 ClearSem:
 	movw $0, (%rdi)
 	ret

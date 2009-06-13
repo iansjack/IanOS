@@ -48,7 +48,7 @@ void LinkTask(struct Task *task)
 //========================
 // Create a new User task
 //========================
-void NewTask(char *name, char *environment)
+void NewTask(char *name, char *environment, struct MessagePort * parentPort)
 {
    long           *stack;
    struct Task    *task = nextfreetss();
@@ -72,6 +72,7 @@ void NewTask(char *name, char *environment)
    if (fHandle)
    {
       task->environment = environment;
+		task->parentPort = parentPort;
       task->waiting     = 0;
       task->cr3         = VCreatePageDir();
       task->ds          = udata64 + 3;
@@ -79,7 +80,8 @@ void NewTask(char *name, char *environment)
       ReadFromFile(fHandle, (char *)&codelen, 8);
       ReadFromFile(fHandle, (char *)&datalen, 8);
       ReadFromFile(fHandle, (char *)TempUserCode, codelen);
-      ReadFromFile(fHandle, (char *)TempUserData, datalen);
+		if (datalen)
+   		ReadFromFile(fHandle, (char *)TempUserData, datalen);
       data               = (long *)(TempUserData + datalen);
       data[0]            = 0;
       data[1]            = PageSize - datalen - 0x10;
@@ -103,6 +105,16 @@ void NewTask(char *name, char *environment)
       LinkTask(task);
       asm ("sti");
    }
+	else
+	{
+		// Got to handle the case where a blocking call was made
+		if (parentPort)
+		{
+			struct Message m;
+			m.quad = 0;
+			SendMessage(parentPort, &m);
+		}	
+	}
    DeallocMem(FSMsg);
 }
 
@@ -133,6 +145,8 @@ struct Task *NewKernelTask(void *TaskCode)
    data[0]            = 0;
    data[1]            = 0xFFE;
    task->firstfreemem = UserData;
+	task->environment = (void *) 0;
+	task->parentPort = (void *) 0;
    asm ("sti");
 }
 
@@ -155,8 +169,15 @@ void KillTask(void)
 {
    struct Task *task = currentTask;
    struct Task *temp = runnableTasks[0];
+	struct Message *m = (struct Message *)AllocKMem(sizeof(struct Message));
 
-   //Don't want to task switch whilst destroying task
+ 	if (task->parentPort)
+	{
+		m->quad = 0;
+		SendMessage(task->parentPort, m);
+	}
+
+  //Don't want to task switch whilst destroying task
    asm ("cli");
 
    // Unlink task from runnable queue
@@ -209,7 +230,7 @@ void KillTask(void)
 	
    // Reset PID so that OS knows the slot is free
    task->pid = 0;
-
+	
    //SwTasks();
    SWTASKS;
 }

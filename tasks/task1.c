@@ -6,7 +6,7 @@
 
 int main(void)
 {
-   struct Message *taskMsg;
+   struct Message m;
    int            column = 0;
    char           commandline[81];
    char           buffer[512];
@@ -15,7 +15,7 @@ int main(void)
    int            i;
 
    consoleclrscr();
-   writeconsolestring("IanOS Version 0.1 - 2008\r");
+   writeconsolestring("IanOS Version 0.1.1 - 2009\r");
    writeconsolestring("#> _\b");
    name[80] = environment[80] = 0;
    for (i = 0; i < 80; i++)
@@ -39,14 +39,7 @@ int main(void)
 
       case CR:
          column = 0;
-         writeconsolestring(" \r#> _\b");
-
-         // Convert commandline[] to uppercase.
-         //for (i = 0; i < 12; i++)
-         //{
-         //	if (commandline[i] >= 'a' & commandline[i] <= 'z')
-         //		commandline[i] = commandline[i] - 0x20;
-         //}
+ 
          i = 0;
          while (commandline[i] != ' ')
          {
@@ -54,12 +47,36 @@ int main(void)
             i++;
          }
          name[i] = 0;
+ 
+			// Convert name[] to uppercase.
+         i = -1;
+			while(name[++i])
+         {
+         	if (name[i] >= 'a' & name[i] <= 'z')
+         		name[i] = name[i] - 0x20;
+         }
 
          for (i = 0; i < 80; i++)
          {
             environment[i] = commandline[i];
          }
-         sys_CreateTask(name, environment);
+				
+			writeconsolestring(" \r");
+			
+			if (name[0] == '&')
+			{
+				sys_CreateTask(name + 1, environment + 1, 0);
+			}
+			else
+			{	
+			   struct Message *msg = (struct Message *)sys_AllocMem(sizeof(struct Message));
+				struct MessagePort * parentPort = sys_AllocMessagePort();
+      		sys_CreateTask(name, environment, parentPort);
+				sys_ReceiveMessage(parentPort, msg);
+				sys_DeallocMem(parentPort);
+			}
+				
+         writeconsolestring("#> _\b");
 
          // Clear commandline[]
          for (i = 0; i < 80; i++)

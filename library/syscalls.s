@@ -15,6 +15,7 @@
 	.global sys_GetTicks
 	.global sys_WriteDouble
 	.global sys_WriteString
+	.global sys_AllocMessagePort
 
 	.text
 
@@ -103,4 +104,9 @@ sys_WriteString:
 	movq $PRINTSTRING, %r9
 	syscall
 	pop %rbx
+	ret
+
+sys_AllocMessagePort:
+	mov $ALLOCMSGPORT, %r9
+	syscall
 	ret

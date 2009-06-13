@@ -1,6 +1,6 @@
 CFLAGS = -fpack-struct -ffixed-r15 -O -I ..
 LIBS = ../library/liblib.a ../library/libsyscalls.a 
-TASKS = TASK1 TASK2 TASK3 TASK4
+TASKS = TASK1 TASK2 TASK3 TASK4 LS
 
 all: $(TASKS) 
 
@@ -31,6 +31,12 @@ TASK4: task4.o inittask.o
 
 task4.o: task4.c
 
+ls.o: ls.c ../fat.h
+
+LS: ls.o
+	ld -Tlink.ld ls.o $(LIBS) -oLS
+	mcopy -o LS c: 
+
 clean:
-	rm -f TASK? *.o
+	rm -f TASK? *.o LS
 

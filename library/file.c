@@ -3,6 +3,7 @@
 #include "library/syscalls.h"
 #include "filesystem.h"
 #include "syscalls.h"
+#include "fat.h"
 
 struct FCB *CreateFile(char *s)
 {
@@ -19,7 +20,10 @@ struct FCB *CreateFile(char *s)
    msg->byte        = CREATEFILE;
    msg->quad        = (long)str;
    sys_SendReceive(FSPort, msg);
-   return((struct FCB *)msg->quad);
+	sys_DeallocMem(S);
+	long retval = msg->quad;
+	sys_DeallocMem(msg);
+   return(retval);
 }
 
 
@@ -38,6 +42,7 @@ struct FCB *OpenFile(char *s)
    msg->byte        = OPENFILE;
    msg->quad        = (long)str;
    sys_SendReceive(FSPort, msg);
+	sys_DeallocMem(S);
    return((struct FCB *)msg->quad);
 }
 
@@ -125,4 +130,25 @@ long GetFSPID()
    msg->byte        = GETPID;
    sys_SendReceive(FSPort, msg);
    return(msg->quad);
+}
+
+long GetDirectoryEntry(int n, struct DirEntry * entry)
+{
+   struct Message *msg = (struct Message *)sys_AllocMem(sizeof(struct Message));
+   char *buff = sys_AllocSharedMem(sizeof(struct DirEntry));
+	int i;
+	
+   msg->nextMessage = 0;
+   msg->byte        = GETDIRENTRY;
+	msg->quad			= n;
+	msg->quad2			= (long) buff;
+   sys_SendReceive(FSPort, msg);
+   for (i = 0; i < sizeof(struct DirEntry); i++)
+   {
+      ((char *)entry)[i] = ((char *)buff)[i];
+   }
+   sys_DeallocMem(buff);
+	long retval = msg->quad;
+	sys_DeallocMem(msg);
+   return(retval);
 }

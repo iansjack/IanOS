@@ -16,6 +16,6 @@ void tas1(void)
    sys_Sleep(4);
    sys_CreateKTask(fsTaskCode);
    sys_Sleep(4);
-   sys_CreateTask("TASK1", "");
+   sys_CreateTask("TASK1", "", 0);
    sys_KillTask();
 }

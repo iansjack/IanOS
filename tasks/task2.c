@@ -1,8 +1,11 @@
 #include "kstructs.h"
 #include "library/syscalls.h"
+#include "fat.h"
 
 int main(void)
 {
+	struct DirEntry entry;
+	
    sys_WriteString("Hi", 22, 40);
 	long pid = GetFSPID();
 	sys_WriteDouble(pid, 23, 20);
@@ -13,9 +16,14 @@ int main(void)
       WriteFile(fHandle, "1234\n", 5);
       CloseFile(fHandle);
    }
-   while (1)
-   {
-      sys_Sleep(200);
-   }
+   sys_Sleep(200);
+	int count;
+	for (count = 0; count <5; count++)
+	{
+		GetDirectoryEntry(count, &entry);
+		sys_WriteString(&entry, 23, 0);
+		sys_Sleep(500);
+	}
+	sys_KillTask();
    return(0);
 }

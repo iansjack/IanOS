@@ -81,6 +81,7 @@ int NameToDirName(char *name, char *dirname)
    {
       dirname[j++] = name[i++];
    }
+	if (name[i] == 0) return(0);
    if ((i == 8) && (name[i] != '.'))
    {
       return(1);
@@ -300,10 +301,10 @@ void CloseFile(struct FCB *fHandle)
 }
 
 
-//==============================================================
-// Read nBytes from the file represented by fHandle into buffer
+//===============================================================
+// Read noBytes from the file represented by fHandle into buffer
 // Returns no of bytes read
-//==============================================================
+//===============================================================
 long ReadFile(struct FCB *fHandle, char *buffer, long noBytes)
 {
    if (noBytes > fHandle->length)
@@ -345,10 +346,10 @@ long ReadFile(struct FCB *fHandle, char *buffer, long noBytes)
 }
 
 
-//==============================================================
-// Read nBytes from the file represented by fHandle into buffer
-// Returns no of bytes read
-//==============================================================
+//================================================================
+// Write noBytes from buffer into the file represented by fHandle
+// Returns no of bytes written
+//================================================================
 long WriteFile(struct FCB *fHandle, char *buffer, long noBytes)
 {
    long bytesWritten = 0;
@@ -386,7 +387,6 @@ long WriteFile(struct FCB *fHandle, char *buffer, long noBytes)
    return(bytesWritten);
 }
 
-
 int DeleteFile(struct FCB *fHandle)
 {
    fHandle->directory->name[0] = 0xE5;
@@ -400,7 +400,6 @@ int DeleteFile(struct FCB *fHandle)
    }
    SaveFAT();
    SaveDir();
-   //FAT[cluster] = 0;
    return(0);
 }
 
@@ -413,9 +412,10 @@ void fsTaskCode()
    struct Message     *FSMsg;
    struct MessagePort *tempPort;
 
+	FSMsg = (struct Message *)AllocKMem(sizeof(struct Message));
+
    DiskBuffer = AllocUMem(512);
    int result;
-   FSMsg = (struct Message *)AllocKMem(sizeof(struct Message));
    struct FCB *fcb;
 
    ((struct MessagePort *)FSPort)->waitingProc = (struct Task *)-1L;
@@ -492,9 +492,23 @@ void fsTaskCode()
 			FSMsg->quad = currentTask->pid;
 			SendMessage(tempPort, FSMsg);
 			break;
+				
+		case GETDIRENTRY:
+			;
+			struct DirEntry * temp = (struct DirEntry *)&RootDirectory[FSMsg->quad];
+			int count;
+			for (count = 0; count < sizeof(struct DirEntry); count++)
+					((char *)FSMsg->quad2)[count] = ((char *)temp)[count];
+         tempPort = (struct MessagePort *)FSMsg->tempPort;
+         SendMessage(tempPort, FSMsg);
+			break;
 
       default:
          break;
       }
    }
+}
+
+int debug()
+{
 }
