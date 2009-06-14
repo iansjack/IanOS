@@ -24,13 +24,14 @@ The resulting Page Table looks something like:
 <<H3 Page Allocation>>
 The function <<X AllocPage64>> allocates one page of memory, returning a pointer to the physical address of the page; the array <<C PMap>> records which pages are allocated. After allocating a page a Page Table entry will be created for it by the function <<X CreatePTE>>; this is called with the physical address of the page and the required virtual address as parameters, and returns the physical address. (Currently this function only handles a restricted range of the available memory space; eventually it will be modified to cover the whole virtual address space.)
 <<H3 Heap Memory>>
-The kernel and each separate tasks all have their own heaps to provide dynamic memory allocation. Memory on these heaps is managed by simple linked lists. Each memory block starts with a header (defined in <<F ckstructs.h>>) recording the size of the block and the address of the next block. Memory is allocated by the function <<X AllocMem>>. If there isn't a free block large enough to accommodate the request (plus the size of the header) then <<X AllocMem>> returns 0; otherwise it returns the address of the newly allocated block.
+The kernel and each separate tasks all have their own heaps to provide dynamic memory allocation. Memory on these heaps is managed by simple linked lists. Each memory block starts with a header (defined in <<F ckstructs.h>>) recording the size of the block and the address of the next block. Memory is allocated by the function <<X AllocMem>>. If there isn't a free block large enough to accommodate the request (plus the size of the header) then <<X AllocMem>> automatically adds another page of memory to the heap; it returns the address of the newly allocated block. (I guess that I really ought to write in code to test for the possibility that no more memory pages are available.)
 <<PAR>>
-The function <<X AllocKMem>> allocates memory on the kernel heap, automatically adding another page of memory to the heap if necessary. (For some reason I haven't yet written a corresponding function for user memory, but this is trivial.)
+The function <<X AllocKMem>> allocates memory on the kernel heap, and <<X AllocSharedMem>> allocates memory that can be accessed by any task. This latter is necessary to pass data between processes; in future I'm going to look at limiting access to shared memory to only two processes.
 <<PAR>>
-Memory is deallocated by the function <<X DeAllocMem>> which suffices for both user memory and kernel memory. Note that none of these functions will be called directly by user programs; system calls are provided which encapsulate these functions.
+Memory is deallocated by the function <<X DeallocMem>> which suffices for both user memory and kernel memory. Note that none of these functions will be called directly by user programs; system calls are provided which encapsulate these functions.
+<<PAR>>
+There is a potential problem in a multi-tasking system when allocating or deallocating resources. Should a task switch occur in the middle of the memory allocation routine and the task switched to then call the routine itself, we could end up in a heap (no pun intended) of trouble. The linked linsts would almost certainly get corrupted. We guard against this by setting a semaphore before entering these routines, and only releasing it once the allocation has succeeded. The x86_64 instruction set provides the <<C CMPXCHG>> which will test and optionally set a memory location as an atomic action which facilitates the use of semaphores.
 <<PAR>>
 <<HR>>
 <<CONT>>
-
 

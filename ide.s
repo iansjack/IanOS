@@ -101,11 +101,4 @@ WriteSector:
 	cld
 	rep
 	outsw
-#	cli
-#	push %rdi
-#	push %rdx
-#	mov $HDINT, %rdi
-#	call WaitForInt
-#	pop %rdx
-#	pop %rdi
 	ret

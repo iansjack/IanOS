@@ -2,13 +2,11 @@
 <<H1 Timer>>
 <<CONT>>
 <<HR>>
-The interrupt routine <<X TimerInt>> in <<F interrupt.s>> does the basic work for timing services. This is triggered at regular intervals by the hardware timer chip. The primary purpose of this routine is to increment the variable <<C Ticks>> which counts the number of timer interrupts since the system was started. Next the one, and only, timer <<C Timer>> is checked to see if it is active. (One timer is hopelessly inadequate - this clearly needs some work.) If the timer is active, its field <<C interval>> is decremented. If this variable has reached zero then the task that was waiting on the timer is re-awakened, and the timer is marked inactive. The last job of the interrupt routine is to decrement the variable <<C TimeSliceCount>>. If this has reached zero then it is reset to 5 and a call to <<C SWITCH_TASKS>> is made. In other words, a task switch is called for every 5 ticks.
+The interrupt routine <<X TimerInt>> in <<F interrupt.s>> does the basic work for timing services. This is triggered at regular intervals by the hardware timer chip. The primary purpose of this routine is to increment the variable <<C Ticks>> which counts the number of timer interrupts since the system was started. Next the blocked task queue is checked to see if any tasks are waiting on a timer (the timer is implemented as a field in the task structure). If so, the timer field <<C Task.timer>> is decremented. If this variable has reached zero then the task is re-awakened. The last job of the interrupt routine is to decrement the variable <<C TimeSliceCount>>. If this has reached zero then it is reset to 5 and a call to <<C SWITCH_TASKS>> is made. In other words, a task switch is called for every 5 ticks.
 <<PAR>>
-User programs can access the timer by making the system call <<X Sleep>> in <<F syscalls.s>>. (In practice this will be called by the library routine <<X sys_Sleep>>.) This routine fills in the fields of <<C Timer>> with the requested time interval, the address of the task structure of the calling task, and a flag to indicate that the timer is active. It then sets the calling task to block until it receives instructions from the interrupt routine to re-awaken.
+User programs can access the timer by making the system call <<X Sleep>> in <<F syscalls.s>>. (In practice this will be called by the library routine <<X sys_Sleep>>.) This routine fills in the field <<C Task.timer>> with the requested time interval. It then sets the calling task to block until it receives instructions from the interrupt routine to re-awaken.
 <<PAR>>
 There is also a very simple system call <<X GetTicks>> to allow a user program to get the number of ticks since the system was started. (Useful in demo programs to display a counter showing that a task is running.)
-<<PAR>>
-As mentioned above, the fact that only one timer can be active is a major drawback. Also, there is nothing in the code to enforce that! This definitely needs attention. It should be fairly easy to set up a linked list of timers thus allowing as many as are needed to run at once.
 <<PAR>>
 <<HR>>
 <<CONT>>

@@ -2,7 +2,5 @@
 <<CONT>>
 <<HR>>As with the keyboard, the display is handled by a kernel task (<<X consoleTaskCode>> in <<F console.c>>). This function is very straightforward. It accepts requests on the port <<C ConsolePort>>; currently it handles 3 types of request - write a character, write a string, and clear the screen. Characters are written directly to video memory - this is strictly a text-based display at the moment.
 <<PAR>>
-Note the first 3 lines of this function. They allocate two pages of memory, and create Page Table entries for them, for a kernel stack and a user stack and then move the address of the top of the user stack into register <<C rsp>> (the stack pointer). All tasks must start with these same 3 lines (although - to be honest - I'm not sure that a kernel task needs a user stack as well as a kernel stack. Something to investigate further!)
-<<PAR>>
-An obvious enhancement of this code would be to give each task its own virtual console - currently output from all tasks will be sent to the same screen.<<HR>><<CONT>>
+An obvious enhancement of this code would be to give each task its own virtual console - currently output from all tasks will be sent to the same screen. Also I need to implement scrolling - currently the output just vanishes when it reaches the bottom of the screen.<<HR>><<CONT>>
 
