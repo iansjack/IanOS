@@ -11,6 +11,18 @@ short int      row;
 char           *VideoBuffer;
 struct Message ConsoleMsg;
 
+void scrollscreen()
+{
+	short int row;
+	short int column;
+	
+	for (row = 1; row < 25; row++)
+		for (column = 0; column < 80; column++)
+   		VideoBuffer[160 * (row - 1) + 2 * column] = VideoBuffer[160 * row + 2 * column];
+	for (column = 0; column < 80; column++)
+		      VideoBuffer[160 * 24 + 2 * column] = ' ';
+}
+
 void printchar(unsigned char c)
 {
    switch (c)
@@ -28,6 +40,11 @@ void printchar(unsigned char c)
    case CR:
       column = 0;
       row++;
+		if (row == 25)
+		{
+			scrollscreen();
+			row--;
+		}
       break;
 
    default:
@@ -37,6 +54,11 @@ void printchar(unsigned char c)
       {
          column = 0;
          row++;
+		if (row == 25)
+		{
+			scrollscreen();
+			row--;
+		}
       }
    }
 }

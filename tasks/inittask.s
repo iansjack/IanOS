@@ -9,4 +9,4 @@ Magic:		.ascii	"IJ64"
 CodeLen:	.quad	CodeLength
 DataLen:	.quad	DataLength
 
-_start:		call main
+_start:		#call main

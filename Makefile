@@ -1,4 +1,4 @@
-CFLAGS = -fpack-struct -ffixed-r15
+CFLAGS = -fpack-struct -ffixed-r15 -g
 
 OBJS = 	startup.o memory32.o pagetab32.o hwsetup.o os.o gates.o messages.o memory.o keyboard.o \
 		console.o filesystem.o syscalls.o newtask.o tasking.o messaging.o interrupts.o \
@@ -14,8 +14,8 @@ library/liblib.a:
 library/libsyscalls.a:
 	cd library; make all; cd ..
 
-#IanOS.o: $(OBJS) library/liblib.a library/libsyscalls.a
-#	ld -Tlink2.ld $(OBJS) library/liblib.a library/libsyscalls.a -oIanOS.o>linkmap 
+IanOS.o: $(OBJS) library/liblib.a library/libsyscalls.a
+	ld -Tlink2.ld $(OBJS) library/liblib.a library/libsyscalls.a -oIanOS.o>linkmap 
 
 IanOS.bin: $(OBJS) library/liblib.a library/libsyscalls.a
 	ld --print-map -Tlink.ld $(OBJS) library/liblib.a library/libsyscalls.a -oIanOS.bin>linkmap 

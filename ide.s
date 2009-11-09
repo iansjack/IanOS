@@ -40,13 +40,15 @@ ReadSector:
 	inc %dx		      		# 0x1F7
 	mov $0x20, %ax			# HDC_READ
 	out %al, %dx
-	cli
-	push %rdi
-	push %rdx
-	mov $HDINT, %rdi
-	call WaitForInt
-	pop %rdx
-	pop %rdi
+	# Something wrong with the interrupt handling
+	# so reverting to simple poling
+#	cli
+#	push %rdi
+#	push %rdx
+#	mov $HDINT, %rdi
+#	call WaitForInt
+#	pop %rdx
+#	pop %rdi
 .again3:
 	in  %dx, %al
 	test $0x80, %al

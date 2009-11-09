@@ -1,6 +1,6 @@
-CFLAGS = -fpack-struct -ffixed-r15 -O -I ..
+CFLAGS = -fpack-struct -ffixed-r15 -I ..
 LIBS = ../library/liblib.a ../library/libsyscalls.a 
-LIBOBJS = writeconsolestring.o getchar.o file.o
+LIBOBJS = writeconsolestring.o getchar.o file.o convert.o
 SYSCALLSOBJS = syscalls.o
 
 all: liblib.a libsyscalls.a
@@ -19,3 +19,5 @@ writeconsolestring.o: writeconsolestring.c ../console.h ../kstructs.h ../memory.
 file.o: file.c ../kstructs.h ../memory.h ../filesystem.h syscalls.h
 
 syscalls.o: syscalls.s ../syscalls.inc
+
+convert.o: convert.c

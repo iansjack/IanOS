@@ -30,7 +30,7 @@ void writeconsolestring(char *s)
    msg->byte        = WRITESTR;
    msg->quad        = (long)str;
    sys_SendMessage(ConsolePort, msg);
-   //sys_DeallocMem(S);
+   sys_DeallocMem(S);
    sys_DeallocMem(msg);
 }
 
