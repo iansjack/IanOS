@@ -3,19 +3,20 @@
 #include "library/syscalls.h"
 #include "console.h"
 
-void writeconsolechar(char c)
+void writeconsolechar(char c, long console)
 {
    struct Message *msg = (struct Message *)sys_AllocMem(sizeof(struct Message));
 
    msg->nextMessage = 0;
    msg->byte        = WRITECHAR;
    msg->quad        = c;
+	msg->quad2       = console;
    sys_SendMessage(ConsolePort, msg);
    sys_DeallocMem(msg);
 }
 
 
-void writeconsolestring(char *s)
+void writeconsolestring(char *s, long console)
 {
    char *S   = sys_AllocSharedMem(256);
    char *str = S;
@@ -29,19 +30,21 @@ void writeconsolestring(char *s)
    msg->nextMessage = 0;
    msg->byte        = WRITESTR;
    msg->quad        = (long)str;
+	msg->quad2       = console;
    sys_SendMessage(ConsolePort, msg);
    sys_DeallocMem(S);
    sys_DeallocMem(msg);
 }
 
 
-void consoleclrscr()
+void consoleclrscr(long console)
 {
    struct Message *msg = (struct Message *)sys_AllocMem(sizeof(struct Message));
 
    msg->nextMessage = 0;
    msg->byte        = CLRSCR;
    msg->quad        = 0;
+	msg->quad2       = console;
    sys_SendMessage(ConsolePort, msg);
    sys_DeallocMem(msg);
 }

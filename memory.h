@@ -50,10 +50,14 @@
 #define tsslength      0x80
 
 long CreatePTE(void *pAddress, long lAddress);
+void *VCreatePageDir(void);
 void *AllocPage64();
 void *AllocMem(long sizeRequested, struct MemStruct *list);
 void *AllocKMem(long sizeRequested);
 void *AllocUMem(long sizeRequested);
+void *AllocSharedMem(long sizeRequested);
 void DeallocMem(void *list);
+void DeallocSharedMem(long pid);
+void DeallocKMem(long pid);
 
 #endif

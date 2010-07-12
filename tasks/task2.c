@@ -1,5 +1,6 @@
 #include "kstructs.h"
 #include "library/syscalls.h"
+#include "library/lib.h"
 #include "fat.h"
 
 int main(void)
@@ -21,7 +22,7 @@ int main(void)
 	for (count = 0; count <5; count++)
 	{
 		GetDirectoryEntry(count, &entry);
-		sys_WriteString(&entry, 23, 0);
+		sys_WriteString((unsigned char *)&entry, 23, 0);
 		sys_Sleep(500);
 	}
 	sys_KillTask();

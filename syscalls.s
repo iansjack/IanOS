@@ -7,25 +7,26 @@
 	.text
 
 	.global SysCalls
+	.global GoToSleep
 
 CallNo:	
-	.quad	PrintString				# PRINTSTRING
-	.quad	PrintDouble				# PRINTDOUBLE
-	.quad	PrintChar				# PRINTCHAR
-	.quad	Newtask 					# CREATETASK
-	.quad	GetTicks					# GETTICKS
-	.quad	Sleep						# SLEEP
-	.quad	Alloc_Mem				# ALLOCMEM
+	.quad	PrintString		# PRINTSTRING
+	.quad	PrintDouble		# PRINTDOUBLE
+	.quad	PrintChar		# PRINTCHAR
+	.quad	Newtask 		# CREATETASK
+	.quad	GetTicks		# GETTICKS
+	.quad	Sleep			# SLEEP
+	.quad	Alloc_Mem		# ALLOCMEM
 	.quad	Alloc_Message_Port	# ALLOCMSGPORT
-	.quad	Send_Message			# SENDMESSAGE
-	.quad	Receive_Message 		# RECEIVEMESSAGE
-	.quad	Dealloc_Mem				# DEALLOCMEM
-	.quad	Send_Receive			# SENDRECEIVE
-	.quad	Kill_Task				# KILLTASK
-	.quad NewKerneltask			# CREATEKTASK
-	.quad	Alloc_Shared_Mem		# ALLOCSHAREDMEM
-	.quad	NewLPtask				# CREATELPTASK
-	.quad CommandLine				# GETCOMMANDLINE
+	.quad	Send_Message		# SENDMESSAGE
+	.quad	Receive_Message 	# RECEIVEMESSAGE
+	.quad	Dealloc_Mem		# DEALLOCMEM
+	.quad	Send_Receive		# SENDRECEIVE
+	.quad	Kill_Task		# KILLTASK
+	.quad	NewKerneltask		# CREATEKTASK
+	.quad	Alloc_Shared_Mem	# ALLOCSHAREDMEM
+	.quad	NewLPtask		# CREATELPTASK
+	.quad CommandLine		# GETCOMMANDLINE
 
 SysCalls:
 	jmp *(CallNo - 8)(,%r9, 8)
@@ -239,3 +240,12 @@ CommandLine:
 	mov  currentTask, %r15
 	mov  TS.environment(%r15), %rax
 	sysretq
+
+GoToSleep:
+	mov currentTask, %r15
+	movb $SLEEPINT, TS.waiting(%r15)
+	mov %rdi, TS.timer(%r15)
+	mov %r15, %rdi
+	call BlockTask
+	SWITCH_TASKS		       # The current task is no longer runnable
+	 ret

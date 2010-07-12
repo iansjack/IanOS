@@ -3,84 +3,96 @@
 
 struct Task
 {
-   struct Task   *nexttask;
-   unsigned char waiting;
-   long          rax;
-   long          rbx;
-   long          rcx;
-   long          rdx;
-   long          rbp;
-   long          rsi;
-   long          rdi;
-   long          rsp;
-   long          r8;
-   long          r9;
-   long          r10;
-   long          r11;
-   long          r12;
-   long          r13;
-   long          r14;
-   long          r15;
-   long          rflags;
-   short int     ds;
-   short int     es;
-   short int     fs;
-   short int     gs;
-   short int     ss;
-   long          cr3;
-   long          firstdata;
-   long          firstfreemem;
-   long          nextpage;
-   long          pid;
-   long          timer;
-   char          *environment;
-	struct MessagePort * parentPort;
+    struct Task   *nexttask;
+    unsigned char waiting;
+    long          rax;
+    long          rbx;
+    long          rcx;
+    long          rdx;
+    long          rbp;
+    long          rsi;
+    long          rdi;
+    long          rsp;
+    long          r8;
+    long          r9;
+    long          r10;
+    long          r11;
+    long          r12;
+    long          r13;
+    long          r14;
+    long          r15;
+    long          rflags;
+    short int     ds;
+    short int     es;
+    short int     fs;
+    short int     gs;
+    short int     ss;
+    long          cr3;
+    long          firstdata;
+    long          firstfreemem;
+    long          nextpage;
+    long          pid;
+    long          timer;
+    char          *environment;
+    struct MessagePort * parentPort;
 };
 
 struct Message
 {
-   struct Message *nextMessage;
-   unsigned char  byte;
-   long           quad;
-   long           quad2;
-   long           quad3;
-   long           tempPort;
-   long           pid;
+    struct Message *nextMessage;
+    unsigned char  byte;
+    long           quad;
+    long           quad2;
+    long           quad3;
+    long           tempPort;
+    long           pid;
 };
 
 struct MessagePort
 {
-   struct Task    *waitingProc;
-   struct Message *msgQueue;
+    struct Task    *waitingProc;
+    struct Message *msgQueue;
 };
 
 struct MemStruct
 {
-   struct MemStruct *next;
-   long             size;
-   long             pid;
+    struct MemStruct *next;
+    long             size;
+    long             pid;
 };
 
 struct clusterListEntry
 {
-   struct clusterListEntry *next;
-   unsigned short          cluster;
+    struct clusterListEntry *next;
+    unsigned short          cluster;
 };
 
 struct FCB
 {
-   struct DirEntry *directory;
-   unsigned int    length;
-   unsigned long   startSector;
-   unsigned long   nextSector;
-   unsigned long   sectorInCluster;
-   unsigned short  currentCluster;
-   unsigned short  startCluster;
-   unsigned long   fileCursor;
-   unsigned short  bufCursor;
-   unsigned char   bufIsDirty;          // 0 = clean, 1 = dirty
-   unsigned char   *filebuf;
-   long            pid;
+    struct DirEntry *directory;
+    unsigned int    length;
+    unsigned long   startSector;
+    unsigned long   nextSector;
+    unsigned long   sectorInCluster;
+    unsigned short  currentCluster;
+    unsigned short  startCluster;
+    unsigned long   fileCursor;
+    unsigned short  bufCursor;
+    unsigned char   bufIsDirty;          // 0 = clean, 1 = dirty
+    unsigned char   *filebuf;
+    long            pid;
+};
+
+struct Console
+{
+  unsigned char * kbBuffer;
+  short kbBufStart;
+  short kbBufCurrent;
+  short kbBufCount;
+  struct Message * MsgQueue;
+  unsigned char * ConsoleBuffer;
+  short row;
+  short column;
 };
 
 #define SWTASKS      asm ("int $20")

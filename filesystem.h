@@ -7,7 +7,7 @@
 #define READFILE     4
 #define WRITEFILE    5
 #define DELETEFILE   6
-#define GETPID			7
+#define GETPID       7
 #define GETDIRENTRY  8
 
 #endif

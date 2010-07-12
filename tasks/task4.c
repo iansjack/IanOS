@@ -1,6 +1,7 @@
 #include "memory.h"
 #include "kstructs.h"
 #include "library/syscalls.h"
+#include "library/lib.h"
 
 int main(void)
 {

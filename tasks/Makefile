@@ -1,4 +1,4 @@
-CFLAGS = -fpack-struct -ffixed-r15 -I ..
+CFLAGS = -fpack-struct -ffixed-r15 -I .. -m64
 LIBS = ../library/liblib.a ../library/libsyscalls.a 
 TASKS = TASK1 TASK2 TASK3 TASK4 LS
 

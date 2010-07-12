@@ -1,4 +1,4 @@
-#include "kstructs.h"
+#include "kernel.h"
 #include "memory.h"
 
 extern struct Task *currentTask;

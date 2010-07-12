@@ -1,4 +1,4 @@
-#include "kstructs.h"
+#include "kernel.h"
 #include "memory.h"
 #include "filesystem.h"
 
@@ -20,7 +20,7 @@ long ReadFromFile(struct FCB *fHandle, char *buffer, long noBytes)
    FSMsg->quad        = (long)fHandle;
    FSMsg->quad2       = (long)buff;
    FSMsg->quad3       = noBytes;
-   SendReceiveMessage(FSPort, FSMsg);
+   SendReceiveMessage((struct MessagePort *)FSPort, FSMsg);
    for (i = 0; i < noBytes; i++)
    {
       buffer[i] = buff[i];
@@ -30,7 +30,6 @@ long ReadFromFile(struct FCB *fHandle, char *buffer, long noBytes)
    DeallocMem(FSMsg);
    return(retval);
 }
-
 
 //===========================================
 // A utility function to copy a memory range
@@ -44,7 +43,6 @@ void copyMem(unsigned char source[], unsigned char dest[], long size)
       dest[i] = source[i];
    }
 }
-
 
 //===========================================================================
 // A kernel library function to write a null-terminated string to the screen.
@@ -73,7 +71,6 @@ void KWriteString(char *str, int row, int col)
    asm ("pop %rbx");
    asm ("pop %rax");
 }
-
 
 //==========================================================================
 // A kernel library function to write a quad character to the screen.

@@ -2,9 +2,9 @@
 	.include "memory.inc"
 	.include "kstructs.inc"
 
-KBDINT 	= 1
-SLEEPINT = 2
-HDINT 	= 3
+KBDINT 		= 1
+SLEEPINT 	= 2
+HDINT 		= 3
 
 	.text
 
@@ -27,31 +27,21 @@ HDINT 	= 3
 KbInt:	push %rax
 	push %rbx
 	in   $0x60, %al		 # MUST read byte from keyboard - else no more ints
-	mov  $kbBuffer, %ebx
-	addl kbBufCurrent, %ebx
-	mov  %al, (%ebx)
+	push %rdx
+	mov  $kbBuffer, %rbx
+   add  (kbBufCurrent), %rbx
+	mov  %al, (%rbx)
 	incl kbBufCurrent
-	incb kbBufCount
-	cmpl $128, kbBufCurrent
+   incb (kbBufCount)
+   cmpl $128, (kbBufCurrent)
 	jne  .kbistaskwaiting
-	movl $0, kbBufCurrent
+   movl $0, (kbBufCurrent)
 
 	# is any task waiting for keyboard input? If so re-enable it
 
 .kbistaskwaiting:
-	mov  blockedTasks, %r15
-.kbagain:
-	cmpb $KBDINT, TS.waiting(%r15)
-	jne  .kbgoon
-	movb $0, TS.waiting(%r15)
-	mov  %r15, %rdi
-	call UnBlockTask
-	SWITCH_TASKS_R15
-	jmp  .kbdone
-.kbgoon:
-	mov  TS.nexttask(%r15), %r15
-	cmpq $0, %r15
-	jne  .kbagain
+   call setBuffer
+	pop  %rdx
 .kbdone:
 	pop  %rbx
 	mov  $0x20, %al		  # clear int
