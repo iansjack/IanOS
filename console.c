@@ -78,8 +78,14 @@ void printchar ( unsigned char c )
 
     default:
         currCons->ConsoleBuffer[160 * currCons->row + 2 * currCons->column] = c;
+        if (currCons->colour == REVERSE)
+            currCons->ConsoleBuffer[160 * currCons->row + 2 * currCons->column + 1] = 0x70;
         if ( currentBuffer == console )
+        {
             VideoBuffer[160 * currCons->row + 2 * currCons->column] = c;
+            if (currCons->colour == REVERSE)
+                VideoBuffer[160 * currCons->row + 2 * currCons->column + 1] = 0x70;
+        }
         currCons->column++;
         if ( currCons->column == 80 )
         {
@@ -102,10 +108,11 @@ void consoleTaskCode()
     ( ( struct MessagePort * ) ConsolePort )->msgQueue    = 0;
 
     int i;
-    for ( i = 0; i < 8; i++ )
+    for ( i = 0; i < 4; i++ )
     {
         consoles[i].ConsoleBuffer = AllocKMem ( 4096 );
         consoles[i].column = consoles[i].row = 0;
+        consoles[i].colour = NORMAL;
     }
 
     unsigned char *s;
@@ -165,6 +172,14 @@ void consoleTaskCode()
                     VideoBuffer[160 * currCons->row + 2 * i] = ' ';
                 i++;
             }
+
+        case NORMAL:
+            currCons->colour = NORMAL;
+            break;
+
+        case REVERSE:
+            currCons->colour = REVERSE;
+            break;
 
         default:
             break;

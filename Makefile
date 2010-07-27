@@ -15,12 +15,12 @@ library/libsyscalls.a:
 	cd library; make all; cd ..
 
 IanOS.o: $(OBJS) library/liblib.a library/libsyscalls.a
-	ld -Tlink2.ld $(OBJS) library/liblib.a library/libsyscalls.a -oIanOS.o>linkmap 
+	ld --print-map -Tlink2.ld $(OBJS) library/liblib.a library/libsyscalls.a -oIanOS.o >linkmap 
 
 IanOS.bin: $(OBJS) library/liblib.a library/libsyscalls.a
-	ld --print-map -Tlink.ld $(OBJS) library/liblib.a library/libsyscalls.a -oIanOS.bin>linkmap 
+	ld --print-map -Tlink.ld $(OBJS) library/liblib.a library/libsyscalls.a -oIanOS.bin >linkmap 
 
-bootdisk: bootsect.bin 32sect IanOS.bin
+bootdisk: bootsect.bin 32sect IanOS.bin IanOS.o
 	cat bootsect.bin 32sect IanOS.bin floppy >IanOS.fdd
 
 bootsect.bin: boot.o

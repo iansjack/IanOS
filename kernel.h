@@ -16,5 +16,7 @@ void UnBlockTask(struct Task *task);
 void moveTaskToEndOfQueue();
 void RemoveFromQ(struct Task *task, struct Task **QHead, struct Task **QTail);
 void AddToQ(struct Task *task, struct Task **QHead, struct Task **QTail);
+void SetSem(long * semaphore);
+void ClearSem(long * semaphore);
 
 #endif

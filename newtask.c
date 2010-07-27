@@ -7,10 +7,11 @@ void RemoveFromQ(struct Task *task, struct Task **QHead, struct Task **QTail);
 void AddToQ(struct Task *task, struct Task **QHead, struct Task **QTail);
 
 
-struct Task *currentTask;
-struct Task *runnableTasks[2];  // [0] = Head, [1] = Tail
-struct Task *blockedTasks[2];
-struct Task *lowPriTask;
+struct Task *currentTask = 0;
+struct Task *runnableTasks[2] = {0, 0};  // [0] = Head, [1] = Tail
+struct Task *blockedTasks[2] = {0, 0};
+struct Task *lowPriTask = 0;
+struct TaskList * allTasks;
 
 extern long          *tempstack;
 extern long          *tempstack0;
@@ -40,9 +41,22 @@ struct Task *nextfreetss()
 //===============================
 void LinkTask(struct Task *task)
 {
+    struct TaskList *tl = allTasks;
+
     task->nexttask   = runnableTasks[0];
     runnableTasks[0] = task;
     task->pid        = nextpid++;
+    if (tl->task)
+    {
+        while (tl->next)
+        {
+            tl = tl->next;
+        }
+        debug();
+    }
+    tl->next = AllocKMem(sizeof(struct TaskList));
+    tl->next->next = 0;
+    tl->next->task = task;
 }
 
 
@@ -160,6 +174,7 @@ void NewLowPriTask(void *TaskCode)
     lowPriTask = NewKernelTask(TaskCode);
     struct Task *temp = runnableTasks[0];
     RemoveFromQ(lowPriTask, &runnableTasks[0], &runnableTasks[1]);
+//    AddToQ(lowPriTask, &allTasks[0], &allTasks[1]);
 }
 
 
@@ -170,12 +185,13 @@ void KillTask(void)
 {
     struct Task *task = currentTask;
     struct Task *temp = runnableTasks[0];
-    struct Message *m = (struct Message *)AllocKMem(sizeof(struct Message));
 
     if (task->parentPort)
     {
+        struct Message *m = (struct Message *)AllocKMem(sizeof(struct Message));
         m->quad = 0;
         SendMessage(task->parentPort, m);
+        DeallocMem(m);
     }
 
     //Don't want to task switch whilst destroying task
@@ -224,13 +240,31 @@ void KillTask(void)
     }
 
     // If there's any allocated shared memory, then free it
-    DeallocSharedMem(task->pid);
+//    DeallocSharedMem(task->pid);
 
     // If there's any allocated kernel memory, then free it
-    DeallocKMem(task->pid);
+//    DeallocKMem(task->pid);
 
     // Reset PID so that OS knows the slot is free
     task->pid = 0;
+//    RemoveFromQ(task, &allTasks[0], &allTasks[1]);
+        struct TaskList * tl  = allTasks;
+        struct TaskList * tl1;
+        if (tl->task == task)
+        {
+            allTasks = allTasks->next;
+            DeallocMem(tl);
+        }
+        else
+        {
+            while (tl->next->task != task)
+            {
+              tl = tl->next;
+            }
+            tl1 = tl->next;
+            tl->next = tl->next->next;
+            DeallocMem(tl1);
+        }
 
     //SwTasks();
     SWTASKS;

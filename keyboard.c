@@ -70,9 +70,9 @@ char KbdTableS[] =
 };
 
 //==========================================================
-// Switch the variables to point to the current console
+// Send a KEYPRESSED message to kbTaskCode
 //==========================================================
-void setBuffer()
+void keyPressed()
 {
     struct Message *kbdMsg = (struct Message *)AllocKMem(sizeof(struct Message));
 
@@ -81,6 +81,27 @@ void setBuffer()
     kbdMsg->byte        = KEYPRESS;
     SendMessage((struct MessagePort *)KbdPort, kbdMsg);
     DeallocMem(kbdMsg);
+}
+
+void ProcessMsgQueue(struct Console * console)
+{
+    while (console->kbBufCount && console->MsgQueue)
+    {
+        unsigned char temp = console->kbBuffer[console->kbBufStart];
+        console->kbBufCount--;
+        console->kbBufStart++;
+        struct Message * tempMsg = console->MsgQueue;
+        console->MsgQueue = tempMsg->nextMessage;
+        if (tempMsg->byte == GETCHAR)
+        {
+            struct MessagePort * tempPort = (struct MessagePort *)tempMsg->tempPort;
+            tempMsg->nextMessage = 0;
+            tempMsg->quad        = 0L;
+            tempMsg->byte        = temp;
+            SendMessage(tempPort, tempMsg);
+        }
+        DeallocMem(tempMsg);
+    }
 }
 
 //=====================================================
@@ -92,11 +113,11 @@ void kbTaskCode()
     struct MessagePort *tempPort;
     struct Message     *KbdMsg;
     struct Console     *currentCons;
-    struct Message     * tempMsg;
+    struct Message     *tempMsg;
 
 
     int i;
-    for (i = 0; i < 8; i++)
+    for (i = 0; i < 4; i++)
     {
         consoles[i].kbBuffer = AllocKMem(128);
         consoles[i].kbBufStart = consoles[i].kbBufCurrent = consoles[i].kbBufCount = 0;
@@ -108,7 +129,6 @@ void kbTaskCode()
     kbBufCount = 0;
     currentBuffer = 0;
 
-    KbdMsg = (struct Message *)AllocKMem(sizeof(struct Message));
     modifier = 0;
 
     asm ("mov $0b11111000, %al");        // enable keyboard + timer interrupt"
@@ -118,22 +138,35 @@ void kbTaskCode()
     ((struct MessagePort *)KbdPort)->msgQueue    = 0;
     while (1)
     {
+        KbdMsg = (struct Message *)AllocKMem(sizeof(struct Message));
         ReceiveMessage((struct MessagePort *)KbdPort, KbdMsg);
         switch (KbdMsg->byte)
         {
         case GETKEY:
-            if (!consoles[currentBuffer].kbBufCount)
+            currentCons = &consoles[KbdMsg->quad];
+            tempPort            = (struct MessagePort *)KbdMsg->tempPort;
+            KbdMsg->nextMessage = 0;
+            KbdMsg->quad        = 0L;
+            KbdMsg->byte        = -1;
+            if (currentCons->kbBufCount)
             {
-                tempPort            = (struct MessagePort *)KbdMsg->tempPort;
-                KbdMsg->nextMessage = 0;
-                KbdMsg->quad        = 0L;
-                KbdMsg->byte        = -1;
-                SendMessage(tempPort, KbdMsg);
+                KbdMsg->byte = currentCons->kbBuffer[currentCons->kbBufStart];
+
+                (currentCons->kbBufCount)--;
+                (currentCons->kbBufStart)++;
+                if ((currentCons->kbBufStart) == 128)
+                {
+                    (currentCons->kbBufStart) = 0;
+                }
             }
+            SendMessage(tempPort, KbdMsg);
+            break;
 
         case GETCHAR:
-            tempMsg = consoles[KbdMsg->quad].MsgQueue;
-            if (!tempMsg) consoles[KbdMsg->quad].MsgQueue = KbdMsg;
+            currentCons = &consoles[KbdMsg->quad];
+            tempMsg = currentCons->MsgQueue;
+            if (!tempMsg)
+                currentCons->MsgQueue = KbdMsg;
             else
             {
                 while (tempMsg->nextMessage)
@@ -141,6 +174,7 @@ void kbTaskCode()
                 tempMsg->nextMessage = KbdMsg;
             }
             KbdMsg = (struct Message *)AllocKMem(sizeof(struct Message));
+//            ProcessMsgQueue(currentCons);
             break;
 
         case KEYPRESS:
@@ -251,25 +285,12 @@ void kbTaskCode()
                     }
                 }
             }
-
-            while (currentCons->kbBufCount && currentCons->MsgQueue)
-            {
-                temp = currentCons->kbBuffer[currentCons->kbBufStart];
-                currentCons->kbBufCount--;
-                currentCons->kbBufStart++;
-                tempMsg = currentCons->MsgQueue;
-                tempPort            = (struct MessagePort *)tempMsg->tempPort;
-                tempMsg->nextMessage = 0;
-                tempMsg->quad        = 0L;
-                tempMsg->byte        = temp;
-                SendMessage(tempPort, tempMsg);
-                currentCons->MsgQueue = tempMsg->nextMessage;
-                DeallocMem(tempMsg);
-            }
+            ProcessMsgQueue(currentCons);
             break;
 
         default:
             break;
         }
+        DeallocMem(KbdMsg);
     }
 }

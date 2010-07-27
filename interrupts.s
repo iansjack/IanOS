@@ -26,8 +26,11 @@ HDINT 		= 3
 #===================
 KbInt:	push %rax
 	push %rbx
+   push %rcx
+   push %rdx
+   push %rsi
+   push %rdi
 	in   $0x60, %al		 # MUST read byte from keyboard - else no more ints
-	push %rdx
 	mov  $kbBuffer, %rbx
    add  (kbBufCurrent), %rbx
 	mov  %al, (%rbx)
@@ -36,16 +39,15 @@ KbInt:	push %rax
    cmpl $128, (kbBufCurrent)
 	jne  .kbistaskwaiting
    movl $0, (kbBufCurrent)
-
-	# is any task waiting for keyboard input? If so re-enable it
-
 .kbistaskwaiting:
-   call setBuffer
-	pop  %rdx
-.kbdone:
-	pop  %rbx
+   call keyPressed
 	mov  $0x20, %al		  # clear int
 	out  %al, $0x20
+   pop  %rdi
+   pop  %rsi
+   pop  %rdx
+   pop  %rcx
+   pop  %rbx
 	pop  %rax
 	iretq
 
@@ -54,6 +56,11 @@ KbInt:	push %rax
 #================
 TimerInt:
 	push %rax
+   push %rbx
+   push %rcx
+   push %rdx
+   push %rsi
+   push %rdi
 	mov  $0x20, %al
 	out  %al, $0x20
 	incq Ticks
@@ -66,17 +73,24 @@ TimerInt:
 	decq TS.timer(%r15)
 	jnz  .next
 	mov  %r15, %rdi
-        call UnBlockTask
+   call UnBlockTask
 .next:	mov  TS.nexttask(%r15), %r15
 	cmp $0, %r15
-        jne  .again
+   jne  .again
 .notimer:
-	pop  %rax
+#	pop  %rax
 	decb TimeSliceCount
 	jnz  .tdone
 	movb $5, TimeSliceCount
+.tdone:
 	SWITCH_TASKS
-.tdone:	iretq
+   pop  %rdi
+   pop  %rsi
+   pop  %rdx
+   pop  %rcx
+   pop  %rbx
+   pop  %rax
+	iretq
 
 #=====================
 # Hard Disk interrupt
@@ -237,8 +251,10 @@ SetSem:
 	push %rax
 	push %rbx
 	mov  $1, %rbx
-	cmpxchg %bx, (%rdi)
-	je  .sdone
+	cmpxchg %rbx, (%rdi)
+	jne  .sdone
+   pop  %rbx
+   pop  %rax
 	SWITCH_TASKS
 	jmp .sagain
 .sdone:

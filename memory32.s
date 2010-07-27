@@ -14,6 +14,7 @@ InitMemManagement:
 	movw $0, (memorySemaphore)
 	movl $0, NoOfAllocations
 	movl $256, nPagesFree
+   movl $0, nPagesFree + 4;
 	mov $0x0019FFFC, %eax
 	mov $0, %ebx
 	mov $0x6d72646c, %ecx

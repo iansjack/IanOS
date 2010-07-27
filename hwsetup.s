@@ -50,9 +50,12 @@ HwSetup:
 	mov $0x45, %al
 	out %al, $0x60
 
+#   in   $0x60, %al       # Clear any pending Kbd interrupt
+
+
 # enable interrupts
 #	mov $0b11111000, %al	# enable keyboard + timer interrupt
-	mov $0b11111010, %al	# enable keyboard + timer interrupt
+	mov $0b11111010, %al	# enable timer interrupt
 	out %al, $0x21
 
 # reset ide controller

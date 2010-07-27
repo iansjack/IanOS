@@ -10,7 +10,7 @@
 #===================================================================================================
 # Save the current task, restore the next ready one (if there is one!), and initiate a task switch.
 # If there isn't another runnable task, and the current task is still runnable, just continue.
-# If there's no runnable task at all then halt the processor until the next interrupt.
+# If there's no runnable task at all then switch to the low-priority task.
 #===================================================================================================
 TaskSwitch:
 .again:

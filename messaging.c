@@ -52,6 +52,7 @@ void ReceiveMessage(struct MessagePort *MP, struct Message *Msg)
    }
    struct Message *temp = MP->msgQueue;
    MP->msgQueue = temp->nextMessage;
+   temp->nextMessage = 0;
    copyMem((unsigned char *)temp, (unsigned char *)Msg, sizeof(struct Message));
    DeallocMem(temp);
 }

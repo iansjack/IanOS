@@ -10,23 +10,23 @@
 	.global GoToSleep
 
 CallNo:	
-	.quad	PrintString		# PRINTSTRING
-	.quad	PrintDouble		# PRINTDOUBLE
-	.quad	PrintChar		# PRINTCHAR
-	.quad	Newtask 		# CREATETASK
-	.quad	GetTicks		# GETTICKS
-	.quad	Sleep			# SLEEP
-	.quad	Alloc_Mem		# ALLOCMEM
-	.quad	Alloc_Message_Port	# ALLOCMSGPORT
-	.quad	Send_Message		# SENDMESSAGE
-	.quad	Receive_Message 	# RECEIVEMESSAGE
-	.quad	Dealloc_Mem		# DEALLOCMEM
-	.quad	Send_Receive		# SENDRECEIVE
-	.quad	Kill_Task		# KILLTASK
-	.quad	NewKerneltask		# CREATEKTASK
-	.quad	Alloc_Shared_Mem	# ALLOCSHAREDMEM
-	.quad	NewLPtask		# CREATELPTASK
-	.quad CommandLine		# GETCOMMANDLINE
+	.quad	PrintString		      # PRINTSTRING
+	.quad	PrintDouble		      # PRINTDOUBLE
+	.quad	PrintChar		      # PRINTCHAR
+	.quad	Newtask 		         # CREATETASK
+	.quad	GetTicks		         # GETTICKS
+	.quad	Sleep			         # SLEEP
+	.quad	Alloc_Mem		      # ALLOCMEM
+	.quad	Alloc_Message_Port   # ALLOCMSGPORT
+	.quad	Send_Message		   # SENDMESSAGE
+	.quad	Receive_Message 	   # RECEIVEMESSAGE
+	.quad	Dealloc_Mem		      # DEALLOCMEM
+	.quad	Send_Receive		   # SENDRECEIVE
+	.quad	Kill_Task		      # KILLTASK
+	.quad	NewKerneltask		   # CREATEKTASK
+	.quad	Alloc_Shared_Mem	   # ALLOCSHAREDMEM
+	.quad	NewLPtask		      # CREATELPTASK
+	.quad CommandLine		      # GETCOMMANDLINE
 
 SysCalls:
 	jmp *(CallNo - 8)(,%r9, 8)

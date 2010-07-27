@@ -7,6 +7,8 @@
 #define SOL				4
 #define SETCURSOR		5
 #define CLREOL       6
+#define NORMAL       7
+#define REVERSE      8
 
 #define BACKSPACE		8
 #define CR				13

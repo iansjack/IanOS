@@ -93,7 +93,15 @@ struct Console
   unsigned char * ConsoleBuffer;
   short row;
   short column;
+  short colour;
 };
+
+struct TaskList
+{
+  struct TaskList * next;
+  struct Task * task;
+};
+
 
 #define SWTASKS      asm ("int $20")
 #define SWTASKS15    asm ("mov %rdi, %r15"); asm ("int $22")

@@ -74,6 +74,7 @@ int main(void)
                 sys_CreateTask(name, environment, parentPort);
                 sys_ReceiveMessage((long int)parentPort, msg);
                 sys_DeallocMem(parentPort);
+                sys_DeallocMem(msg);
             }
 
             writeconsolestring("#> _\b", 0);
