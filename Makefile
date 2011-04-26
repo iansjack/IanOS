@@ -1,4 +1,4 @@
-CFLAGS = -fpack-struct -ffixed-r15 -g -m64
+CFLAGS = -fpack-struct -ffixed-r15 -fno-stack-protector
 
 OBJS = 	startup.o memory32.o pagetab32.o hwsetup.o os.o gates.o messages.o memory.o keyboard.o \
 		console.o filesystem.o syscalls.o newtask.o tasking.o messaging.o interrupts.o \
@@ -14,13 +14,13 @@ library/liblib.a:
 library/libsyscalls.a:
 	cd library; make all; cd ..
 
-IanOS.o: $(OBJS) library/liblib.a library/libsyscalls.a
-	ld --print-map -Tlink2.ld $(OBJS) library/liblib.a library/libsyscalls.a -oIanOS.o >linkmap 
+#IanOS.o: $(OBJS) library/liblib.a library/libsyscalls.a
+#	ld -Tlink2.ld $(OBJS) library/liblib.a library/libsyscalls.a -oIanOS.o>linkmap 
 
 IanOS.bin: $(OBJS) library/liblib.a library/libsyscalls.a
-	ld --print-map -Tlink.ld $(OBJS) library/liblib.a library/libsyscalls.a -oIanOS.bin >linkmap 
+	ld --print-map -Tlink.ld $(OBJS) library/liblib.a library/libsyscalls.a -oIanOS.bin>linkmap 
 
-bootdisk: bootsect.bin 32sect IanOS.bin IanOS.o
+bootdisk: bootsect.bin 32sect IanOS.bin
 	cat bootsect.bin 32sect IanOS.bin floppy >IanOS.fdd
 
 bootsect.bin: boot.o
@@ -47,23 +47,23 @@ gates.o: gates.c memory.h
 
 messages.o: messages.c
 
-memory.o: memory.c memory.h kernel.h kstructs.h
+memory.o: memory.c memory.h kstructs.h
 
-keyboard.o: keyboard.c memory.h kernel.h kstructs.h
+keyboard.o: keyboard.c memory.h kstructs.h
 
-console.o: console.c memory.h kernel.h kstructs.h console.h
+console.o: console.c memory.h kstructs.h console.h
 
-filesystem.o: filesystem.c memory.h kernel.h kstructs.h
+filesystem.o: filesystem.c memory.h kstructs.h
 
-syscalls.o: syscalls.s memory.inc kernel.h kstructs.inc
+syscalls.o: syscalls.s memory.inc kstructs.inc
 
-newtask.o: newtask.c memory.h kernel.h kstructs.h filesystem.h
+newtask.o: newtask.c memory.h kstructs.h filesystem.h
 
-tasking.o: tasking.s memory.inc kernel.h kstructs.inc
+tasking.o: tasking.s memory.inc kstructs.inc
 
-messaging.o: messaging.c memory.h kernel.h kstructs.h
+messaging.o: messaging.c memory.h kstructs.h
 
-interrupts.o: interrupts.s macros.s memory.h kernel.h kstructs.h
+interrupts.o: interrupts.s macros.s memory.h kstructs.h
 
 ide.o: ide.s
 
@@ -71,7 +71,7 @@ kernlib.o: kernlib.c
 
 tas1.o: tas1.c memory.h library/syscalls.h
 
-monitor.o: monitor.c kernel.h kstructs.h
+monitor.o: monitor.c memory.h kernel.h console.h
 
 clean:
 	rm -f a.out linkmap $(OBJS) *.bin boot.o IanOS.fdd

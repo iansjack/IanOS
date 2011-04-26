@@ -1,4 +1,4 @@
-CFLAGS = -fpack-struct -ffixed-r15 -I .. -m64
+CFLAGS = -fpack-struct -ffixed-r15 -fno-stack-protector -O -I ..
 LIBS = ../library/liblib.a ../library/libsyscalls.a 
 TASKS = TASK1 TASK2 TASK3 TASK4 LS
 
@@ -31,12 +31,12 @@ TASK4: task4.o inittask.o
 
 task4.o: task4.c
 
-ls.o: ls.c ../fat.h
-
-LS: ls.o
+LS: ls.o inittask.o
 	ld -Tlink.ld ls.o $(LIBS) -oLS
 	mcopy -o LS c: 
 
+ls.o: ls.c
+
 clean:
-	rm -f TASK? *.o LS
+	rm -f TASK? *.o LS*
 

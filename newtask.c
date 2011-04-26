@@ -5,6 +5,8 @@
 
 void RemoveFromQ(struct Task *task, struct Task **QHead, struct Task **QTail);
 void AddToQ(struct Task *task, struct Task **QHead, struct Task **QTail);
+void StartTask();
+struct Task *NewKernelTask(void *TaskCode);
 
 
 struct Task *currentTask = 0;
@@ -65,74 +67,105 @@ void LinkTask(struct Task *task)
 //========================
 void NewTask(char *name, char *environment, struct MessagePort * parentPort)
 {
-    long           *stack;
-    struct Task    *task = nextfreetss();
-    long           *data;
-    struct FCB     *fHandle;
-    long           codelen, datalen;
-    char           header[3];
-    int            result;
-    struct Message *FSMsg;
+   long           *stack;
+   struct Task    *task = nextfreetss();
+   int            result;
 
-    FSMsg = (struct Message *)AllocKMem(sizeof(struct Message));
+   task->environment = environment;
+	task->parentPort = parentPort;
+   task->waiting     	= 0;
+   task->cr3         	= VCreatePageDir();
+   task->ds          	= udata64 + 3;
+   copyMem(StartTask, TempUserCode, (long)NewKernelTask - (long)StartTask);
+   copyMem(name, TempUserData, 100);
+   stack              	= (long *)(TempUStack + PageSize) - 5;
+   task->rsp          	= (long)((long *)(UserStack + PageSize) - 5);
+   task->r13 				= (long)name;
+   task->r15          	= (long)task;
+   stack[0]           	= UserCode;
+   stack[1]           	= user64 + 3;
+   stack[2]           	= 0x2202;
+   stack[3]           	= UserStack + PageSize;
+   stack[4]           	= udata64 + 3;
 
-    // Open file
-    FSMsg->nextMessage = 0;
-    FSMsg->byte        = OPENFILE;
-    FSMsg->quad        = (long)name;
-    FSMsg->quad2       = (long)fHandle;
-    SendReceiveMessage((struct MessagePort *)FSPort, FSMsg);
-
-    fHandle = (struct FCB *)FSMsg->quad;
-    if (fHandle)
-    {
-        task->environment = environment;
-        task->parentPort  = parentPort;
-        task->waiting     = 0;
-        task->cr3         = (long)VCreatePageDir();
-        task->ds          = udata64 + 3;
-        ReadFromFile(fHandle, header, 4);
-        ReadFromFile(fHandle, (char *)&codelen, 8);
-        ReadFromFile(fHandle, (char *)&datalen, 8);
-        ReadFromFile(fHandle, (char *)TempUserCode, codelen);
-        if (datalen)
-            ReadFromFile(fHandle, (char *)TempUserData, datalen);
-        data               = (long *)(TempUserData + datalen);
-        data[0]            = 0;
-        data[1]            = PageSize - datalen - 0x10;
-        task->firstfreemem = UserData + datalen;
-        stack              = (long *)(TempUStack + PageSize) - 5;
-        task->rsp          = (long)((long *)(UserStack + PageSize) - 5);
-        task->r15          = (long)task;
-        stack[0]           = UserCode;
-        stack[1]           = user64 + 3;
-        stack[2]           = 0x2202;
-        stack[3]           = UserStack + PageSize;
-        stack[4]           = udata64 + 3;
-
-        //Close file
-        FSMsg->nextMessage = 0;
-        FSMsg->byte        = CLOSEFILE;
-        FSMsg->quad        = (long)fHandle;
-        SendReceiveMessage((struct MessagePort *)FSPort, FSMsg);
-
-        asm ("cli");
-        LinkTask(task);
-        asm ("sti");
-    }
-    else
-    {
-        // Got to handle the case where a blocking call was made
-        if (parentPort)
-        {
-            struct Message m;
-            m.quad = 0;
-            SendMessage(parentPort, &m);
-        }
-    }
-    DeallocMem(FSMsg);
+   asm ("cli");
+   LinkTask(task);
+   asm ("sti");
 }
 
+void LoadTheProgram(long start, char * name)
+{
+	struct FCB * 	fHandle;
+	long           codelen, datalen;
+	char           header[3];
+   long           *data;
+	long				currentPage;
+	long				size;
+
+   struct Message *FSMsg;
+
+   FSMsg = (struct Message *)AllocKMem(sizeof(struct Message));
+
+   // Open file
+   FSMsg->nextMessage = 0;
+   FSMsg->byte        = OPENFILE;
+   FSMsg->quad        = (long)name;
+   FSMsg->quad2       = (long)fHandle;
+   SendReceiveMessage(FSPort, FSMsg);
+
+	fHandle = (struct FCB *)FSMsg->quad;
+	if (fHandle)
+	{
+		ReadFromFile(fHandle, header, 4);
+    	ReadFromFile(fHandle, (char *)&codelen, 8);
+    	ReadFromFile(fHandle, (char *)&datalen, 8);
+		currentPage = UserCode;
+		size = codelen;
+		while (codelen > PageSize)
+		{
+			CreatePTE(AllocPage64(), ++currentPage);
+			size -= PageSize;
+		}
+    	ReadFromFile(fHandle, (char *)UserCode, codelen);
+		currentPage = UserData;
+		size = datalen;
+		while (datalen > PageSize)
+		{
+			CreatePTE(AllocPage64(), ++currentPage);
+			size -= PageSize;
+		}
+   	ReadFromFile(fHandle, (char *)UserData, datalen);
+    	data               = (long *)(UserData + datalen);
+    	data[0]            = 0;
+    	data[1]            = PageSize - datalen - 0x10;
+		currentTask->firstfreemem = UserData + datalen;
+
+		//Close file
+   	FSMsg->nextMessage = 0;
+   	FSMsg->byte        = CLOSEFILE;
+   	FSMsg->quad        = (long)fHandle;
+   	SendReceiveMessage(FSPort, FSMsg);
+		DeallocMem(FSMsg);
+		asm("mov $0x300000, %rcx");
+	}
+	else
+	{
+		DeallocMem(FSMsg);
+		asm("mov $0x30000D, %rcx");
+	}
+}
+
+//==================================
+// Load, initialize, and start task
+//==================================
+void StartTask()
+{
+	asm("mov $18, %r9");
+	asm("syscall");
+	asm("mov $13, %r9");
+	asm("syscall");
+
+}
 
 //==========================
 // Create a new Kernel task
@@ -164,7 +197,6 @@ struct Task *NewKernelTask(void *TaskCode)
     task->parentPort = (void *) 0;
     asm ("sti");
 }
-
 
 //=============================
 // Create the low-priority task

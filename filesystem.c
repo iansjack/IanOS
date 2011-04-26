@@ -332,7 +332,7 @@ long ReadFile(struct FCB *fHandle, char *buffer, long noBytes)
             {
                 WriteSector(fHandle->filebuf, ClusterToSector(fHandle->currentCluster) + fHandle->sectorInCluster - 1);
             }
-            if (fHandle->sectorInCluster++ > SectorsPerCluster)
+            if (fHandle->sectorInCluster++ == SectorsPerCluster)
             {
                 fHandle->currentCluster  = FAT[fHandle->currentCluster];
                 fHandle->nextSector      = ClusterToSector(fHandle->currentCluster);

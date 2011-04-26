@@ -1,4 +1,6 @@
-CFLAGS = -fpack-struct -ffixed-r15 -I .. -m64
+include ../Flags.mak
+
+CFLAGS:=$(CFLAGS) -O -I ..
 LIBS = ../library/liblib.a ../library/libsyscalls.a 
 LIBOBJS = writeconsolestring.o getchar.o file.o convert.o
 SYSCALLSOBJS = syscalls.o
