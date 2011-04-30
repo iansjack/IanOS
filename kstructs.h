@@ -3,7 +3,7 @@
 
 struct Task
 {
-    struct Task   *nexttask;
+    struct Task * nexttask;
     unsigned char waiting;
     long          rax;
     long          rbx;
@@ -33,7 +33,7 @@ struct Task
     long          nextpage;
     long          pid;
     long          timer;
-    char          *environment;
+    char * 			environment;
     struct MessagePort * parentPort;
 };
 

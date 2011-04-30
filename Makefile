@@ -1,4 +1,4 @@
-CFLAGS = -fpack-struct -ffixed-r15 -fno-stack-protector
+include Flags.mak
 
 OBJS = 	startup.o memory32.o pagetab32.o hwsetup.o os.o gates.o messages.o memory.o keyboard.o \
 		console.o filesystem.o syscalls.o newtask.o tasking.o messaging.o interrupts.o \

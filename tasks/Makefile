@@ -1,4 +1,5 @@
-CFLAGS = -fpack-struct -ffixed-r15 -fno-stack-protector -O -I ..
+include ../Flags.mak
+
 LIBS = ../library/liblib.a ../library/libsyscalls.a 
 TASKS = TASK1 TASK2 TASK3 TASK4 LS
 

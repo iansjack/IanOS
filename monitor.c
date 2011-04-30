@@ -5,6 +5,7 @@
 #define MAIN         1
 #define PROCESS      2
 #define PROCDETAILS  3
+#define MEMORY			4
 
 //====================================================
 // This is the monitor task.
@@ -252,37 +253,99 @@ void ProcessDisplay(int n /*struct Task * t*/)
 
 void ProcessDetails(/*struct Task * t*/)
 {
-    if (printTemplate)
-    {
-        mclrscr();
-        mprintString("\rProcess:");
-        mprintString("\rPID:");
-        mprintString("\rNext Task:");
-        msetcursor(1, 40);
-        mprintString("RAX:");
-        msetcursor(2, 40);
-        mprintString("RBX:");
-        msetcursor(3, 40);
-        mprintString("RCX:");
-        msetcursor(4, 40);
-        mprintString("RDX:");
-    }
-    msetcursor(1, 14);
-    mprint64((long)dispTask);
-    msetcursor(2, 14);
-    mprint64((long)dispTask->pid);
-    msetcursor(3, 14);
-    mprint64((long)dispTask->nexttask);
-    msetcursor(1, 48);
-    mprint64(dispTask->rax);
-    msetcursor(2, 48);
-    mprint64(dispTask->rbx);
-    msetcursor(3, 48);
-    mprint64(dispTask->rcx);
-    msetcursor(4, 48);
-    mprint64(dispTask->rdx);
+	if (printTemplate)
+   {
+		mclrscr();
+	   mprintString("\rProcess:");
+      mprintString("\rPID:");
+      mprintString("\rNext Task:");
+		mprintString("\rFirstFreeMem:");
+      msetcursor(1, 40);
+      mprintString("RAX:");
+      msetcursor(2, 40);
+      mprintString("RBX:");
+      msetcursor(3, 40);
+      mprintString("RCX:");
+      msetcursor(4, 40);
+      mprintString("RDX:");
+      msetcursor(5, 40);
+      mprintString("RSI:");
+      msetcursor(6, 40);
+      mprintString("RDI:");
+      msetcursor(7, 40);
+      mprintString("RBP:");
+      msetcursor(8, 40);
+      mprintString("RSP:");
+      msetcursor(9, 40);
+      mprintString("R8 :");
+      msetcursor(10, 40);
+      mprintString("R9 :");
+      msetcursor(11, 40);
+      mprintString("R10:");
+      msetcursor(12, 40);
+      mprintString("R11:");
+      msetcursor(13, 40);
+      mprintString("R12:");
+      msetcursor(14, 40);
+      mprintString("R13:");
+      msetcursor(15, 40);
+      mprintString("R14:");
+      msetcursor(16, 40);
+      mprintString("R15:");
+	}
+   msetcursor(1, 14);
+   mprint64((long)dispTask);
+   msetcursor(2, 14);
+   mprint64((long)dispTask->pid);
+   msetcursor(3, 14);
+   mprint64((long)dispTask->nexttask);
+	msetcursor(4, 14);
+	mprint64((long)dispTask->firstfreemem);
+   msetcursor(1, 48);
+   mprint64(dispTask->rax);
+   msetcursor(2, 48);
+   mprint64(dispTask->rbx);
+   msetcursor(3, 48);
+   mprint64(dispTask->rcx);
+   msetcursor(4, 48);
+   mprint64(dispTask->rdx);
+   msetcursor(5, 48);
+   mprint64(dispTask->rsi);
+   msetcursor(6, 48);
+   mprint64(dispTask->rdi);
+   msetcursor(7, 48);
+   mprint64(dispTask->rbp);
+   msetcursor(8, 48);
+   mprint64(dispTask->rsp);
+   msetcursor(9, 48);
+   mprint64(dispTask->r8);
+   msetcursor(10, 48);
+   mprint64(dispTask->r9);
+   msetcursor(11, 48);
+   mprint64(dispTask->r10);
+   msetcursor(12, 48);
+   mprint64(dispTask->r11);
+   msetcursor(13, 48);
+   mprint64(dispTask->r12);
+   msetcursor(14, 48);
+   mprint64(dispTask->r13);
+   msetcursor(15, 48);
+   mprint64(dispTask->r14);
+   msetcursor(16, 48);
+   mprint64(dispTask->r15);
 }
 
+void ProcessMemory(/*struct Task * t*/)
+{
+	if (printTemplate)
+   {
+		mclrscr();
+      mprintString("Process Memory\r");
+		mprintString("==============\r");
+ 	}
+   msetcursor(3, 14);
+   mprint64((long)dispTask->firstfreemem);
+}
 void monitorTaskCode()
 {
     struct Task * t;
@@ -304,13 +367,16 @@ void monitorTaskCode()
         case PROCDETAILS:
             ProcessDetails(t);
             break;
+			case MEMORY:
+				  ProcessMemory(t);
+				  break;
         }
         GoToSleep(20);
         char c = mgetkey();
         printTemplate = 1;
         switch (c)
         {
-        case 'm':
+        case 'h':
             display = MAIN;
             break;
         case 'b':
@@ -339,6 +405,7 @@ void monitorTaskCode()
         case 'd':
             switch (display)
             {
+				case MEMORY:
             case PROCESS:
                 display = PROCDETAILS;
                 break;
@@ -346,7 +413,18 @@ void monitorTaskCode()
                 break;
             }
             break;
-        default:
+         case 'm':
+            switch (display)
+            {
+				case PROCDETAILS:
+            case PROCESS:
+                display = MEMORY;
+                break;
+            default:
+                break;
+            }
+            break;
+       default:
             printTemplate = 0;
             break;
         }
