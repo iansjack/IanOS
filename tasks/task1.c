@@ -15,7 +15,7 @@ int main(void)
     int            i;
 
     consoleclrscr(0);
-    writeconsolestring("IanOS Version 0.1.1 - 2009\r", 0);
+    writeconsolestring("IanOS Version 0.1.2 - 2011\r", 0);
     writeconsolestring("#> _\b", 0);
     name[80] = environment[80] = 0;
     for (i = 0; i < 80; i++)

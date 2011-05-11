@@ -137,6 +137,7 @@ intr:	KWRITE_STRING $Unknown_message, $0, $0
 	KWRITE_DOUBLE 0x40(%esp), $4, $60
 	KWRITE_DOUBLE 0x48(%esp), $5, $60
 	pop %rax
+	cli
 	hlt
 	iretq
 
@@ -177,6 +178,7 @@ gpf:
 	KWRITE_DOUBLE 0x40(%esp), $4, $60
 	KWRITE_DOUBLE 0x48(%esp), $5, $60
 	pop %rax
+	cli
 	hlt
 	iretq
 pf:	
@@ -188,6 +190,7 @@ pf:
 	KWRITE_DOUBLE 0x40(%esp), $4, $60
 	KWRITE_DOUBLE 0x48(%esp), $5, $60
 	pop %rax
+	cli
 	hlt
 	iretq
 itf:	movb $'f, 0xB8000

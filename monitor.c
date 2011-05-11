@@ -27,231 +27,232 @@ short printTemplate;
 
 void mscrollscreen()
 {
-    short int row;
-    short int column;
+   short int row;
+   short int column;
 
-    for (row = 1; row < 25; row++)
-        for (column = 0; column < 80; column++)
-            mVideoBuffer[160 * (row - 1) + 2 * column] = mVideoBuffer[160 * row + 2 * column];
-    for (column = 0; column < 80; column++)
-        mVideoBuffer[160 * 24 + 2 * column] = ' ';
+   for (row = 1; row < 25; row++)
+      for (column = 0; column < 80; column++)
+         mVideoBuffer[160 * (row - 1) + 2 * column] = mVideoBuffer[160 * row + 2 * column];
+	for (column = 0; column < 80; column++)
+		mVideoBuffer[160 * 24 + 2 * column] = ' ';
 }
 
 void mprintString(char *s)
 {
-    char *S   = (char *)AllocSharedMem(256);
-    char *str = S;
+   char *S   = (char *)AllocSharedMem(256);
+   char *str = S;
 
-    while (*s != 0)
-    {
-        *S++ = *s++;
-    }
-    *S = 0;
-    struct Message *msg = (struct Message *)AllocKMem(sizeof(struct Message));
-    msg->nextMessage = 0;
-    msg->byte        = WRITESTR;
-    msg->quad        = (long)str;
-    msg->quad2       = 1;
-    SendMessage((struct MessagePort *)ConsolePort, msg);
-    DeallocMem(S);
-    DeallocMem(msg);
+   while (*s != 0)
+   {
+      *S++ = *s++;
+   }
+   *S = 0;
+   struct Message *msg = (struct Message *)AllocKMem(sizeof(struct Message));
+   msg->nextMessage = 0;
+   msg->byte        = WRITESTR;
+   msg->quad        = (long)str;
+   msg->quad2       = 1;
+   SendMessage((struct MessagePort *)ConsolePort, msg);
+   DeallocMem(S);
+   DeallocMem(msg);
 }
 
 
 void mclrscr()
 {
-    struct Message *msg = (struct Message *)AllocKMem(sizeof(struct Message));
+   struct Message *msg = (struct Message *)AllocKMem(sizeof(struct Message));
 
-    msg->nextMessage = 0;
-    msg->byte        = CLRSCR;
-    msg->quad        = 0;
-    msg->quad2       = 1;
-    SendMessage((struct MessagePort *)ConsolePort, msg);
-    DeallocMem(msg);
+	msg->nextMessage = 0;
+   msg->byte        = CLRSCR;
+   msg->quad        = 0;
+   msg->quad2       = 1;
+   SendMessage((struct MessagePort *)ConsolePort, msg);
+   DeallocMem(msg);
 }
 
 void mclreol()
 {
-    struct Message *msg = (struct Message *)AllocKMem(sizeof(struct Message));
+   struct Message *msg = (struct Message *)AllocKMem(sizeof(struct Message));
 
-    msg->nextMessage = 0;
-    msg->byte        = CLREOL;
-    msg->quad        = 0;
-    msg->quad2       = 1;
-    SendMessage((struct MessagePort *)ConsolePort, msg);
-    DeallocMem(msg);
+   msg->nextMessage = 0;
+   msg->byte        = CLREOL;
+   msg->quad        = 0;
+   msg->quad2       = 1;
+   SendMessage((struct MessagePort *)ConsolePort, msg);
+   DeallocMem(msg);
 }
+
 void msetcursor(long row, long column)
 {
-    struct Message *msg = (struct Message *)AllocKMem(sizeof(struct Message));
+   struct Message *msg = (struct Message *)AllocKMem(sizeof(struct Message));
 
-    msg->nextMessage = 0;
-    msg->byte        = SETCURSOR;
-    msg->quad        = row;
-    msg->quad2       = 1;
-    msg->quad3       = column;
-    SendMessage((struct MessagePort *)ConsolePort, msg);
-    DeallocMem(msg);
+   msg->nextMessage = 0;
+   msg->byte        = SETCURSOR;
+   msg->quad        = row;
+   msg->quad2       = 1;
+   msg->quad3       = column;
+   SendMessage((struct MessagePort *)ConsolePort, msg);
+   DeallocMem(msg);
 }
 
 void mprintchar(char c)
 {
-    struct Message *msg = (struct Message *)AllocKMem(sizeof(struct Message));
+   struct Message *msg = (struct Message *)AllocKMem(sizeof(struct Message));
 
-    msg->nextMessage = 0;
-    msg->byte        = WRITECHAR;
-    msg->quad        = c;
-    msg->quad2       = 1;
-    SendMessage((struct MessagePort *)ConsolePort, msg);
-    DeallocMem(msg);
+   msg->nextMessage = 0;
+   msg->byte        = WRITECHAR;
+   msg->quad        = c;
+   msg->quad2       = 1;
+   SendMessage((struct MessagePort *)ConsolePort, msg);
+   DeallocMem(msg);
 }
 
 void mprint64(unsigned long n)
 {
-    char nBuff[16];
-    int i;
-    for (i = 0; i < 16; i++)
-    {
-        char c = n % 16;
-        if (c > 9) c +=7;
-        c += '0';
-        nBuff[15 - i] = c;
-        n /= 16;
-    }
-    for (i = 8; i < 16; i++) mprintchar(nBuff[i]);
+   char nBuff[16];
+   int i;
+   for (i = 0; i < 16; i++)
+   {
+      char c = n % 16;
+      if (c > 9) c +=7;
+		c += '0';
+      nBuff[15 - i] = c;
+      n /= 16;
+   }
+   for (i = 0; i < 16; i++) mprintchar(nBuff[i]);
 }
 
 void mSetNormal()
 {
-    struct Message *msg = (struct Message *)AllocKMem(sizeof(struct Message));
+   struct Message *msg = (struct Message *)AllocKMem(sizeof(struct Message));
 
-    msg->nextMessage = 0;
-    msg->byte        = NORMAL;
-    msg->quad        = 0;
-    msg->quad2       = 1;
-    SendMessage((struct MessagePort *)ConsolePort, msg);
-    DeallocMem(msg);
+	msg->nextMessage = 0;
+   msg->byte        = NORMAL;
+   msg->quad        = 0;
+   msg->quad2       = 1;
+   SendMessage((struct MessagePort *)ConsolePort, msg);
+   DeallocMem(msg);
 }
 
 void mSetReverse()
 {
-    struct Message *msg = (struct Message *)AllocKMem(sizeof(struct Message));
+	struct Message *msg = (struct Message *)AllocKMem(sizeof(struct Message));
 
-    msg->nextMessage = 0;
-    msg->byte        = REVERSE;
-    msg->quad        = 0;
-    msg->quad2       = 1;
-    SendMessage((struct MessagePort *)ConsolePort, msg);
-    DeallocMem(msg);
+   msg->nextMessage = 0;
+   msg->byte        = REVERSE;
+   msg->quad        = 0;
+   msg->quad2       = 1;
+   SendMessage((struct MessagePort *)ConsolePort, msg);
+   DeallocMem(msg);
 }
 
 unsigned char mgetkey()
 {
-    struct Message *kbdMsg;
+   struct Message *kbdMsg;
 
-    kbdMsg = (struct Message *)AllocKMem(sizeof(struct Message));
-    kbdMsg->nextMessage = 0;
-    kbdMsg->byte        = 3;
-    kbdMsg->quad        = 1;
-    SendReceiveMessage((struct MessagePort *)KbdPort, kbdMsg);
-    char c = kbdMsg->byte;
-    DeallocMem(kbdMsg);
-    return(c);
+   kbdMsg = (struct Message *)AllocKMem(sizeof(struct Message));
+   kbdMsg->nextMessage = 0;
+   kbdMsg->byte        = 3;
+   kbdMsg->quad        = 1;
+   SendReceiveMessage((struct MessagePort *)KbdPort, kbdMsg);
+   char c = kbdMsg->byte;
+   DeallocMem(kbdMsg);
+   return(c);
 }
 
 void MainDisplay()
 {
-    struct Task *t;
+   struct Task *t;
 
-    if (printTemplate)
-    {
-        mclrscr();
-        mprintString("Monitor\r");
-        mprintString("=======\r");
-        mprintString("\rTicks:");
-        mprintString("\rcurrentTask:");
-        mprintString("\rrunnableTasks:");
-        mprintString("\rblockedTasks:");
-        mprintString("\r\rlowPriTask:");
-        mprintString("\rFree Pages");
-        mprintString("\rAllocations:");
-    }
+   if (printTemplate)
+   {
+      mclrscr();
+      mprintString("Monitor\r");
+      mprintString("=======\r");
+      mprintString("\rTicks:");
+      mprintString("\rcurrentTask:");
+      mprintString("\rrunnableTasks:");
+      mprintString("\rblockedTasks:");
+      mprintString("\r\rlowPriTask:");
+      mprintString("\rFree Pages");
+      mprintString("\rAllocations:");
+   }
 
-    msetcursor(3, 18);
-    mprint64(Ticks);
-    msetcursor(4, 18);
-    mprint64((long) currentTask);
-    msetcursor(5, 18);
-    t = runnableTasks[0];
-    while (t)
-    {
-        mprint64((long)t);
-        t = t->nexttask;
-        mprintchar (' ');
-    }
-    mclreol();
-    msetcursor(6, 18);
-    t = blockedTasks[0];
-    while (t)
-    {
-        mprint64((long)t);
-        t = t->nexttask;
-        mprintchar (' ');
-    }
-    mclreol();
-    msetcursor(8, 18);
-    mprint64((long)lowPriTask);
-    msetcursor(9, 18);
-    mprint64((long)nPagesFree);
-    msetcursor(10, 18);
-    mprint64(NoOfAllocations);
+   msetcursor(3, 18);
+   mprint64(Ticks);
+   msetcursor(4, 18);
+   mprint64((long) currentTask);
+   msetcursor(5, 18);
+   t = runnableTasks[0];
+   while (t)
+   {
+      mprint64((long)t);
+      t = t->nexttask;
+      mprintchar (' ');
+   }
+   mclreol();
+   msetcursor(6, 18);
+   t = blockedTasks[0];
+   while (t)
+   {
+      mprint64((long)t);
+      t = t->nexttask;
+      mprintchar (' ');
+	}
+   mclreol();
+   msetcursor(8, 18);
+   mprint64((long)lowPriTask);
+   msetcursor(9, 18);
+   mprint64((long)nPagesFree);
+   msetcursor(10, 18);
+   mprint64(NoOfAllocations);
 }
 
-void ProcessDisplay(int n /*struct Task * t*/)
+void ProcessDisplay(int n)
 {
-    struct TaskList * tl = allTasks;
-    struct Task * t;
-    int count = 0;
+   struct TaskList * tl = allTasks;
+   struct Task * t;
+   int count = 0;
 
-    if (printTemplate)
-    {
-        mclrscr();
-        mprintString("Processes\r");
-        mprintString("=========\r");
-    }
-    msetcursor(3, 0);
-    while (tl->next)
-    {
-        t = tl->task;
-        mprint64(t->pid);
-        mprintString("    ");
-        if (count++ == n)
-        {
-            mSetReverse();
-            mprint64((long)t);
-            mSetNormal();
-            dispTask = t;
-        }
-        else mprint64((long)t);
-        tl = tl->next;
-        mprintchar ('\r');
-    }
-    t = tl->task;
-    mprint64(t->pid);
-    mprintString("    ");
-    if (count++ == n)
-    {
-        mSetReverse();
-        mprint64((long)t);
-        mSetNormal();
-        dispTask = t;
-    }
-    else mprint64((long)t);
-    mprintchar('\r');
-    mclreol();
+   if (printTemplate)
+   {
+      mclrscr();
+      mprintString("Processes\r");
+      mprintString("=========\r");
+   }
+   msetcursor(3, 0);
+   while (tl->next)
+   {
+      t = tl->task;
+      mprint64(t->pid);
+      mprintString("    ");
+      if (count++ == n)
+      {
+         mSetReverse();
+         mprint64((long)t);
+         mSetNormal();
+         dispTask = t;
+      }
+      else mprint64((long)t);
+      tl = tl->next;
+      mprintchar ('\r');
+   }
+   t = tl->task;
+   mprint64(t->pid);
+   mprintString("    ");
+   if (count++ == n)
+   {
+      mSetReverse();
+      mprint64((long)t);
+      mSetNormal();
+      dispTask = t;
+   }
+   else mprint64((long)t);
+   mprintchar('\r');
+   mclreol();
 }
 
-void ProcessDetails(/*struct Task * t*/)
+void ProcessDetails()
 {
 	if (printTemplate)
    {
@@ -335,100 +336,168 @@ void ProcessDetails(/*struct Task * t*/)
    mprint64(dispTask->r15);
 }
 
-void ProcessMemory(/*struct Task * t*/)
+void ProcessMemory()
 {
+	unsigned char * memory;
+	unsigned char * stack;
+	unsigned char * mem = 0x310000;
+	unsigned long * data = 0x310000;
+	unsigned long value;
+	int count;
+	
 	if (printTemplate)
    {
 		mclrscr();
       mprintString("Process Memory\r");
 		mprintString("==============\r");
  	}
-   msetcursor(3, 14);
-   mprint64((long)dispTask->firstfreemem);
+	//memory = dispTask->cr3;
+   //msetcursor(3, 1);
+	//mprint64(memory);
+	//msetcursor(4, 1);
+   //mprint64((long)dispTask->firstfreemem);
+	
+	int i, j;
+	for (i = 0; i < 8; i++)
+	{
+		msetcursor(3 + i, 1);
+		mprint64(data);
+		mprintchar(':');
+		mprintchar(' ');
+		for (count = 0; count < 2; count++)
+		{
+			printLongData(data + count);
+			mprintchar(' ');
+		}
+		for (j = 0; j < 2; j++)
+		{
+			mprintchar(' ');
+			for (count = 0; count < 8; count++)
+				printCharData(mem + count);
+			mem += 8;
+		}
+		data += 2;
+	}
 }
+
+void printLongData(long data)
+{
+	long value;
+	
+	asm ("mov %%cr3,%%rdi;"
+	     "mov %1,%%rax;"
+	     "mov %%rax,%%cr3;"
+	     "mov %2,%%rax;"
+	     "mov (%%rax),%%rax;"
+		  "mov %%rax,%0;"
+	     "mov %%rdi,%%cr3;"
+	     :"=r"(value)
+		  :"r"(dispTask->cr3),"r"(data)
+		  :"%rax","%rdi"
+	     );
+	mprint64(value);
+}
+
+void printCharData(long data)
+{
+	char value;
+
+	asm ("mov %%cr3,%%rdi;"
+	     "mov %1,%%rax;"
+	     "mov %%rax,%%cr3;"
+	     "mov %2,%%rax;"
+	     "mov (%%rax),%%rax;"
+		  "mov %%al,%0;"
+	     "mov %%rdi,%%cr3;"
+	     :"=r"(value)
+		  :"r"(dispTask->cr3),"r"(data)
+		  :"%rax","%rdi"
+	     );
+	if (value < ' ') value = '.';
+	mprintchar(value);
+}
+
 void monitorTaskCode()
 {
-    struct Task * t;
+   struct Task * t;
 
-    int display = MAIN;
-    int taskno = 0;
-    printTemplate = 1;
+   int display = MAIN;
+   int taskno = 0;
+   printTemplate = 1;
 
-    while (1)
-    {
-        switch (display)
-        {
-        case MAIN:
-            MainDisplay();
+   while (1)
+   {
+      switch (display)
+      {
+      case MAIN:
+         MainDisplay();
+         break;
+      case PROCESS:
+         ProcessDisplay(taskno);
+         break;
+      case PROCDETAILS:
+         ProcessDetails(t);
+         break;
+		case MEMORY:
+			ProcessMemory(t);
+			break;
+      }
+      GoToSleep(20);
+      char c = mgetkey();
+      printTemplate = 1;
+      switch (c)
+      {
+      case 'h':
+         display = MAIN;
+         break;
+      case 'b':
+         display = PROCESS;
+         break;
+      case 'n':
+         switch (display)
+         {
+         case PROCESS:
+            taskno++;
             break;
-        case PROCESS:
-            ProcessDisplay(taskno);
+         default:
             break;
-        case PROCDETAILS:
-            ProcessDetails(t);
+         }
+         break;
+      case 'p':
+         switch (display)
+         {
+         case PROCESS:
+            if (taskno) taskno--;
             break;
+         default:
+            break;
+         }
+         break;
+      case 'd':
+         switch (display)
+         {
 			case MEMORY:
-				  ProcessMemory(t);
-				  break;
-        }
-        GoToSleep(20);
-        char c = mgetkey();
-        printTemplate = 1;
-        switch (c)
-        {
-        case 'h':
-            display = MAIN;
+      	case PROCESS:
+         	display = PROCDETAILS;
             break;
-        case 'b':
-            display = PROCESS;
+         default:
             break;
-        case 'n':
-            switch (display)
-            {
-            case PROCESS:
-                taskno++;
-                break;
-            default:
-                break;
-            }
+         }
+         break;
+		case 'm':
+         switch (display)
+         {
+			case PROCDETAILS:
+         case PROCESS:
+            display = MEMORY;
             break;
-        case 'p':
-            switch (display)
-            {
-            case PROCESS:
-                if (taskno) taskno--;
-                break;
-            default:
-                break;
-            }
+         default:
             break;
-        case 'd':
-            switch (display)
-            {
-				case MEMORY:
-            case PROCESS:
-                display = PROCDETAILS;
-                break;
-            default:
-                break;
-            }
-            break;
-         case 'm':
-            switch (display)
-            {
-				case PROCDETAILS:
-            case PROCESS:
-                display = MEMORY;
-                break;
-            default:
-                break;
-            }
-            break;
-       default:
-            printTemplate = 0;
-            break;
-        }
-    }
+         }
+         break;
+      default:
+         printTemplate = 0;
+         break;
+      }
+	}
 }
-
-

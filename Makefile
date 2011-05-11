@@ -2,7 +2,7 @@ include Flags.mak
 
 OBJS = 	startup.o memory32.o pagetab32.o hwsetup.o os.o gates.o messages.o memory.o keyboard.o \
 		console.o filesystem.o syscalls.o newtask.o tasking.o messaging.o interrupts.o \
-		ide.o kernlib.o tas1.o monitor.o
+		ide.o kernlib.o  monitor.o tas1.o
 
 all: bootdisk
 	cd library; make all; cd ..
@@ -21,7 +21,9 @@ IanOS.bin: $(OBJS) library/liblib.a library/libsyscalls.a
 	ld --print-map -Tlink.ld $(OBJS) library/liblib.a library/libsyscalls.a -oIanOS.bin>linkmap 
 
 bootdisk: bootsect.bin 32sect IanOS.bin
-	cat bootsect.bin 32sect IanOS.bin floppy >IanOS.fdd
+	cat bootsect.bin 32sect IanOS.bin floppy >I.fdd
+	dd if=I.fdd of=IanOS.fdd count=2880
+	rm I.fdd
 
 bootsect.bin: boot.o
 	ld -Tbootlink.ld boot.o -obootsect.bin
@@ -74,7 +76,7 @@ tas1.o: tas1.c memory.h library/syscalls.h
 monitor.o: monitor.c memory.h kernel.h console.h
 
 clean:
-	rm -f a.out linkmap $(OBJS) *.bin boot.o IanOS.fdd
+	rm -f a.out linkmap $(OBJS) *.bin boot.o IanOS.fdd *~
 	cd library; make clean
 	cd tasks; make clean
 
