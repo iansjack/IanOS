@@ -12,26 +12,26 @@ _start:
 	jmp Bootup
 	nop
 
-Herald:		.ascii "MYOSVER1"
+Herald:			.ascii "MYOSVER1"
 nBytesPerSect:	.word 0x0200
 nSectPerClstr:	.byte 0x01
-nRsvdSect:	.word 0x0001
-nFATS:		.byte 0x02
+nRsvdSect:		.word 0x0001
+nFATS:			.byte 0x02
 nRootDirEnts:	.word 0x00E0
 nTotalSectors:	.word 0x0B40
-bMedia:		.byte 0xF0
+bMedia:			.byte 0xF0
 nSectPerFAT:	.word 0x0009
 nSectPerTrack:	.word 0x0012
-nHeads:		.word 0x0002
-nHidden: 	.long 0x00000000
+nHeads:			.word 0x0002
+nHidden: 		.long 0x00000000
 nTotalSect32:	.long 0x00000000
-bBootDrive:	.byte 0x00
-ResvdByte:	.byte 0x00
-ExtBootSig:	.byte 0x29
-nOSSectors:	.word 0x0080
-ResvsWord:	.word 0x3F51
-Volname:	.ascii "RICH       "
-FatType:	.ascii "FAT12   "
+bBootDrive:		.byte 0x00
+ResvdByte:		.byte 0x00
+ExtBootSig:		.byte 0x29
+nOSSectors:		.word 0x0080
+ResvsWord:		.word 0x3F51
+Volname:			.ascii "RICH       "
+FatType:			.ascii "FAT12   "
 
 # Relocate boot sector to 0x90000
 Bootup:

@@ -9,40 +9,43 @@
 extern unsigned char currentBuffer;
 extern struct Console consoles[8];
 
-unsigned char  *VideoBuffer;
+unsigned char *VideoBuffer;
+unsigned char *ConsoleBuffer;
 struct Message ConsoleMsg;
 
 void switchConsole ( long console )
 {
-    if ( currentBuffer != console )
-    {
-        int i;
-        for ( i = 0; i < 4096; i++ )
-            VideoBuffer[i] = consoles[console].ConsoleBuffer[i];
-    }
-    currentBuffer = console;
+	if ( currentBuffer != console )
+   {
+      int i;
+	 	ConsoleBuffer = consoles[console].ConsoleBuffer;
+      for ( i = 0; i < 4096; i++ )
+		 	VideoBuffer[i] = ConsoleBuffer[i];
+   }
+   currentBuffer = console;
 }
 
 
 void scrollscreen ( long console )
 {
-    short int row;
-    short int column;
-    struct Console * currCons = & ( consoles[console] );
+   short int row;
+   short int column;
+   struct Console * currCons = & ( consoles[console] );
+	char * ConsoleBuffer = currCons->ConsoleBuffer;
 
-    for ( row = 1; row < 25; row++ )
-        for ( column = 0; column < 80; column++ )
-            currCons->ConsoleBuffer[160 * ( row - 1 ) + 2 * column] = currCons->ConsoleBuffer[160 * row + 2 * column];
-    for ( column = 0; column < 80; column++ )
-        currCons->ConsoleBuffer[160 * 24 + 2 * column] = ' ';
-    if ( currentBuffer == console )
-    {
-        for ( row = 1; row < 25; row++ )
-            for ( column = 0; column < 80; column++ )
-                VideoBuffer[160 * ( row - 1 ) + 2 * column] = VideoBuffer[160 * row + 2 * column];
-        for ( column = 0; column < 80; column++ )
-            VideoBuffer[160 * 24 + 2 * column] = ' ';
-    }
+   for ( row = 1; row < 25; row++ )
+      for ( column = 0; column < 80; column++ )
+         ConsoleBuffer[160 * ( row - 1 ) + 2 * column] = ConsoleBuffer[160 * row + 2 * column];
+   for ( column = 0; column < 80; column++ )
+      ConsoleBuffer[160 * 24 + 2 * column] = ' ';
+   if ( currentBuffer == console )
+   {
+      for ( row = 1; row < 25; row++ )
+         for ( column = 0; column < 80; column++ )
+            VideoBuffer[160 * ( row - 1 ) + 2 * column] = VideoBuffer[160 * row + 2 * column];
+      for ( column = 0; column < 80; column++ )
+			VideoBuffer[160 * 24 + 2 * column] = ' ';
+   }
 }
 
 void printchar ( unsigned char c )
@@ -119,70 +122,71 @@ void consoleTaskCode()
 
     while ( 1 )
     {
-        short row;
-        short column;
+       short row;
+       short column;
 
-        ReceiveMessage ( ( struct MessagePort * ) ConsolePort, &ConsoleMsg );
-        long console = ConsoleMsg.quad2;
-        struct Console * currCons = & ( consoles[console] );
-        switch ( ConsoleMsg.byte )
-        {
-        case WRITECHAR:
-            printchar ( ( unsigned char ) ConsoleMsg.quad );
-            break;
+       ReceiveMessage ( ( struct MessagePort * ) ConsolePort, &ConsoleMsg );
+       long console = ConsoleMsg.quad2;
+       struct Console * currCons = & ( consoles[console] );
+		 unsigned char * ConsoleBuffer = currCons->ConsoleBuffer;
+       switch ( ConsoleMsg.byte )
+       {
+       case WRITECHAR:
+          printchar ( ( unsigned char ) ConsoleMsg.quad );
+          break;
 
-        case WRITESTR:
-            s = ( unsigned char * ) ConsoleMsg.quad;
-            while ( *s != 0 )
-            {
-                printchar ( *s );
-                s++;
-            }
-            DeallocMem ( ( void * ) ConsoleMsg.quad );
-            break;
+       case WRITESTR:
+          s = ( unsigned char * ) ConsoleMsg.quad;
+          while ( *s != 0 )
+          {
+             printchar ( *s );
+             s++;
+          }
+          DeallocMem ( ( void * ) ConsoleMsg.quad );
+          break;
 
-        case SETCURSOR:
-            currCons->row = ConsoleMsg.quad;
-            currCons->column = ConsoleMsg.quad3;
-            break;
+       case SETCURSOR:
+          currCons->row = ConsoleMsg.quad;
+          currCons->column = ConsoleMsg.quad3;
+          break;
 
-        case CLRSCR:
-            for ( row = 0; row < 25; row++ )
-            {
-                for ( column = 0; column < 80; column++ )
-                {
-                    currCons->ConsoleBuffer[160 * row + 2 * column] = ' ';
-                    currCons->ConsoleBuffer[160 * row + 2 * column + 1] = 7;
-                    if ( currentBuffer == console )
-                    {
-                        VideoBuffer[160 * row + 2 * column]     = ' ';
-                        VideoBuffer[160 * row + 2 * column + 1] = 7;
-                    }
-                }
-            }
-            currCons->column = currCons->row = 0;
-            break;
-
-        case CLREOL:
-            i = currCons->column;
-            while ( i < 80 )
-            {
-                currCons->ConsoleBuffer[160 * currCons->row + 2 * i] = ' ';
+       case CLRSCR:
+          for ( row = 0; row < 25; row++ )
+          {
+             for ( column = 0; column < 80; column++ )
+             {
+                ConsoleBuffer[160 * row + 2 * column] = ' ';
+                ConsoleBuffer[160 * row + 2 * column + 1] = 7;
                 if ( currentBuffer == console )
-                    VideoBuffer[160 * currCons->row + 2 * i] = ' ';
-                i++;
-            }
+                {
+                   VideoBuffer[160 * row + 2 * column]     = ' ';
+                   VideoBuffer[160 * row + 2 * column + 1] = 7;
+                }
+             }
+          }
+          currCons->column = currCons->row = 0;
+          break;
 
-        case NORMAL:
-            currCons->colour = NORMAL;
-            break;
+       case CLREOL:
+          i = currCons->column;
+          while ( i < 80 )
+          {
+             ConsoleBuffer[160 * currCons->row + 2 * i] = ' ';
+             if ( currentBuffer == console )
+                VideoBuffer[160 * currCons->row + 2 * i] = ' ';
+             i++;
+          }
 
-        case REVERSE:
-            currCons->colour = REVERSE;
-            break;
+       case NORMAL:
+          currCons->colour = NORMAL;
+          break;
 
-        default:
-            break;
-        }
+       case REVERSE:
+          currCons->colour = REVERSE;
+          break;
+
+       default:
+          break;
+       }
     }
 }

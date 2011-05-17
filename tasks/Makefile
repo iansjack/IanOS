@@ -39,5 +39,5 @@ LS: ls.o inittask.o
 ls.o: ls.c
 
 clean:
-	rm -f TASK? *.o LS*
+	rm -f TASK? *.o LS* *~
 

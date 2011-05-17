@@ -78,20 +78,23 @@ void *VCreatePageDir(void)
 //====================================================
 long CreatePTE(void *pAddress, long lAddress)
 {
-    long *PTableL11 = (long *)PageTableL11;
-
-    PTableL11[lAddress >> 12] = (long)pAddress | 7;
-    char *c = (char *)lAddress;
-    asm ("push %rbx");
-    asm ("mov %cr3, %rbx");
-    asm ("mov %rbx, %cr3");
-    asm ("pop %rbx");
-    int count;
-    for (count = 0; count < PageSize; count++)
-    {
-        c[count] = 0;
-    }
-    return((long)pAddress | 7);
+   long *PTableL11 = (long *)PageTableL11;
+	
+	asm ("cli");
+   PTableL11[lAddress >> 12] = (long)pAddress | 7;
+   char *c = (char *)lAddress;
+   asm ("push %rbx");
+   asm ("mov %cr3, %rbx");
+   asm ("mov %rbx, %cr3");
+   asm ("pop %rbx");
+   int count;
+   for (count = 0; count < PageSize; count++)
+   {
+		c[count] = 0;
+   }
+	asm ("sti");
+	
+	return((long)pAddress | 7);
 }
 
 

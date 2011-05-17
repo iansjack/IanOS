@@ -27,13 +27,13 @@ static long nextpid = 2;
 //============================================
 struct Task *nextfreetss()
 {
-    struct Task *temp = (struct Task *)TaskStruct;
+   struct Task *temp = (struct Task *)TaskStruct;
 
-    while (temp->pid != 0)
-    {
-        temp++;
-    }
-    return(temp);
+   while (temp->pid != 0)
+   {
+      temp++;
+   }
+   return(temp);
 }
 
 
@@ -74,10 +74,10 @@ void NewTask(char *name, char *environment, struct MessagePort * parentPort)
    task->environment = environment;
 	task->parentPort = parentPort;
    task->waiting     	= 0;
-   task->cr3         	= VCreatePageDir();
+   task->cr3         	= (long)(VCreatePageDir());
    task->ds          	= udata64 + 3;
-   copyMem(StartTask, TempUserCode, (long)NewKernelTask - (long)StartTask);
-   copyMem(name, TempUserData, 100);
+   copyMem((unsigned char *)StartTask, (unsigned char *)TempUserCode, (long)NewKernelTask - (long)StartTask);
+   copyMem(name, (unsigned char *)TempUserData, 100);
    stack              	= (long *)(TempUStack + PageSize) - 5;
    task->rsp          	= (long)((long *)(UserStack + PageSize) - 5);
    task->r13 				= (long)name;
@@ -111,7 +111,7 @@ void LoadTheProgram(long start, char * name)
    FSMsg->byte        = OPENFILE;
    FSMsg->quad        = (long)name;
    FSMsg->quad2       = (long)fHandle;
-   SendReceiveMessage(FSPort, FSMsg);
+   SendReceiveMessage((struct MessagePort *)FSPort, FSMsg);
 
 	fHandle = (struct FCB *)FSMsg->quad;
 	if (fHandle)
@@ -144,7 +144,7 @@ void LoadTheProgram(long start, char * name)
    	FSMsg->nextMessage = 0;
    	FSMsg->byte        = CLOSEFILE;
    	FSMsg->quad        = (long)fHandle;
-   	SendReceiveMessage(FSPort, FSMsg);
+   	SendReceiveMessage((struct MessagePort *)FSPort, FSMsg);
 		DeallocMem(FSMsg);
 		asm("mov $0x300000, %rcx");
 	}

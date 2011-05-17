@@ -20,6 +20,19 @@ HDINT 		= 3
 	.global HdInt
 	.global SetSem
 	.global ClearSem
+	.global div0
+	.global i1
+	.global i2
+	.global i3
+	.global i4
+	.global i5
+	.global i6
+	.global i7
+	.global i8
+	.global i9
+	.global ia
+	.global ib
+	.global ic
 
 #===================
 # Keyboard interrupt
@@ -129,13 +142,20 @@ SpecificSwitchTasks:		# int 22
 	call SpecificTaskSwitch
 	iretq
 
-intr:	KWRITE_STRING $Unknown_message, $0, $0
+intr:	
+	KWRITE_DOUBLE %rax, $9, $60	
+	KWRITE_DOUBLE %rbx, $10, $60
+	KWRITE_DOUBLE %rcx, $11, $60
+	KWRITE_DOUBLE %rdx, $12,$60
+	KWRITE_STRING $Unknown_message, $1, $0
 	KWRITE_DOUBLE 0x20(%esp), $0, $60
 	KWRITE_DOUBLE 0x28(%esp), $1, $60
 	KWRITE_DOUBLE 0x30(%esp), $2, $60
 	KWRITE_DOUBLE 0x38(%esp), $3, $60
 	KWRITE_DOUBLE 0x40(%esp), $4, $60
 	KWRITE_DOUBLE 0x48(%esp), $5, $60
+	KWRITE_DOUBLE 0x50(%esp), $6, $60
+	KWRITE_DOUBLE 0x58(%esp), $7, $60
 	pop %rax
 	cli
 	hlt
@@ -146,30 +166,34 @@ div0:	KWRITE_STRING $div0message, $0, $0
 	KWRITE_DOUBLE 4(%esp), $1, $60
 	iretq
 i1:	movb $'1, 0xB8000
-	iretq
+	jmp intr
 i2:	movb $'2, 0xB8000
-	iretq
+	jmp intr
 i3:	movb $'3, 0xB8000
-	iretq
+	jmp intr
 i4:	movb $'4, 0xB8000
-	iretq
+	jmp intr
 i5:	movb $'5, 0xB8000
-	iretq
+	jmp intr
 i6:	movb $'6, 0xB8000
-	iretq
+	jmp intr
 i7:	movb $'7, 0xB8000
-	iretq
+	jmp intr
 i8:	movb $'8, 0xB8000
-	iretq
+	jmp intr
 i9:	movb $'9, 0xB8000
-	iretq
+	jmp intr
 ia:	movb $'a, 0xB8000
-	iretq
+	jmp intr
 ib:	movb $'b, 0xB8000
-	iretq
+	jmp intr
 ic:	movb $'c, 0xB8000
-	iretq
+	jmp intr
 gpf:
+	KWRITE_DOUBLE %rax, $9, $60	
+	KWRITE_DOUBLE %rbx, $10, $60
+	KWRITE_DOUBLE %rcx, $11, $60
+	KWRITE_DOUBLE %rdx, $12,$60
 	KWRITE_STRING $GPFmessage, $0, $0
 	KWRITE_DOUBLE 0x20(%esp), $0, $60
 	KWRITE_DOUBLE 0x28(%esp), $1, $60
@@ -177,18 +201,26 @@ gpf:
 	KWRITE_DOUBLE 0x38(%esp), $3, $60
 	KWRITE_DOUBLE 0x40(%esp), $4, $60
 	KWRITE_DOUBLE 0x48(%esp), $5, $60
+	KWRITE_DOUBLE 0x50(%esp), $6, $60
+	KWRITE_DOUBLE 0x58(%esp), $7, $60
 	pop %rax
 	cli
 	hlt
 	iretq
-pf:	
-	KWRITE_STRING $PFmessage, $0, $0
+pf:
+	KWRITE_DOUBLE %rax, $9, $60	
+	KWRITE_DOUBLE %rbx, $10, $60
+	KWRITE_DOUBLE %rcx, $11, $60
+	KWRITE_DOUBLE %rdx, $12,$60
+	KWRITE_STRING $PFmessage, $0, $0	
 	KWRITE_DOUBLE 0x20(%esp), $0, $60
 	KWRITE_DOUBLE 0x28(%esp), $1, $60
 	KWRITE_DOUBLE 0x30(%esp), $2, $60
 	KWRITE_DOUBLE 0x38(%esp), $3, $60
 	KWRITE_DOUBLE 0x40(%esp), $4, $60
 	KWRITE_DOUBLE 0x48(%esp), $5, $60
+	KWRITE_DOUBLE 0x50(%esp), $6, $60
+	KWRITE_DOUBLE 0x58(%esp), $7, $60
 	pop %rax
 	cli
 	hlt

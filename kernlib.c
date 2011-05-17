@@ -38,6 +38,13 @@ void copyMem(unsigned char source[], unsigned char dest[], long size)
 {
    int i;
 
+	if (dest < 0x10000)
+	{
+		KWriteString("OOps!!!", 20, 40);
+		asm("cli;"
+		    "hlt;");
+	}
+
    for (i = 0; i < size; i++)
    {
       dest[i] = source[i];

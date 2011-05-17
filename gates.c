@@ -8,19 +8,32 @@ extern SpecificSwitchTasks;
 extern TimerInt;
 extern KbInt;
 extern HdInt;
+extern div0;
+extern i1;
+extern i2;
+extern i3;
+extern i4;
+extern i5;
+extern i6;
+extern i7;
+extern i8;
+extern i9;
+extern ia;
+extern ib;
+extern ic;
 
 struct Gate
 {
    unsigned short offsetlo;       //   : 16;
    unsigned short segselect;      //   : 16;
-   unsigned       ist  : 3;
-   unsigned : 1;
-   unsigned : 1;
-   unsigned : 3;
-   unsigned       type : 4;
-   unsigned : 1;
-   unsigned       dpl  : 2;
-   unsigned       p    : 1;
+   unsigned 	ist  	: 3;
+   unsigned 			: 1;
+   unsigned 			: 1;
+   unsigned 			: 3;
+   unsigned		type 	: 4;
+   unsigned				: 1;
+   unsigned		dpl  	: 2;
+   unsigned		p    	: 1;
    unsigned short offsetmid;      //	: 16;
    unsigned int   offsethi;       //	: 32;
    unsigned int   reserved;       //	: 32;
@@ -83,7 +96,20 @@ void InitIDT(void)
    {
       CreateTrapGate(code64, (long)&intr, i);
    }
-   CreateTrapGate(code64, (long)&gpf, 13);
+	CreateTrapGate(code64, (long)&div0, 0);
+   CreateTrapGate(code64, (long)&i1, 1);
+	CreateTrapGate(code64, (long)&i2, 2);
+	CreateTrapGate(code64, (long)&i3, 3);
+	CreateTrapGate(code64, (long)&i4, 4);
+	CreateTrapGate(code64, (long)&i5, 5);
+	CreateTrapGate(code64, (long)&i6, 6);
+	CreateTrapGate(code64, (long)&i7, 7);
+	CreateTrapGate(code64, (long)&i8, 8);
+	CreateTrapGate(code64, (long)&i9, 9);
+	CreateTrapGate(code64, (long)&ia, 10);
+	CreateTrapGate(code64, (long)&ib, 11);
+	CreateTrapGate(code64, (long)&ic, 12);
+	CreateTrapGate(code64, (long)&gpf, 13);
    CreateTrapGate(code64, (long)&pf, 14);
    CreateTrapGate(code64, (long)&SwitchTasks, 20);
    CreateTrapGate(code64, (long)&SpecificSwitchTasks, 22);

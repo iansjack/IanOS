@@ -3,7 +3,7 @@
 	push %rbx
 	push %rcx
 	push %rdx
-	mov \number, %edx
+	mov \number, %rdx
 	mov $1, %al
 	mov $0, %ebx
 	mov \row, %bh
@@ -19,7 +19,7 @@
 	push %rax
 	push %rbx
 	push %rdx
-	mov \str, %edx
+	mov \str, %rdx
 	mov $0, %ebx
 	mov \row, %bh
 	mov \col, %bl
@@ -47,7 +47,7 @@
 	push %rcx
 	push %rdx
 	push %r9
-	mov \number, %edx
+	mov \number, %rdx
 	mov $0, %ebx
 	mov \row, %bh
 	mov \col, %bl
@@ -64,7 +64,7 @@
 	push %rbx
 	push %rdx
 	push %r9
-	mov \str, %edx
+	mov \str, %rdx
 	mov $0, %ebx
 	mov \row, %bh
 	mov \col, %bl

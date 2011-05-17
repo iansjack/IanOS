@@ -24,6 +24,7 @@ extern struct TaskList * allTasks;
 char *mVideoBuffer;
 struct Task *dispTask;
 short printTemplate;
+unsigned long * baseMemory = (unsigned long *)0x310000;
 
 void mscrollscreen()
 {
@@ -336,50 +337,6 @@ void ProcessDetails()
    mprint64(dispTask->r15);
 }
 
-void ProcessMemory()
-{
-	unsigned char * memory;
-	unsigned char * stack;
-	unsigned char * mem = 0x310000;
-	unsigned long * data = 0x310000;
-	unsigned long value;
-	int count;
-	
-	if (printTemplate)
-   {
-		mclrscr();
-      mprintString("Process Memory\r");
-		mprintString("==============\r");
- 	}
-	//memory = dispTask->cr3;
-   //msetcursor(3, 1);
-	//mprint64(memory);
-	//msetcursor(4, 1);
-   //mprint64((long)dispTask->firstfreemem);
-	
-	int i, j;
-	for (i = 0; i < 8; i++)
-	{
-		msetcursor(3 + i, 1);
-		mprint64(data);
-		mprintchar(':');
-		mprintchar(' ');
-		for (count = 0; count < 2; count++)
-		{
-			printLongData(data + count);
-			mprintchar(' ');
-		}
-		for (j = 0; j < 2; j++)
-		{
-			mprintchar(' ');
-			for (count = 0; count < 8; count++)
-				printCharData(mem + count);
-			mem += 8;
-		}
-		data += 2;
-	}
-}
-
 void printLongData(long data)
 {
 	long value;
@@ -415,6 +372,39 @@ void printCharData(long data)
 	     );
 	if (value < ' ') value = '.';
 	mprintchar(value);
+}
+
+void ProcessMemory()
+{
+   unsigned long * data = baseMemory;
+	int i, j, k;
+	
+	if (printTemplate)
+   {
+		mclrscr();
+      mprintString("Process Memory\r");
+		mprintString("==============\r");
+ 	}
+	
+	for (i = 0; i < 8; i++)
+	{
+		msetcursor(3 + i, 1);
+		mprint64((unsigned long)data);
+		mprintchar(':');
+		mprintchar(' ');
+		for (j = 0; j < 2; j++)
+		{
+			printLongData((long)(data + j));
+			mprintchar(' ');
+		}
+		for (j = 0; j < 2; j++)
+		{
+			mprintchar(' ');
+			for (k = 0; k < 8; k++)
+				printCharData((long)((unsigned char *)data + k));
+			data++;
+		}
+	}
 }
 
 void monitorTaskCode()
@@ -459,6 +449,9 @@ void monitorTaskCode()
          case PROCESS:
             taskno++;
             break;
+			case MEMORY:
+				baseMemory += 16;
+				break;
          default:
             break;
          }
@@ -469,6 +462,10 @@ void monitorTaskCode()
          case PROCESS:
             if (taskno) taskno--;
             break;
+			case MEMORY:
+				if (baseMemory > UserData)
+					baseMemory -= 16;
+				break;
          default:
             break;
          }

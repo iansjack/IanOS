@@ -174,7 +174,7 @@ void kbTaskCode()
                 tempMsg->nextMessage = KbdMsg;
             }
             KbdMsg = (struct Message *)AllocKMem(sizeof(struct Message));
-//            ProcessMsgQueue(currentCons);
+            ProcessMsgQueue(currentCons);
             break;
 
         case KEYPRESS:
@@ -218,7 +218,7 @@ void kbTaskCode()
                     switchConsole(3);
                     break;
 
-                case F5:
+                /*case F5:
                     switchConsole(4);
                     break;
 
@@ -232,7 +232,7 @@ void kbTaskCode()
 
                 case F8:
                     switchConsole(7);
-                    break;
+                    break;*/
 
                 default:
                     if (modifier & SHIFTED)

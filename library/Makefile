@@ -14,7 +14,7 @@ libsyscalls.a: $(SYSCALLSOBJS)
 	ar -r libsyscalls.a $(SYSCALLSOBJS)
 
 clean:
-	rm -f *.a *.o
+	rm -f *.a *.o *~
 
 writeconsolestring.o: writeconsolestring.c ../console.h ../kstructs.h ../memory.h syscalls.h
 
