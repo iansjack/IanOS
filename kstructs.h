@@ -35,6 +35,8 @@ struct Task
     long          timer;
     char * 			environment;
     struct MessagePort * parentPort;
+    long          currentDir;
+    long          console;
 };
 
 struct Message

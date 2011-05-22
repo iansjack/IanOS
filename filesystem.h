@@ -10,4 +10,13 @@
 #define GETPID       7
 #define GETDIRENTRY  8
 
+struct DirectoryBuffer
+{
+   long Directory;   // The cluster number of the directory
+   void * Buffer;    // A buffer containing the directory
+};
+
+unsigned char   *DiskBuffer;
+unsigned short  *FAT;
+
 #endif

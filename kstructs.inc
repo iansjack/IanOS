@@ -29,7 +29,10 @@ TS.nextpage			= 179		# dq 0
 TS.pid				= 187		# dq 0
 TS.timer				= 195		# dq 0
 TS.environment		= 203		# dq 0
-TS.size				= 211		# dq 0
+TS.parentPort		= 211		# dq 0
+TS.currentDir 		= 219		# dq 0
+TS.console			= 227
+TS.size				= 235
 
 Msg.nextMessage	= 0
 Msg.byte				= 8

@@ -40,68 +40,68 @@ struct Console consoles[8];
 //==============================
 
 char KbdTableU[] =
-{
-    0,               0 /*esc*/, '1',           '2',              '3',            '4',          '5',       '6',            '7', '8', '9', '0',  '-', '=',          8 /*backspace*/,
-    0 /*tab*/,    'q',          'w',           'e',              'r',            't',          'y',       'u',            'i', 'o', 'p', '[',  ']',           13,
-    0 /*ctrl*/,   'a',          's',           'd',              'f',            'g',          'h',       'j',            'k', 'l', ';', '\'', '`', 0 /*lshift*/, '#',
-    'z',          'x',          'c',           'v',              'b',            'n',          'm',       ',',            '.', '/',
-    0 /*rshift*/, 0 /*sysreq*/,     0 /*alt*/, ' ',              0 /*capslock*/,     0 /*F1*/,  0 /*F2*/,       0 /*F3*/,
-    0 /*F4*/,         0 /*F5*/,      0 /*F6*/,         0 /*F7*/,       0 /*F8*/,
-    0 /*F9*/,        0 /*F10*/, 0 /*numlock*/, 0 /*scrolllock*/,     0 /*home*/, 0 /*uarrow*/, 0 /*pup*/, 0 /*numminus*/,
-    0 /*larrow*/,   0 /*num5*/,  0 /*rarrow*/,    0 /*numplus*/,      0 /*end*/,
-    0 /*darrow*/,  0 /*pdown*/,     0 /*ins*/,        0 /*del*/,              0,            0, '\\',           0 /*F11*/, 0 /*F12*/
-};
+      {
+            0,               0 /*esc*/, '1',           '2',              '3',            '4',          '5',       '6',            '7', '8', '9', '0',  '-', '=',          8 /*backspace*/,
+            0 /*tab*/,    'q',          'w',           'e',              'r',            't',          'y',       'u',            'i', 'o', 'p', '[',  ']',           13,
+            0 /*ctrl*/,   'a',          's',           'd',              'f',            'g',          'h',       'j',            'k', 'l', ';', '\'', '`', 0 /*lshift*/, '#',
+            'z',          'x',          'c',           'v',              'b',            'n',          'm',       ',',            '.', '/',
+            0 /*rshift*/, 0 /*sysreq*/,     0 /*alt*/, ' ',              0 /*capslock*/,     0 /*F1*/,  0 /*F2*/,       0 /*F3*/,
+            0 /*F4*/,         0 /*F5*/,      0 /*F6*/,         0 /*F7*/,       0 /*F8*/,
+            0 /*F9*/,        0 /*F10*/, 0 /*numlock*/, 0 /*scrolllock*/,     0 /*home*/, 0 /*uarrow*/, 0 /*pup*/, 0 /*numminus*/,
+            0 /*larrow*/,   0 /*num5*/,  0 /*rarrow*/,    0 /*numplus*/,      0 /*end*/,
+            0 /*darrow*/,  0 /*pdown*/,     0 /*ins*/,        0 /*del*/,              0,            0, '\\',           0 /*F11*/, 0 /*F12*/
+      };
 
 //==============================
 // The shifted keyboard table.
 //==============================
 
 char KbdTableS[] =
-{
-    0,               0 /*esc*/, '!',           '"',              '#',            '$',          '%',       '^',              '&', '*', '(', ')', '_', '+',          8 /*backspace*/,
-    0 /*tab*/,    'Q',          'W',           'E',              'R',            'T',          'Y',       'U',              'I', 'O', 'P', '{', '}',           13,
-    0 /*ctrl*/,   'A',          'S',           'D',              'F',            'G',          'H',       'J',              'K', 'L', ':', '@', '`', 0 /*lshift*/, '#',
-    'Z',          'X',          'C',           'V',              'B',            'N',          'M',       '<',              '>', '?',
-    0 /*rshift*/, 0 /*sysreq*/,     0 /*alt*/, ' ',              0 /*capslock*/,     0 /*F1*/,  0 /*F2*/,         0 /*F3*/,
-    0 /*F4*/,         0 /*F5*/,      0 /*F6*/,         0 /*F7*/,       0 /*F8*/,
-    0 /*F9*/,        0 /*F10*/, 0 /*numlock*/, 0 /*scrolllock*/,     0 /*home*/, 0 /*uarrow*/, 0 /*pup*/, '-' /*numminus*/,
-    0 /*larrow*/, '5' /*num5*/,  0 /*rarrow*/, '+' /*numplus*/,       0 /*end*/,
-    0 /*darrow*/,  0 /*pdown*/,     0 /*ins*/,        0 /*del*/,              0,            0, '|',              0 /*F11*/, 0 /*F12*/
-};
+      {
+            0,               0 /*esc*/, '!',           '"',              '#',            '$',          '%',       '^',              '&', '*', '(', ')', '_', '+',          8 /*backspace*/,
+            0 /*tab*/,    'Q',          'W',           'E',              'R',            'T',          'Y',       'U',              'I', 'O', 'P', '{', '}',           13,
+            0 /*ctrl*/,   'A',          'S',           'D',              'F',            'G',          'H',       'J',              'K', 'L', ':', '@', '`', 0 /*lshift*/, '#',
+            'Z',          'X',          'C',           'V',              'B',            'N',          'M',       '<',              '>', '?',
+            0 /*rshift*/, 0 /*sysreq*/,     0 /*alt*/, ' ',              0 /*capslock*/,     0 /*F1*/,  0 /*F2*/,         0 /*F3*/,
+            0 /*F4*/,         0 /*F5*/,      0 /*F6*/,         0 /*F7*/,       0 /*F8*/,
+            0 /*F9*/,        0 /*F10*/, 0 /*numlock*/, 0 /*scrolllock*/,     0 /*home*/, 0 /*uarrow*/, 0 /*pup*/, '-' /*numminus*/,
+            0 /*larrow*/, '5' /*num5*/,  0 /*rarrow*/, '+' /*numplus*/,       0 /*end*/,
+            0 /*darrow*/,  0 /*pdown*/,     0 /*ins*/,        0 /*del*/,              0,            0, '|',              0 /*F11*/, 0 /*F12*/
+      };
 
 //==========================================================
 // Send a KEYPRESSED message to kbTaskCode
 //==========================================================
 void keyPressed()
 {
-    struct Message *kbdMsg = (struct Message *)AllocKMem(sizeof(struct Message));
+   struct Message *kbdMsg = (struct Message *)AllocKMem(sizeof(struct Message));
 
-    kbdMsg->nextMessage = 0;
-    kbdMsg->quad        = currentBuffer;
-    kbdMsg->byte        = KEYPRESS;
-    SendMessage((struct MessagePort *)KbdPort, kbdMsg);
-    DeallocMem(kbdMsg);
+   kbdMsg->nextMessage = 0;
+   kbdMsg->quad        = currentBuffer;
+   kbdMsg->byte        = KEYPRESS;
+   SendMessage((struct MessagePort *)KbdPort, kbdMsg);
+   DeallocMem(kbdMsg);
 }
 
 void ProcessMsgQueue(struct Console * console)
 {
-    while (console->kbBufCount && console->MsgQueue)
-    {
-        unsigned char temp = console->kbBuffer[console->kbBufStart];
-        console->kbBufCount--;
-        console->kbBufStart++;
-        struct Message * tempMsg = console->MsgQueue;
-        console->MsgQueue = tempMsg->nextMessage;
-        if (tempMsg->byte == GETCHAR)
-        {
-            struct MessagePort * tempPort = (struct MessagePort *)tempMsg->tempPort;
-            tempMsg->nextMessage = 0;
-            tempMsg->quad        = 0L;
-            tempMsg->byte        = temp;
-            SendMessage(tempPort, tempMsg);
-        }
-        DeallocMem(tempMsg);
-    }
+   while (console->kbBufCount && console->MsgQueue)
+   {
+      unsigned char temp = console->kbBuffer[console->kbBufStart];
+      console->kbBufCount--;
+      console->kbBufStart++;
+      struct Message * tempMsg = console->MsgQueue;
+      console->MsgQueue = tempMsg->nextMessage;
+      if (tempMsg->byte == GETCHAR)
+      {
+         struct MessagePort * tempPort = (struct MessagePort *)tempMsg->tempPort;
+         tempMsg->nextMessage = 0;
+         tempMsg->quad        = 0L;
+         tempMsg->byte        = temp;
+         SendMessage(tempPort, tempMsg);
+      }
+      DeallocMem(tempMsg);
+   }
 }
 
 //=====================================================
@@ -109,116 +109,116 @@ void ProcessMsgQueue(struct Console * console)
 //=====================================================
 void kbTaskCode()
 {
-    unsigned char      temp;
-    struct MessagePort *tempPort;
-    struct Message     *KbdMsg;
-    struct Console     *currentCons;
-    struct Message     *tempMsg;
+   unsigned char      temp;
+   struct MessagePort *tempPort;
+   struct Message     *KbdMsg;
+   struct Console     *currentCons;
+   struct Message     *tempMsg;
 
 
-    int i;
-    for (i = 0; i < 4; i++)
-    {
-        consoles[i].kbBuffer = AllocKMem(128);
-        consoles[i].kbBufStart = consoles[i].kbBufCurrent = consoles[i].kbBufCount = 0;
-        consoles[i].MsgQueue = 0;
-    }
+   int i;
+   for (i = 0; i < 4; i++)
+   {
+      consoles[i].kbBuffer = AllocKMem(128);
+      consoles[i].kbBufStart = consoles[i].kbBufCurrent = consoles[i].kbBufCount = 0;
+      consoles[i].MsgQueue = 0;
+   }
 
-    kbBufStart = 0;
-    kbBufCurrent = 0;
-    kbBufCount = 0;
-    currentBuffer = 0;
+   kbBufStart = 0;
+   kbBufCurrent = 0;
+   kbBufCount = 0;
+   currentBuffer = 0;
 
-    modifier = 0;
+   modifier = 0;
 
-    asm ("mov $0b11111000, %al");        // enable keyboard + timer interrupt"
-    asm ("out %al, $0x21");
+   asm ("mov $0b11111000, %al");        // enable keyboard + timer interrupt"
+   asm ("out %al, $0x21");
 
-    ((struct MessagePort *)KbdPort)->waitingProc = (struct Task *)-1L;
-    ((struct MessagePort *)KbdPort)->msgQueue    = 0;
-    while (1)
-    {
-        KbdMsg = (struct Message *)AllocKMem(sizeof(struct Message));
-        ReceiveMessage((struct MessagePort *)KbdPort, KbdMsg);
-        switch (KbdMsg->byte)
-        {
-        case GETKEY:
-            currentCons = &consoles[KbdMsg->quad];
-            tempPort            = (struct MessagePort *)KbdMsg->tempPort;
-            KbdMsg->nextMessage = 0;
-            KbdMsg->quad        = 0L;
-            KbdMsg->byte        = -1;
-            if (currentCons->kbBufCount)
+   ((struct MessagePort *)KbdPort)->waitingProc = (struct Task *)-1L;
+   ((struct MessagePort *)KbdPort)->msgQueue    = 0;
+   while (1)
+   {
+      KbdMsg = (struct Message *)AllocKMem(sizeof(struct Message));
+      ReceiveMessage((struct MessagePort *)KbdPort, KbdMsg);
+      switch (KbdMsg->byte)
+      {
+      case GETKEY:
+         currentCons = &consoles[KbdMsg->quad];
+         tempPort            = (struct MessagePort *)KbdMsg->tempPort;
+         KbdMsg->nextMessage = 0;
+         KbdMsg->quad        = 0L;
+         KbdMsg->byte        = -1;
+         if (currentCons->kbBufCount)
+         {
+            KbdMsg->byte = currentCons->kbBuffer[currentCons->kbBufStart];
+
+            (currentCons->kbBufCount)--;
+            (currentCons->kbBufStart)++;
+            if ((currentCons->kbBufStart) == 128)
             {
-                KbdMsg->byte = currentCons->kbBuffer[currentCons->kbBufStart];
-
-                (currentCons->kbBufCount)--;
-                (currentCons->kbBufStart)++;
-                if ((currentCons->kbBufStart) == 128)
-                {
-                    (currentCons->kbBufStart) = 0;
-                }
+               (currentCons->kbBufStart) = 0;
             }
-            SendMessage(tempPort, KbdMsg);
-            break;
+         }
+         SendMessage(tempPort, KbdMsg);
+         break;
 
-        case GETCHAR:
-            currentCons = &consoles[KbdMsg->quad];
-            tempMsg = currentCons->MsgQueue;
-            if (!tempMsg)
-                currentCons->MsgQueue = KbdMsg;
-            else
+      case GETCHAR:
+         currentCons = &consoles[KbdMsg->quad];
+         tempMsg = currentCons->MsgQueue;
+         if (!tempMsg)
+            currentCons->MsgQueue = KbdMsg;
+         else
+         {
+            while (tempMsg->nextMessage)
+               tempMsg = tempMsg->nextMessage;
+            tempMsg->nextMessage = KbdMsg;
+         }
+         KbdMsg = (struct Message *)AllocKMem(sizeof(struct Message));
+         ProcessMsgQueue(currentCons);
+         break;
+
+      case KEYPRESS:
+         currentCons = &(consoles[currentBuffer]);
+         temp = kbBuffer[kbBufStart];
+         if (temp < 0x80)
+         {
+            switch (temp)
             {
-                while (tempMsg->nextMessage)
-                    tempMsg = tempMsg->nextMessage;
-                tempMsg->nextMessage = KbdMsg;
-            }
-            KbdMsg = (struct Message *)AllocKMem(sizeof(struct Message));
-            ProcessMsgQueue(currentCons);
-            break;
+            case LSHIFT:
+            case RSHIFT:
+               modifier += SHIFTED;
+               temp      = 0x80;
+               break;
 
-        case KEYPRESS:
-            currentCons = &(consoles[currentBuffer]);
-            temp = kbBuffer[kbBufStart];
-            if (temp < 0x80)
-            {
-                switch (temp)
-                {
-                case LSHIFT:
-                case RSHIFT:
-                    modifier += SHIFTED;
-                    temp      = 0x80;
-                    break;
+            case CAPSLOCK:
+               if (modifier & LOCKED)
+               {
+                  modifier -= LOCKED;
+               }
+               else
+               {
+                  modifier += LOCKED;
+               }
+               temp = 0x80;
+               break;
 
-                case CAPSLOCK:
-                    if (modifier & LOCKED)
-                    {
-                        modifier -= LOCKED;
-                    }
-                    else
-                    {
-                        modifier += LOCKED;
-                    }
-                    temp = 0x80;
-                    break;
+            case F1:
+               switchConsole(0);
+               break;
 
-                case F1:
-                    switchConsole(0);
-                    break;
+            case F2:
+               switchConsole(1);
+               break;
 
-                case F2:
-                    switchConsole(1);
-                    break;
+            case F3:
+               switchConsole(2);
+               break;
 
-                case F3:
-                    switchConsole(2);
-                    break;
+            case F4:
+               switchConsole(3);
+               break;
 
-                case F4:
-                    switchConsole(3);
-                    break;
-
-                /*case F5:
+               /*case F5:
                     switchConsole(4);
                     break;
 
@@ -234,63 +234,63 @@ void kbTaskCode()
                     switchConsole(7);
                     break;*/
 
-                default:
-                    if (modifier & SHIFTED)
-                    {
-                        temp = KbdTableS[temp];
-                    }
-                    else
-                    {
-                        temp = KbdTableU[temp];
-                    }
-                    currentCons->kbBuffer[currentCons->kbBufCurrent] = temp;
-                    currentCons->kbBufCount++;
-                    currentCons->kbBufCurrent++;
-                }
+            default:
+               if (modifier & SHIFTED)
+               {
+                  temp = KbdTableS[temp];
+               }
+               else
+               {
+                  temp = KbdTableU[temp];
+               }
+               currentCons->kbBuffer[currentCons->kbBufCurrent] = temp;
+               currentCons->kbBufCount++;
+               currentCons->kbBufCurrent++;
+            }
+         }
+         else
+         {
+            switch (temp & 0x7F)
+            {
+            case LSHIFT:
+            case RSHIFT:
+               modifier -= SHIFTED;
+               break;
+
+            default:
+               break;
+            }
+         }
+         (kbBufCount)--;
+         (kbBufStart)++;
+         if ((kbBufStart) == 128)
+         {
+            (kbBufStart) = 0;
+         }
+
+         if (modifier & LOCKED)
+         {
+            if (modifier & SHIFTED)
+            {
+               if ((temp >= 'A') && (temp <= 'Z'))
+               {
+                  temp += 0x20;
+               }
             }
             else
             {
-                switch (temp & 0x7F)
-                {
-                case LSHIFT:
-                case RSHIFT:
-                    modifier -= SHIFTED;
-                    break;
-
-                default:
-                    break;
-                }
+               if ((temp >= 'a') && (temp <= 'z'))
+               {
+                  temp -= 0x20;
+               }
             }
-            (kbBufCount)--;
-            (kbBufStart)++;
-            if ((kbBufStart) == 128)
-            {
-                (kbBufStart) = 0;
-            }
+         }
+         ProcessMsgQueue(currentCons);
+         break;
 
-            if (modifier & LOCKED)
-            {
-                if (modifier & SHIFTED)
-                {
-                    if ((temp >= 'A') && (temp <= 'Z'))
-                    {
-                        temp += 0x20;
-                    }
-                }
-                else
-                {
-                    if ((temp >= 'a') && (temp <= 'z'))
-                    {
-                        temp -= 0x20;
-                    }
-                }
-            }
-            ProcessMsgQueue(currentCons);
-            break;
-
-        default:
-            break;
-        }
-        DeallocMem(KbdMsg);
-    }
+      default:
+         break;
+      }
+      DeallocMem(KbdMsg);
+   }
 }

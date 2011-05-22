@@ -59,6 +59,7 @@ CreatePT164:
 	mov $0x1F0, %ecx
 	mov $0, %ebx
 	mov $1, %eax
+	# mov $7, %eax
 	mov $PageMap, %edx
 again:	movl $0, (%ebx, %esi)
 	movl $0, 4(%ebx, %esi)
@@ -80,7 +81,7 @@ again:	movl $0, (%ebx, %esi)
 	mov $0x10, %ecx
 	mov $0x1F0007, %eax
 	mov $0xf80, %ebx
-again2:	
+again2:
 	mov %eax, (%ebx, %esi)
 .notused2:
 	add $8, %ebx

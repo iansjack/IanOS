@@ -25,6 +25,7 @@ char *mVideoBuffer;
 struct Task *dispTask;
 short printTemplate;
 unsigned long * baseMemory = (unsigned long *)0x310000;
+long MonitorConsole = 3;
 
 void mscrollscreen()
 {
@@ -52,7 +53,7 @@ void mprintString(char *s)
    msg->nextMessage = 0;
    msg->byte        = WRITESTR;
    msg->quad        = (long)str;
-   msg->quad2       = 1;
+   msg->quad2       = MonitorConsole;
    SendMessage((struct MessagePort *)ConsolePort, msg);
    DeallocMem(S);
    DeallocMem(msg);
@@ -66,7 +67,7 @@ void mclrscr()
 	msg->nextMessage = 0;
    msg->byte        = CLRSCR;
    msg->quad        = 0;
-   msg->quad2       = 1;
+   msg->quad2       = MonitorConsole;
    SendMessage((struct MessagePort *)ConsolePort, msg);
    DeallocMem(msg);
 }
@@ -78,7 +79,7 @@ void mclreol()
    msg->nextMessage = 0;
    msg->byte        = CLREOL;
    msg->quad        = 0;
-   msg->quad2       = 1;
+   msg->quad2       = MonitorConsole;
    SendMessage((struct MessagePort *)ConsolePort, msg);
    DeallocMem(msg);
 }
@@ -90,7 +91,7 @@ void msetcursor(long row, long column)
    msg->nextMessage = 0;
    msg->byte        = SETCURSOR;
    msg->quad        = row;
-   msg->quad2       = 1;
+   msg->quad2       = MonitorConsole;
    msg->quad3       = column;
    SendMessage((struct MessagePort *)ConsolePort, msg);
    DeallocMem(msg);
@@ -103,7 +104,7 @@ void mprintchar(char c)
    msg->nextMessage = 0;
    msg->byte        = WRITECHAR;
    msg->quad        = c;
-   msg->quad2       = 1;
+   msg->quad2       = MonitorConsole;
    SendMessage((struct MessagePort *)ConsolePort, msg);
    DeallocMem(msg);
 }
@@ -130,7 +131,7 @@ void mSetNormal()
 	msg->nextMessage = 0;
    msg->byte        = NORMAL;
    msg->quad        = 0;
-   msg->quad2       = 1;
+   msg->quad2       = MonitorConsole;
    SendMessage((struct MessagePort *)ConsolePort, msg);
    DeallocMem(msg);
 }
@@ -142,7 +143,7 @@ void mSetReverse()
    msg->nextMessage = 0;
    msg->byte        = REVERSE;
    msg->quad        = 0;
-   msg->quad2       = 1;
+   msg->quad2       = MonitorConsole;
    SendMessage((struct MessagePort *)ConsolePort, msg);
    DeallocMem(msg);
 }
@@ -154,7 +155,7 @@ unsigned char mgetkey()
    kbdMsg = (struct Message *)AllocKMem(sizeof(struct Message));
    kbdMsg->nextMessage = 0;
    kbdMsg->byte        = 3;
-   kbdMsg->quad        = 1;
+   kbdMsg->quad        = MonitorConsole;
    SendReceiveMessage((struct MessagePort *)KbdPort, kbdMsg);
    char c = kbdMsg->byte;
    DeallocMem(kbdMsg);
@@ -340,7 +341,7 @@ void ProcessDetails()
 void printLongData(long data)
 {
 	long value;
-	
+
 	asm ("mov %%cr3,%%rdi;"
 	     "mov %1,%%rax;"
 	     "mov %%rax,%%cr3;"
@@ -378,14 +379,14 @@ void ProcessMemory()
 {
    unsigned long * data = baseMemory;
 	int i, j, k;
-	
+
 	if (printTemplate)
    {
 		mclrscr();
       mprintString("Process Memory\r");
 		mprintString("==============\r");
  	}
-	
+
 	for (i = 0; i < 8; i++)
 	{
 		msetcursor(3 + i, 1);
@@ -463,7 +464,7 @@ void monitorTaskCode()
             if (taskno) taskno--;
             break;
 			case MEMORY:
-				if (baseMemory > UserData)
+				if (baseMemory > (unsigned long *)UserData)
 					baseMemory -= 16;
 				break;
          default:

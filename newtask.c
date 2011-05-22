@@ -2,6 +2,7 @@
 #include "kernel.h"
 #include "memory.h"
 #include "filesystem.h"
+#include "fat.h"
 
 void RemoveFromQ(struct Task *task, struct Task **QHead, struct Task **QTail);
 void AddToQ(struct Task *task, struct Task **QHead, struct Task **QTail);
@@ -30,9 +31,9 @@ struct Task *nextfreetss()
    struct Task *temp = (struct Task *)TaskStruct;
 
    while (temp->pid != 0)
-   {
-      temp++;
-   }
+      {
+         temp++;
+      }
    return(temp);
 }
 
@@ -43,36 +44,37 @@ struct Task *nextfreetss()
 //===============================
 void LinkTask(struct Task *task)
 {
-    struct TaskList *tl = allTasks;
+   struct TaskList *tl = allTasks;
 
-    task->nexttask   = runnableTasks[0];
-    runnableTasks[0] = task;
-    task->pid        = nextpid++;
-    if (tl->task)
-    {
-        while (tl->next)
-        {
-            tl = tl->next;
-        }
-        debug();
-    }
-    tl->next = AllocKMem(sizeof(struct TaskList));
-    tl->next->next = 0;
-    tl->next->task = task;
+   task->nexttask   = runnableTasks[0];
+   runnableTasks[0] = task;
+   task->pid        = nextpid++;
+   if (tl->task)
+      {
+         while (tl->next)
+            {
+               tl = tl->next;
+            }
+         //        debug();
+      }
+   tl->next = AllocKMem(sizeof(struct TaskList));
+   tl->next->next = 0;
+   tl->next->task = task;
 }
-
 
 //========================
 // Create a new User task
 //========================
-void NewTask(char *name, char *environment, struct MessagePort * parentPort)
+void NewTask(char *name, char *environment, struct MessagePort * parentPort, long console)
 {
    long           *stack;
    struct Task    *task = nextfreetss();
    int            result;
 
-   task->environment = environment;
-	task->parentPort = parentPort;
+   task->environment    = environment;
+   task->parentPort     = parentPort;
+   task->currentDir     = currentTask->currentDir;
+   task->console        = console;
    task->waiting     	= 0;
    task->cr3         	= (long)(VCreatePageDir());
    task->ds          	= udata64 + 3;
@@ -95,12 +97,12 @@ void NewTask(char *name, char *environment, struct MessagePort * parentPort)
 
 void LoadTheProgram(long start, char * name)
 {
-	struct FCB * 	fHandle;
-	long           codelen, datalen;
-	char           header[3];
+   struct FCB * 	fHandle;
+   long           codelen, datalen;
+   char           header[3];
    long           *data;
-	long				currentPage;
-	long				size;
+   long				currentPage;
+   long				size;
 
    struct Message *FSMsg;
 
@@ -113,46 +115,46 @@ void LoadTheProgram(long start, char * name)
    FSMsg->quad2       = (long)fHandle;
    SendReceiveMessage((struct MessagePort *)FSPort, FSMsg);
 
-	fHandle = (struct FCB *)FSMsg->quad;
-	if (fHandle)
-	{
-		ReadFromFile(fHandle, header, 4);
-    	ReadFromFile(fHandle, (char *)&codelen, 8);
-    	ReadFromFile(fHandle, (char *)&datalen, 8);
-		currentPage = UserCode;
-		size = codelen;
-		while (codelen > PageSize)
-		{
-			CreatePTE(AllocPage64(), ++currentPage);
-			size -= PageSize;
-		}
-    	ReadFromFile(fHandle, (char *)UserCode, codelen);
-		currentPage = UserData;
-		size = datalen;
-		while (datalen > PageSize)
-		{
-			CreatePTE(AllocPage64(), ++currentPage);
-			size -= PageSize;
-		}
-   	ReadFromFile(fHandle, (char *)UserData, datalen);
-    	data               = (long *)(UserData + datalen);
-    	data[0]            = 0;
-    	data[1]            = PageSize - datalen - 0x10;
-		currentTask->firstfreemem = UserData + datalen;
+   fHandle = (struct FCB *)FSMsg->quad;
+   if (fHandle)
+      {
+         ReadFromFile(fHandle, header, 4);
+         ReadFromFile(fHandle, (char *)&codelen, 8);
+         ReadFromFile(fHandle, (char *)&datalen, 8);
+         currentPage = UserCode;
+         size = codelen;
+         while (codelen > PageSize)
+            {
+               CreatePTE(AllocPage64(), ++currentPage);
+               size -= PageSize;
+            }
+         ReadFromFile(fHandle, (char *)UserCode, codelen);
+         currentPage = UserData;
+         size = datalen;
+         while (datalen > PageSize)
+            {
+               CreatePTE(AllocPage64(), ++currentPage);
+               size -= PageSize;
+            }
+         ReadFromFile(fHandle, (char *)UserData, datalen);
+         data               = (long *)(UserData + datalen);
+         data[0]            = 0;
+         data[1]            = PageSize - datalen - 0x10;
+         currentTask->firstfreemem = UserData + datalen;
 
-		//Close file
-   	FSMsg->nextMessage = 0;
-   	FSMsg->byte        = CLOSEFILE;
-   	FSMsg->quad        = (long)fHandle;
-   	SendReceiveMessage((struct MessagePort *)FSPort, FSMsg);
-		DeallocMem(FSMsg);
-		asm("mov $0x300000, %rcx");
-	}
-	else
-	{
-		DeallocMem(FSMsg);
-		asm("mov $0x30000D, %rcx");
-	}
+         //Close file
+         FSMsg->nextMessage = 0;
+         FSMsg->byte        = CLOSEFILE;
+         FSMsg->quad        = (long)fHandle;
+         SendReceiveMessage((struct MessagePort *)FSPort, FSMsg);
+         DeallocMem(FSMsg);
+         asm("mov $0x300000, %rcx");
+      }
+   else
+      {
+         DeallocMem(FSMsg);
+         asm("mov $0x30000D, %rcx");
+      }
 }
 
 //==================================
@@ -160,11 +162,11 @@ void LoadTheProgram(long start, char * name)
 //==================================
 void StartTask()
 {
-	asm("mov $18, %r9");
-	asm("syscall");
-	asm("mov $13, %r9");
-	asm("syscall");
-
+   asm("mov $18, %r9;"     // LOADPROGRAM
+         "syscall;"
+         "mov $13, %r9;"   // KILLTASK
+         "syscall;"
+         );
 }
 
 //==========================
@@ -172,30 +174,33 @@ void StartTask()
 //==========================
 struct Task *NewKernelTask(void *TaskCode)
 {
-    long        *stack;
-    struct Task *task = nextfreetss();
-    long        *data;
+   long        *stack;
+   struct Task *task = nextfreetss();
+   long        *data;
 
-    task->waiting = 0;
-    task->cr3     = (long)VCreatePageDir();
-    task->ds      = data64;
-    stack         = (long *)(TempUStack + PageSize) - 5;
-    task->rsp     = (long)((long *)(UserStack + PageSize) - 5);
-    task->r15     = (long)task;
-    stack[0]      = (long)TaskCode;
-    stack[1]      = code64;
-    stack[2]      = 0x2202;
-    stack[3]      = (long)UserStack + PageSize;
-    stack[4]      = data64;
-    asm ("cli");
-    LinkTask(task);
-    data               = (long *)TempUserData;
-    data[0]            = 0;
-    data[1]            = 0xFFE;
-    task->firstfreemem = UserData;
-    task->environment = (void *) 0;
-    task->parentPort = (void *) 0;
-    asm ("sti");
+   task->waiting     = 0;
+   task->cr3         = (long)VCreatePageDir();
+   task->ds          = data64;
+   stack             = (long *)(TempUStack + PageSize) - 5;
+   task->rsp         = (long)((long *)(UserStack + PageSize) - 5);
+   task->r15         = (long)task;
+   stack[0]          = (long)TaskCode;
+   stack[1]          = code64;
+   stack[2]          = 0x2202;
+   stack[3]          = (long)UserStack + PageSize;
+   stack[4]          = data64;
+   asm ("cli");
+   LinkTask(task);
+   data                 = (long *)TempUserData;
+   data[0]              = 0;
+   data[1]              = 0xFFE;
+   task->firstfreemem   = UserData;
+   task->environment    = (void *) 0;
+   task->parentPort     = (void *) 0;
+   task->currentDir     = currentTask->currentDir;
+   task->console        = 0;
+   asm ("sti");
+   return (task);
 }
 
 //=============================
@@ -203,10 +208,10 @@ struct Task *NewKernelTask(void *TaskCode)
 //=============================
 void NewLowPriTask(void *TaskCode)
 {
-    lowPriTask = NewKernelTask(TaskCode);
-    struct Task *temp = runnableTasks[0];
-    RemoveFromQ(lowPriTask, &runnableTasks[0], &runnableTasks[1]);
-//    AddToQ(lowPriTask, &allTasks[0], &allTasks[1]);
+   lowPriTask = NewKernelTask(TaskCode);
+   struct Task *temp = runnableTasks[0];
+   RemoveFromQ(lowPriTask, &runnableTasks[0], &runnableTasks[1]);
+   //    AddToQ(lowPriTask, &allTasks[0], &allTasks[1]);
 }
 
 
@@ -215,91 +220,91 @@ void NewLowPriTask(void *TaskCode)
 //=======================
 void KillTask(void)
 {
-    struct Task *task = currentTask;
-    struct Task *temp = runnableTasks[0];
+   struct Task *task = currentTask;
+   struct Task *temp = runnableTasks[0];
 
-    if (task->parentPort)
-    {
-        struct Message *m = (struct Message *)AllocKMem(sizeof(struct Message));
-        m->quad = 0;
-        SendMessage(task->parentPort, m);
-        DeallocMem(m);
-    }
+   if (task->parentPort)
+      {
+         struct Message *m = (struct Message *)AllocKMem(sizeof(struct Message));
+         m->quad = 0;
+         SendMessage(task->parentPort, m);
+         DeallocMem(m);
+      }
 
-    //Don't want to task switch whilst destroying task
-    asm ("cli");
+   //Don't want to task switch whilst destroying task
+   asm ("cli");
 
-    // Unlink task from runnable queue
-    if (temp == task)
-    {
-        runnableTasks[0] = temp->nexttask;
-        if (runnableTasks[0] == 0)
-        {
-            runnableTasks[1] = 0;
-        }
-    }
-    else
-    {
-        while (temp)
-        {
-            if (temp->nexttask == task)
+   // Unlink task from runnable queue
+   if (temp == task)
+      {
+         runnableTasks[0] = temp->nexttask;
+         if (runnableTasks[0] == 0)
             {
-                temp->nexttask = temp->nexttask->nexttask;
+               runnableTasks[1] = 0;
             }
-            if (temp->nexttask == 0)
+      }
+   else
+      {
+         while (temp)
             {
-                runnableTasks[1] = temp;
+               if (temp->nexttask == task)
+                  {
+                     temp->nexttask = temp->nexttask->nexttask;
+                  }
+               if (temp->nexttask == 0)
+                  {
+                     runnableTasks[1] = temp;
+                  }
+               temp = temp->nexttask;
             }
-            temp = temp->nexttask;
-        }
-    }
+      }
 
-    // Release allocated memory
-    long *mem = (long *)PageTableL12;
-    long count;
-    for (count = 0x0; count < 0x3; count++)
-    {
-        PMap[mem[count] >> 12] = 0;
-        nPagesFree++;
-    }
-    for (count = 0x4; count < 0x200; count++)
-    {
-        if (mem[count] != 0)
-        {
-            PMap[mem[count] >> 12] = 0;
-            nPagesFree++;
-        }
-    }
-
-    // If there's any allocated shared memory, then free it
-//    DeallocSharedMem(task->pid);
-
-    // If there's any allocated kernel memory, then free it
-//    DeallocKMem(task->pid);
-
-    // Reset PID so that OS knows the slot is free
-    task->pid = 0;
-//    RemoveFromQ(task, &allTasks[0], &allTasks[1]);
-        struct TaskList * tl  = allTasks;
-        struct TaskList * tl1;
-        if (tl->task == task)
-        {
-            allTasks = allTasks->next;
-            DeallocMem(tl);
-        }
-        else
-        {
-            while (tl->next->task != task)
+   // Release allocated memory
+   long *mem = (long *)PageTableL12;
+   long count;
+   for (count = 0x0; count < 0x3; count++)
+      {
+         PMap[mem[count] >> 12] = 0;
+         nPagesFree++;
+      }
+   for (count = 0x4; count < 0x200; count++)
+      {
+         if (mem[count] != 0)
             {
-              tl = tl->next;
+               PMap[mem[count] >> 12] = 0;
+               nPagesFree++;
             }
-            tl1 = tl->next;
-            tl->next = tl->next->next;
-            DeallocMem(tl1);
-        }
+      }
 
-    //SwTasks();
-    SWTASKS;
+   // If there's any allocated shared memory, then free it
+   DeallocSharedMem(task->pid);
+
+   // If there's any allocated kernel memory, then free it
+   DeallocKMem(task->pid);
+
+   // Reset PID so that OS knows the slot is free
+   task->pid = 0;
+   //    RemoveFromQ(task, &allTasks[0], &allTasks[1]);
+   struct TaskList * tl  = allTasks;
+   struct TaskList * tl1;
+   if (tl->task == task)
+      {
+         allTasks = allTasks->next;
+         DeallocMem(tl);
+      }
+   else
+      {
+         while (tl->next->task != task)
+            {
+               tl = tl->next;
+            }
+         tl1 = tl->next;
+         tl->next = tl->next->next;
+         DeallocMem(tl1);
+      }
+
+   //SwTasks();
+   SWTASKS;
 }
 
 
@@ -308,8 +313,8 @@ void KillTask(void)
 //===============================================
 void BlockTask(struct Task *task)
 {
-    RemoveFromQ(task, &runnableTasks[0], &runnableTasks[1]);
-    AddToQ(task, &blockedTasks[0], &blockedTasks[1]);
+   RemoveFromQ(task, &runnableTasks[0], &runnableTasks[1]);
+   AddToQ(task, &blockedTasks[0], &blockedTasks[1]);
 }
 
 
@@ -318,8 +323,8 @@ void BlockTask(struct Task *task)
 //===============================================
 void UnBlockTask(struct Task *task)
 {
-    RemoveFromQ(task, &blockedTasks[0], &blockedTasks[1]);
-    AddToQ(task, &runnableTasks[0], &runnableTasks[1]);
+   RemoveFromQ(task, &blockedTasks[0], &blockedTasks[1]);
+   AddToQ(task, &runnableTasks[0], &runnableTasks[1]);
 }
 
 
@@ -328,15 +333,15 @@ void UnBlockTask(struct Task *task)
 //===========================================================
 void moveTaskToEndOfQueue()
 {
-    struct Task *temp = runnableTasks[0];
+   struct Task *temp = runnableTasks[0];
 
-    if (temp->nexttask)
-    {
-        runnableTasks[0]           = temp->nexttask;
-        runnableTasks[1]->nexttask = temp;
-        runnableTasks[1]           = temp;
-        temp->nexttask             = 0;
-    }
+   if (temp->nexttask)
+      {
+         runnableTasks[0]           = temp->nexttask;
+         runnableTasks[1]->nexttask = temp;
+         runnableTasks[1]           = temp;
+         temp->nexttask             = 0;
+      }
 }
 
 
@@ -345,31 +350,31 @@ void moveTaskToEndOfQueue()
 //========================
 void RemoveFromQ(struct Task *task, struct Task **QHead, struct Task **QTail)
 {
-    struct Task *temp = *QHead;
+   struct Task *temp = *QHead;
 
-    if (temp == task)
-    {
-        *QHead = temp->nexttask;
-        if (*QHead == 0)
-        {
-            *QTail = 0;
-        }
-    }
-    else
-    {
-        while (temp)
-        {
-            if (temp->nexttask == task)
+   if (temp == task)
+      {
+         *QHead = temp->nexttask;
+         if (*QHead == 0)
             {
-                temp->nexttask = temp->nexttask->nexttask;
+               *QTail = 0;
             }
-            if (temp->nexttask == 0)
+      }
+   else
+      {
+         while (temp)
             {
-                *QTail = temp;
+               if (temp->nexttask == task)
+                  {
+                     temp->nexttask = temp->nexttask->nexttask;
+                  }
+               if (temp->nexttask == 0)
+                  {
+                     *QTail = temp;
+                  }
+               temp = temp->nexttask;
             }
-            temp = temp->nexttask;
-        }
-    }
+      }
 }
 
 
@@ -378,27 +383,42 @@ void RemoveFromQ(struct Task *task, struct Task **QHead, struct Task **QTail)
 //======================
 void AddToQ(struct Task *task, struct Task **QHead, struct Task **QTail)
 {
-    if (*QHead == 0)
-    {
-        *QHead         = *QTail = task;
-        task->nexttask = 0;
-    }
-    else
-    {
-        (*QTail)->nexttask = task;
-        *QTail             = task;
-        task->nexttask     = 0;
-    }
+   if (*QHead == 0)
+      {
+         *QHead         = *QTail = task;
+         task->nexttask = 0;
+      }
+   else
+      {
+         (*QTail)->nexttask = task;
+         *QTail             = task;
+         task->nexttask     = 0;
+      }
 }
 
+//=========================================
+// Returns the task structure with PID pid
+//=========================================
+struct Task * PidToTask(long pid)
+{
+   struct TaskList * tempTask = allTasks;
+
+   while (tempTask)
+   {
+      if (tempTask->task->pid == pid)
+         break;
+      tempTask = tempTask->next;
+   }
+   return tempTask->task;
+}
 
 //=====================================
 // The one task that is always runnable
 //=====================================
 void dummyTask()
 {
-    while (1)
-    {
-        asm("hlt");
-    }
+   while (1)
+      {
+         asm("hlt");
+      }
 }

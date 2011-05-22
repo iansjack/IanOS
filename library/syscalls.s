@@ -16,6 +16,9 @@
 	.global sys_WriteDouble
 	.global sys_WriteString
 	.global sys_AllocMessagePort
+	.global sys_GetCurrentConsole
+	.global sys_GetCurrentDirectory
+	.global sys_SetCurrentDirectory
 
 	.text
 
@@ -46,6 +49,7 @@ sys_GetCommandLine:
 
 sys_CreateTask:
 	mov $CREATETASK, %r9
+	mov %rcx, %r14
 	syscall
 	ret
 
@@ -108,5 +112,20 @@ sys_WriteString:
 
 sys_AllocMessagePort:
 	mov $ALLOCMSGPORT, %r9
+	syscall
+	ret
+
+sys_GetCurrentConsole:
+	mov $GETCURRENTCONSOLE, %r9
+	syscall
+	ret
+
+sys_GetCurrentDirectory:
+	mov $GETCURRENTDIR, %r9
+	syscall
+	ret
+
+sys_SetCurrentDirectory:
+	mov $SETCURRENTDIR, %r9
 	syscall
 	ret

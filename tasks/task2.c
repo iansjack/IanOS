@@ -6,7 +6,7 @@
 int main(void)
 {
 	struct DirEntry entry;
-	
+
    sys_WriteString("Hi", 22, 40);
 	long pid = GetFSPID();
 	sys_WriteDouble(pid, 23, 20);
@@ -23,7 +23,7 @@ int main(void)
 	{
 		GetDirectoryEntry(count, &entry);
 		sys_WriteString((unsigned char *)&entry, 23, 0);
-		sys_Sleep(500);
+		sys_Sleep(100);
 	}
 	sys_KillTask();
    return(0);

@@ -19,21 +19,21 @@ long             memorySemaphore;
 
 void InitMem64(void)
 {
-    PMap                      = (unsigned char *)PageMap;
-    firstFreeKMem             = (struct MemStruct *)0x11000;
-    firstFreeKMem->next       = 0;
-    firstFreeKMem->size       = 0xFE0;
-    firstFreeSharedMem        = (struct MemStruct *)0x1F0000;
-    firstFreeSharedMem->next  = 0;
-    firstFreeSharedMem->size  = 0xFE0;
-    nextKPage                 = 0x12;
-    currentTask               = runnableTasks[0] = runnableTasks[1] = (struct Task *)TaskStruct;
-    allTasks                  = AllocKMem(sizeof(struct TaskList));
-    allTasks->task             = currentTask;
-    allTasks->next             = 0;
-    lowPriTask                = blockedTasks[0] = blockedTasks[1] = 0L;
-    NoOfAllocations           = 0;
-    memorySemaphore           = 0;
+   PMap                      = (unsigned char *)PageMap;
+   firstFreeKMem             = (struct MemStruct *)0x11000;
+   firstFreeKMem->next       = 0;
+   firstFreeKMem->size       = 0xFE0;
+   firstFreeSharedMem        = (struct MemStruct *)0x1F0000;
+   firstFreeSharedMem->next  = 0;
+   firstFreeSharedMem->size  = 0xFE0;
+   nextKPage                 = 0x12;
+   currentTask               = runnableTasks[0] = runnableTasks[1] = (struct Task *)TaskStruct;
+   allTasks                  = AllocKMem(sizeof(struct TaskList));
+   allTasks->task             = currentTask;
+   allTasks->next             = 0;
+   lowPriTask                = blockedTasks[0] = blockedTasks[1] = 0L;
+   NoOfAllocations           = 0;
+   memorySemaphore           = 0;
 }
 
 
@@ -43,33 +43,33 @@ void InitMem64(void)
 //=====================================================
 void *VCreatePageDir(void)
 {
-    long *TPTL4  = (long *)TempPTL4;
-    long *TPTL3  = (long *)TempPTL3;
-    long *TPTL2  = (long *)TempPTL2;
-    long *TPTL12 = (long *)TempPTL12;
-    long *PTL12  = (long *)PageTableL12;
+   long *TPTL4  = (long *)TempPTL4;
+   long *TPTL3  = (long *)TempPTL3;
+   long *TPTL2  = (long *)TempPTL2;
+   long *TPTL12 = (long *)TempPTL12;
+   long *PTL12  = (long *)PageTableL12;
 
-    void *PD = AllocPage64();
+   void *PD = AllocPage64();
 
-    CreatePTE(PD, (long)TempPTL4);
-    TPTL4[0]  = CreatePTE(AllocPage64(), TempPTL3);
-    TPTL3[0]  = CreatePTE(AllocPage64(), TempPTL2);
-    TPTL2[0]  = PTL12[3];
-    TPTL2[1]  = CreatePTE(AllocPage64(), TempPTL12);
-    TPTL12[0] = (long)PD + 7;
-    TPTL12[1] = TPTL4[0];
-    TPTL12[2] = TPTL3[0];
-    TPTL12[3] = TPTL2[0];
-    TPTL12[4] = TPTL2[1];
-    // 1 Page for User Code
-    TPTL12[0x100] = CreatePTE(AllocPage64(), TempUserCode);
-    // 1 Page for User Data
-    TPTL12[0x110] = CreatePTE(AllocPage64(), TempUserData);
-    // 1 Page for kernel stack
-    TPTL12[0x1FC] = CreatePTE(AllocPage64(), TempKStack);
-    // 1 Page for user stack
-    TPTL12[0x1FE] = CreatePTE(AllocPage64(), TempUStack);
-    return(PD);
+   CreatePTE(PD, (long)TempPTL4);
+   TPTL4[0]  = CreatePTE(AllocPage64(), TempPTL3);
+   TPTL3[0]  = CreatePTE(AllocPage64(), TempPTL2);
+   TPTL2[0]  = PTL12[3];
+   TPTL2[1]  = CreatePTE(AllocPage64(), TempPTL12);
+   TPTL12[0] = (long)PD + 7;
+   TPTL12[1] = TPTL4[0];
+   TPTL12[2] = TPTL3[0];
+   TPTL12[3] = TPTL2[0];
+   TPTL12[4] = TPTL2[1];
+   // 1 Page for User Code
+   TPTL12[0x100] = CreatePTE(AllocPage64(), TempUserCode);
+   // 1 Page for User Data
+   TPTL12[0x110] = CreatePTE(AllocPage64(), TempUserData);
+   // 1 Page for kernel stack
+   TPTL12[0x1FC] = CreatePTE(AllocPage64(), TempKStack);
+   // 1 Page for user stack
+   TPTL12[0x1FE] = CreatePTE(AllocPage64(), TempUStack);
+   return(PD);
 }
 
 
@@ -79,8 +79,8 @@ void *VCreatePageDir(void)
 long CreatePTE(void *pAddress, long lAddress)
 {
    long *PTableL11 = (long *)PageTableL11;
-	
-	asm ("cli");
+
+   asm ("cli");
    PTableL11[lAddress >> 12] = (long)pAddress | 7;
    char *c = (char *)lAddress;
    asm ("push %rbx");
@@ -89,12 +89,12 @@ long CreatePTE(void *pAddress, long lAddress)
    asm ("pop %rbx");
    int count;
    for (count = 0; count < PageSize; count++)
-   {
-		c[count] = 0;
-   }
-	asm ("sti");
-	
-	return((long)pAddress | 7);
+      {
+         c[count] = 0;
+      }
+   asm ("sti");
+
+   return((long)pAddress | 7);
 }
 
 
@@ -104,16 +104,16 @@ long CreatePTE(void *pAddress, long lAddress)
 //=========================================
 void *AllocPage64()
 {
-    long i = 0;
+   long i = 0;
 
-    while (PMap[i] != 0)
-    {
-        i++;
-    }
-    PMap[i] = 1;
-    i       = i << 12;
-    nPagesFree--;
-    return((void *)i);
+   while (PMap[i] != 0)
+      {
+         i++;
+      }
+   PMap[i] = 1;
+   i       = i << 12;
+   nPagesFree--;
+   return((void *)i);
 }
 
 
@@ -123,48 +123,48 @@ void *AllocPage64()
 //=========================================================================================
 void *AllocMem(long sizeRequested, struct MemStruct *list)
 {
-    // We want the memory allocation to be atomic, so set a semaphore before proceeding
-    SetSem(&memorySemaphore);
-    while (list->size < sizeRequested)
-    {
-        if (list->next == 0)
+   // We want the memory allocation to be atomic, so set a semaphore before proceeding
+   SetSem(&memorySemaphore);
+   while (list->size < sizeRequested)
+      {
+         if (list->next == 0)
             // Not enough memory available. Allocate another page.
-        {
-            long temp = (long)list >> 12;
-            while (list->size < sizeRequested)
             {
-                CreatePTE(AllocPage64(), ++temp << 12);
-                list->size += PageSize;
+               long temp = (long)list >> 12;
+               while (list->size < sizeRequested)
+                  {
+                     CreatePTE(AllocPage64(), ++temp << 12);
+                     list->size += PageSize;
+                  }
             }
-        }
-        else
-        {
-            list = list->next;
-        }
-    }
+         else
+            {
+               list = list->next;
+            }
+      }
 
-    // We now have found a free memory block with enough (or more space)
-    // Is there enough space for another link?
-    if (list->size <= sizeRequested + sizeof(struct MemStruct))
-    {
-        // No. Just allocate the whole block
-        list->size = 0;
-    }
-    else
-    {
-        // Yes, so create the new link
-        void *temp = (void *)list;
-        temp += sizeRequested;
-        temp += sizeof(struct MemStruct);
-        ((struct MemStruct *)temp)->next = list->next;
-        list->next       = (struct MemStruct *)temp;
-        list->next->size = list->size - sizeRequested - sizeof(struct MemStruct);
-        list->size       = 0;
-        list->pid        = currentTask->pid;
-    }
-    ClearSem(&memorySemaphore);
-    NoOfAllocations++;
-    return(list + 1);
+   // We now have found a free memory block with enough (or more space)
+   // Is there enough space for another link?
+   if (list->size <= sizeRequested + sizeof(struct MemStruct))
+      {
+         // No. Just allocate the whole block
+         list->size = 0;
+      }
+   else
+      {
+         // Yes, so create the new link
+         void *temp = (void *)list;
+         temp += sizeRequested;
+         temp += sizeof(struct MemStruct);
+         ((struct MemStruct *)temp)->next = list->next;
+         list->next       = (struct MemStruct *)temp;
+         list->next->size = list->size - sizeRequested - sizeof(struct MemStruct);
+         list->size       = 0;
+         list->pid        = currentTask->pid;
+      }
+   ClearSem(&memorySemaphore);
+   NoOfAllocations++;
+   return(list + 1);
 }
 
 
@@ -174,17 +174,17 @@ void *AllocMem(long sizeRequested, struct MemStruct *list)
 //==================================================
 void DeallocMem(void *list)
 {
-    struct MemStruct *l = (struct MemStruct *)list;
+   struct MemStruct *l = (struct MemStruct *)list;
 
-    // We want the memory deallocation to be atomic, so set a semaphore before proceeding
-    SetSem(&memorySemaphore);
-    l--;
-    if (l->size == 0)
-    {
-        l->size = (long)l->next - (long)l - sizeof(struct MemStruct);
-        NoOfAllocations--;
-    }
-    ClearSem(&memorySemaphore);
+   // We want the memory deallocation to be atomic, so set a semaphore before proceeding
+   SetSem(&memorySemaphore);
+   l--;
+   if (l->size == 0)
+      {
+         l->size = (long)l->next - (long)l - sizeof(struct MemStruct);
+         NoOfAllocations--;
+      }
+   ClearSem(&memorySemaphore);
 }
 
 
@@ -194,7 +194,7 @@ void DeallocMem(void *list)
 //===============================================================================
 void *AllocKMem(long sizeRequested)
 {
-    return(AllocMem(sizeRequested, firstFreeKMem));
+   return(AllocMem(sizeRequested, firstFreeKMem));
 }
 
 
@@ -204,7 +204,7 @@ void *AllocKMem(long sizeRequested)
 //===============================================================================
 void *AllocUMem(long sizeRequested)
 {
-    return(AllocMem(sizeRequested, (void *)currentTask->firstfreemem));
+   return(AllocMem(sizeRequested, (void *)currentTask->firstfreemem));
 }
 
 
@@ -214,7 +214,7 @@ void *AllocUMem(long sizeRequested)
 //===============================================================================
 void *AllocSharedMem(long sizeRequested)
 {
-    return(AllocMem(sizeRequested, firstFreeSharedMem));
+   return(AllocMem(sizeRequested, firstFreeSharedMem));
 }
 
 //============================================================
@@ -222,20 +222,20 @@ void *AllocSharedMem(long sizeRequested)
 //============================================================
 void DeallocSharedMem(long pid)
 {
-    struct MemStruct *l = firstFreeSharedMem;
+   struct MemStruct *l = firstFreeSharedMem;
 
-    // We want the memory deallocation to be atomic, so set a semaphore before proceeding
-    SetSem(&memorySemaphore);
-    while (l->next != 0)
-    {
-        if (l->pid == pid)
-        {
-            l->size = (long)l->next - (long)l - sizeof(struct MemStruct);
-            NoOfAllocations--;
-        }
-        l = l->next;
-    }
-    ClearSem(&memorySemaphore);
+   // We want the memory deallocation to be atomic, so set a semaphore before proceeding
+   SetSem(&memorySemaphore);
+   while (l->next != 0)
+      {
+         if (l->pid == pid)
+            {
+               l->size = (long)l->next - (long)l - sizeof(struct MemStruct);
+               NoOfAllocations--;
+            }
+         l = l->next;
+      }
+   ClearSem(&memorySemaphore);
 }
 
 //============================================================
@@ -243,18 +243,18 @@ void DeallocSharedMem(long pid)
 //============================================================
 void DeallocKMem(long pid)
 {
-    struct MemStruct *l = firstFreeKMem;
+   struct MemStruct *l = firstFreeKMem;
 
-    // We want the memory deallocation to be atomic, so set a semaphore before proceeding
-    SetSem(&memorySemaphore);
-    while (l->next != 0)
-    {
-        if (l->pid == pid)
-        {
-            l->size = (long)l->next - (long)l - sizeof(struct MemStruct);
-            NoOfAllocations--;
-        }
-        l = l->next;
-    }
-    ClearSem(&memorySemaphore);
+   // We want the memory deallocation to be atomic, so set a semaphore before proceeding
+   SetSem(&memorySemaphore);
+   while (l->next != 0)
+      {
+         if (l->pid == pid)
+            {
+               l->size = (long)l->next - (long)l - sizeof(struct MemStruct);
+               NoOfAllocations--;
+            }
+         l = l->next;
+      }
+   ClearSem(&memorySemaphore);
 }

@@ -8,8 +8,9 @@
 
 	.global SysCalls
 	.global GoToSleep
+	.global SetCurrentDirectory
 
-CallNo:	
+CallNo:
 	.quad	PrintString				# PRINTSTRING
 	.quad	PrintDouble				# PRINTDOUBLE
 	.quad	PrintChar				# PRINTCHAR
@@ -27,7 +28,10 @@ CallNo:
 	.quad	Alloc_Shared_Mem		# ALLOCSHAREDMEM
 	.quad	NewLPtask				# CREATELPTASK
 	.quad CommandLine				# GETCOMMANDLINE
-	.quad	LoadProgram
+	.quad	LoadProgram				# LOADPROGRAM
+	.quad	GetCurrentConsole		# GETCURRENTCONSOLE
+	.quad GetCurrentDirectory	# GETCURRENTDIR
+	.quad SetCurrentDirectory	# SETCURRENTDIR
 
 SysCalls:
 	jmp *(CallNo - 8)(,%r9, 8)
@@ -101,6 +105,7 @@ PrintChar:
 #=================================================================
 Newtask:
 	push %rcx
+	mov %r14, %rcx
 	call NewTask
 	int  $20
 	pop %rcx
@@ -236,17 +241,51 @@ NewLPtask:
 	int $20
 	pop %rcx
 	sysretq
-	
+
+#==================================================
+# Return a pointer to the command line of the task
+# Affects RAX
+#==================================================
 CommandLine:
 	mov  currentTask, %r15
 	mov  TS.environment(%r15), %rax
 	sysretq
-	
+
+#====================================================================
+# Loads a program from the hard disk and overwrites the current task
+# RCX = Address to load to
+# R13 = Program Name
+#====================================================================
 LoadProgram:
 	mov %rcx, %rdi
 	mov %r13, %rsi
 	call LoadTheProgram
 	sysretq
+
+#=================================================
+# Returns the console (0 - 3) of the current task
+#=================================================
+GetCurrentConsole:
+	mov currentTask, %r15
+	mov TS.console(%r15), %rax
+	sysretq
+
+#===================================================
+# Returns the current directory of the current task
+#===================================================
+GetCurrentDirectory:
+	mov currentTask, %r15
+	mov TS.currentDir(%r15), %rax
+	sysretq
+
+#===================================================
+# Sets the current directory of the current task
+#===================================================
+SetCurrentDirectory:
+	mov currentTask, %r15
+	mov %rdi, TS.currentDir(%r15)
+	sysretq
+
 
 GoToSleep:
 	mov currentTask, %r15

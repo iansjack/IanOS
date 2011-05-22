@@ -14,9 +14,9 @@ int main(void)
     char           *environment = sys_AllocSharedMem(81);
     int            i;
 
-    consoleclrscr(0);
-    writeconsolestring("IanOS Version 0.1.2 - 2011\r", 0);
-    writeconsolestring("#> _\b", 0);
+    consoleclrscr();
+    writeconsolestring("IanOS Version 0.1.2 - 2011\r");
+    writeconsolestring("#> _\b");
     name[80] = environment[80] = 0;
     for (i = 0; i < 80; i++)
     {
@@ -25,14 +25,14 @@ int main(void)
 
     while (1)
     {
-        char c = getchar(0);
+        char c = getchar();
 
         switch (c)
         {
         case BACKSPACE:
             if (column > 0)
             {
-                writeconsolestring(" \b\b_\b", 0);
+                writeconsolestring(" \b\b_\b");
                 commandline[column--] = 0;
             }
             break;
@@ -61,23 +61,23 @@ int main(void)
                 environment[i] = commandline[i];
             }
 
-            writeconsolestring(" \r", 0);
+            writeconsolestring(" \r");
 
             if (name[0] == '&')
             {
-                sys_CreateTask(name + 1, environment + 1, 0);
+                sys_CreateTask(name + 1, environment + 1, 0, sys_GetCurrentConsole());
             }
             else
             {
                 struct Message *msg = (struct Message *)sys_AllocMem(sizeof(struct Message));
                 struct MessagePort * parentPort = sys_AllocMessagePort();
-                sys_CreateTask(name, environment, parentPort);
+                sys_CreateTask(name, environment, parentPort, sys_GetCurrentConsole());
                 sys_ReceiveMessage((long int)parentPort, msg);
                 sys_DeallocMem(parentPort);
                 sys_DeallocMem(msg);
             }
 
-            writeconsolestring("#> _\b", 0);
+            writeconsolestring("#> _\b");
 
             // Clear commandline[]
             for (i = 0; i < 80; i++)
@@ -88,8 +88,8 @@ int main(void)
 
         default:
             commandline[column++] = c;
-            writeconsolechar(c, 0);
-            writeconsolestring("_\b", 0);
+            writeconsolechar(c);
+            writeconsolestring("_\b");
             break;
         }
     }

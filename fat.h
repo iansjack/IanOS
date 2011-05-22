@@ -54,8 +54,5 @@ unsigned long   FATLength;
 unsigned short  BytesPerSector;
 unsigned char   SectorsPerCluster;
 unsigned short  RootDirectoryEntries;
-unsigned char   *DiskBuffer;
-unsigned short  *FAT;
-struct DirEntry *RootDirectory;
 
 #endif

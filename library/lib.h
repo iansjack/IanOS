@@ -3,11 +3,11 @@
 
 #include "kstructs.h"
 
-char getchar(long console);
+char getchar();
 void send(struct Message * msg);
-void writeconsolechar(char c, long console);
-void writeconsolestring(char *s, long console);
-void consoleclrscr(long console);
+void writeconsolechar(char c);
+void writeconsolestring(char *s);
+void consoleclrscr();
 struct FCB *CreateFile(char *s);
 struct FCB *OpenFile(char *s);
 struct FCB *CloseFile(struct FCB *fHandle);

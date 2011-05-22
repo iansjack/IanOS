@@ -38,7 +38,7 @@ void copyMem(unsigned char source[], unsigned char dest[], long size)
 {
    int i;
 
-	if (dest < 0x10000)
+	if (dest < (unsigned char *)0x10000)
 	{
 		KWriteString("OOps!!!", 20, 40);
 		asm("cli;"

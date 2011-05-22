@@ -52,6 +52,7 @@ start64:
 	movb $0, TS.waiting(%r15)		# We don't want task1 to be waiting when it starts
 	movq $UserData, TS.firstfreemem(%r15)
 	movq $1, TS.pid(%r15)
+	movq $0, TS.currentDir
 
 	mov $0xFF, %al
 	call AllocPage64			# Page for kernel stack
@@ -60,27 +61,27 @@ start64:
 	call CreatePTE
 	mov $KernelStack + 0x1000, %eax
 	mov %eax, TSS64 + 4			# Kernel stack pointer in TSS
-	mov $0xFF, %al			  	
+	mov $0xFF, %al
 	call AllocPage64			# Page for user stack
 	mov %rax, %rdi
 	mov $UserStack, %rsi
 	call CreatePTE
 	mov $UserStack + 0x1000, %rsp
 	mov $0xFF, %al
-	call AllocPage64			# Page for task code
+	call AllocPage64				# Page for task code
 	mov %rax, %rdi
 	mov $UserCode, %rsi
 	call CreatePTE
 	mov $0xFF, %al
-	call AllocPage64		  	# Page for task data
+	call AllocPage64		  		# Page for task data
 	mov %rax, %rdi
 	mov $UserData, %rsi
 	call CreatePTE
 
 	mov $tas1, %rsi				# Move the task code
 	mov $UserCode, %rdi
-	mov $0x1000, %rcx			# How do we find the length of tas1? It's so small
-	cld					# that we just assume it's under 0x1000 bytes
+	mov $0x1000, %rcx				# How do we find the length of tas1? It's so small
+	cld								# that we just assume it's under 0x1000 bytes
 	rep movsb
 
 	mov $UserCode, %rcx		  	# Task 1
@@ -88,7 +89,7 @@ start64:
 	pop %r11
 	or $0x200, %r11		  		# This will enable interrupts when we sysret
 
-	sysretq				  	# Start Task1 and multitasking
+	sysretq				  			# Start Task1 and multitasking
 
 	.data
 

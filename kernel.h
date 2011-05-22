@@ -18,5 +18,7 @@ void RemoveFromQ(struct Task *task, struct Task **QHead, struct Task **QTail);
 void AddToQ(struct Task *task, struct Task **QHead, struct Task **QTail);
 void SetSem(long * semaphore);
 void ClearSem(long * semaphore);
+void KWriteString(char *str, int row, int col);
+struct Task * PidToTask(long pid);
 
 #endif
