@@ -79,7 +79,7 @@ ReadDirectoryBuffer(long directory)
 {
    DiskBuffer = (unsigned char *) AllocUMem(512);
    ReadSector(DiskBuffer, ClusterToSector(directory));
-   return DiskBuffer;
+   return (long) DiskBuffer;
 }
 //=================================================================
 // Finds the directory buffer corresponding to directory.
@@ -106,7 +106,7 @@ FindDirectoryBuffer(long directory)
          if (DirectoryBuffers[count].Directory == -1)
             break;
       DirectoryBuffers[count].Directory = directory;
-      DirectoryBuffers[count].Buffer = ReadDirectoryBuffer(directory);
+      DirectoryBuffers[count].Buffer = (void *) ReadDirectoryBuffer(directory);
    }
    return (bufferno);
 }
@@ -124,6 +124,11 @@ NameToDirName(char *name, char *dirname)
    for (i = 0; i < 11; i++)
    {
       dirname[i] = ' ';
+   }
+   if (name[0] == '.' && name[1] == '.' && (name[3] == 0 || name[3] == ' '))
+   {
+      dirname[0] = dirname[1] = '.';
+      return 0;
    }
    i = 0;
    while (name[i] != '.' && i < 8 && name[i] != 0)
@@ -566,13 +571,27 @@ fsTaskCode()
          SendMessage(tempPort, FSMsg);
          break;
 
+      case GETDIRECTORY:
+         ;
+         struct DirEntry *entry;
+         entry = (struct DirEntry *) FindFile((char *) FSMsg->quad, PidToTask(
+               FSMsg->pid)->currentDir);
+         if (entry)
+            FSMsg->quad = entry->startingCluster;
+         else
+            FSMsg->quad = -1;
+         tempPort = (struct MessagePort *) FSMsg->tempPort;
+         SendMessage(tempPort, FSMsg);
+         break;
+
       default:
          break;
          }
    }
 }
 
-//int debug()
-//{
-//   // Just a place marker
-//}
+int
+debug()
+{
+   // Just a place marker
+}

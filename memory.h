@@ -1,7 +1,8 @@
-#ifndef CMEMORY_H
-#define CMEMORY_H
+#ifndef MEMORY_H
+#define MEMORY_H
 
 #include "kstructs.h"
+#include "pagetab.h"
 
 //=============
 // Memory Map
@@ -49,9 +50,6 @@
 
 #define tsslength      0x80
 
-long CreatePTE(void *pAddress, long lAddress);
-void *VCreatePageDir(void);
-void *AllocPage64();
 void *AllocMem(long sizeRequested, struct MemStruct *list);
 void *AllocKMem(long sizeRequested);
 void *AllocUMem(long sizeRequested);

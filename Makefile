@@ -1,6 +1,6 @@
 include Flags.mak
 
-OBJS = 	startup.o memory32.o pagetab32.o hwsetup.o os.o gates.o messages.o memory.o keyboard.o \
+OBJS = startup.o mem32.o ptab32.o hwsetup.o os.o gates.o messages.o memory.o pagetab.o keyboard.o \
 		console.o filesystem.o syscalls.o newtask.o tasking.o messaging.o interrupts.o \
 		ide.o kernlib.o  monitor.o tas1.o
 
@@ -36,10 +36,22 @@ startup.o: startup.s
 
 memory32.o: memory32.s memory.inc
 	as  memory32.s -o memory32.o
+	
+mem32.o: mem32.c	
+	gcc -m32 $(CFLAGS) $(CPPFLAGS) $(INCLUDES) -S mem32.c
+	cat code32.s mem32.s >tmem32.s
+	as tmem32.s -o mem32.o
+	rm tmem32.s mem32.s
 
 pagetab32.o: pagetab32.s
 	as  pagetab32.s -o pagetab32.o
 
+ptab32.o: ptab32.c	
+	gcc -m32 -fno-stack-protector -ffixed-r15 -g -I . -I .. -S ptab32.c
+	cat code32.s ptab32.s >tptab32.s
+	as tptab32.s -o ptab32.o
+	rm tptab32.s ptab32.s
+	
 hwsetup.o: hwsetup.s hwhelp.s
 	as  hwsetup.s -o hwsetup.o
 
@@ -50,6 +62,8 @@ gates.o: gates.c memory.h
 messages.o: messages.c
 
 memory.o: memory.c memory.h kstructs.h
+
+pagetab.o: pagetab.c memory.h pagetab.h
 
 keyboard.o: keyboard.c memory.h kstructs.h
 

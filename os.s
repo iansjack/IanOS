@@ -55,25 +55,25 @@ start64:
 	movq $0, TS.currentDir
 
 	mov $0xFF, %al
-	call AllocPage64			# Page for kernel stack
+	call AllocPage					# Page for kernel stack
 	mov %rax, %rdi
 	mov $KernelStack, %rsi
 	call CreatePTE
 	mov $KernelStack + 0x1000, %eax
 	mov %eax, TSS64 + 4			# Kernel stack pointer in TSS
 	mov $0xFF, %al
-	call AllocPage64			# Page for user stack
+	call AllocPage					# Page for user stack
 	mov %rax, %rdi
 	mov $UserStack, %rsi
 	call CreatePTE
 	mov $UserStack + 0x1000, %rsp
 	mov $0xFF, %al
-	call AllocPage64				# Page for task code
+	call AllocPage					# Page for task code
 	mov %rax, %rdi
 	mov $UserCode, %rsi
 	call CreatePTE
 	mov $0xFF, %al
-	call AllocPage64		  		# Page for task data
+	call AllocPage		  		# Page for task data
 	mov %rax, %rdi
 	mov $UserData, %rsi
 	call CreatePTE

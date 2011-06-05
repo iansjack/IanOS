@@ -74,6 +74,7 @@ HwSetup:
 HD_PORT=0x1F0
 # set up ide controller
 .again1:
+	mov $HD_PORT+7, %dx
 	in %dx, %al
 	test $0x80, %al
 	jnz .again1

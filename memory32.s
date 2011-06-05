@@ -1,7 +1,7 @@
 	.include "memory.inc"
 
 	.global InitMemManagement
-	.global AllocPage
+#	.global AllocPage32
 
 	.text
 
@@ -48,7 +48,7 @@ MemLoopEnd:
 	add $2, %ecx		  # # of pages in OS data segment
 	add $0xF, %ecx		  # # of pages in OS code segment
 	mov $PageMap, %ebx
-.again: 
+.again:
 	movb $1, (%ebx)
 	inc %ebx
 	decl nPagesFree
@@ -89,33 +89,33 @@ MemLoopEnd:
 
 	ret
 
-#===========================================
-# Allocate a page of memory
-# AL = task to allocate memory to
-# if EAX = 0xFF then memory is for PT
-# 0 fill the page
-# return in EAX the Physical Memory address
-#===========================================
-AllocPage:
-	push %ebx
-	push %ecx
-	# find first free page of Physical Memory
-	mov $0, %ebx
-.again2: cmpb $0, PageMap(%ebx)
-	je .found
-	inc %ebx
-	jmp .again2
-	# mark page as in use
-.found: mov %al, PageMap(%ebx)
-	# compute Physical Address
-	xchg %eax, %ebx
-	shl $12, %eax
-	decl nPagesFree
-	#mov  %eax, %ebx
-	mov  $0x1000, %ecx
-.again4:
-	movb $0, (%eax, %ecx)
-	loop .again4
-	pop %ecx
-	pop %ebx
-	ret
+##===========================================
+## Allocate a page of memory
+## AL = task to allocate memory to
+## if EAX = 0xFF then memory is for PT
+## 0 fill the page
+## return in EAX the Physical Memory address
+##===========================================
+#AllocPage32:
+#	push %ebx
+#	push %ecx
+#	# find first free page of Physical Memory
+#	mov $0, %ebx
+#.again2: cmpb $0, PageMap(%ebx)
+#	je .found
+#	inc %ebx
+#	jmp .again2
+#	# mark page as in use
+#.found: mov %al, PageMap(%ebx)
+#	# compute Physical Address
+#	xchg %eax, %ebx
+#	shl $12, %eax
+#	decl nPagesFree
+#	#mov  %eax, %ebx
+#	mov  $0x1000, %ecx
+#.again4:
+#	movb $0, (%eax, %ecx)
+#	loop .again4
+#	pop %ecx
+#	pop %ebx
+#	ret

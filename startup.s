@@ -15,7 +15,7 @@ code64	  	= 0x18
 #=====================
 # Protected Mode code
 #=====================
-_start:	
+_start:
 here:
 	mov $OsDataSeg, %eax
 	mov %eax, %ds
@@ -38,8 +38,8 @@ here:
 	bts  $8, %eax						# bit 8 of this register is Long Mode Enable (but we won't
 	wrmsr									# actually be in Long Mode until paging is enabled)
 
-	mov  	%cr0, %eax					
-	# bts	$16, %eax					# enable write protection 
+	mov  	%cr0, %eax
+	# bts	$16, %eax					# enable write protection
 	bts  	$31, %eax					# enable paging
 	mov  %eax, %cr0
 

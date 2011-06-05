@@ -9,6 +9,7 @@
 #define DELETEFILE   6
 #define GETPID       7
 #define GETDIRENTRY  8
+#define GETDIRECTORY 9
 
 struct DirectoryBuffer
 {

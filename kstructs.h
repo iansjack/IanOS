@@ -1,5 +1,5 @@
-#ifndef CKSTRUCTS_H
-#define CKSTRUCTS_H
+#ifndef KSTRUCTS_H
+#define KSTRUCTS_H
 
 struct Task
 {

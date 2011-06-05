@@ -12,32 +12,32 @@ PageMap      = 0x000000000007F000
 # This only works in 32 bit mode before paging is enabled
 #================================================================================
 CreatePageDir:
-	mov $0xFF, %eax
-	call AllocPage	# for level 4 table
+	mov $0xFF, %esi
+	call AllocPage32	# for level 4 table
 	push %eax
 	mov  %eax, %ebx
-	mov $0xFF, %eax
-	call AllocPage	# for level 3 table
+	mov $0xFF, %edi
+	call AllocPage32	# for level 3 table
 	mov  %eax, (%ebx)
 	movl $0, 4(%ebx)
 	addl $0x7, (%ebx)
 	mov  %eax, %ebx
-	mov $0xFF, %eax
-	call AllocPage	# for level 2 table
+	mov $0xFF, %edi
+	call AllocPage32	# for level 2 table
 	mov  %eax, (%ebx)
 	movl $0, 4(%ebx)
 	addl $0x7, (%ebx)
 	mov  %eax, %ebx
-	mov $0xFF, %eax
-	call AllocPage	# for level 1 table 1     # 0x000000 - 0x1FFFFF (OS & stacks)
+	mov $0xFF, %edi
+	call AllocPage32	# for level 1 table 1     # 0x000000 - 0x1FFFFF (OS & stacks)
 	mov  %eax, (%ebx)
 	movl  $0, 4(%ebx)
 	addl  $0x7, (%ebx)
 	push %ebx
 	call CreatePT164
 	pop %ebx
-	mov $0xFF, %eax
-	call AllocPage	# for level 1 table 2     # 0x200000 - 0x3FFFFF (Page Tables)
+	mov $0xFF, %edi
+	call AllocPage32	# for level 1 table 2     # 0x200000 - 0x3FFFFF (Page Tables)
 	mov %eax, 8(%ebx)
 	movl $0, 12(%ebx)
 	addl $0x7, 8(%ebx)

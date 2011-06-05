@@ -263,6 +263,7 @@ void ProcessDetails()
       mprintString("\rPID:");
       mprintString("\rNext Task:");
 		mprintString("\rFirstFreeMem:");
+		mprintString("\rCurrentDir:");
       msetcursor(1, 40);
       mprintString("RAX:");
       msetcursor(2, 40);
@@ -304,6 +305,8 @@ void ProcessDetails()
    mprint64((long)dispTask->nexttask);
 	msetcursor(4, 14);
 	mprint64((long)dispTask->firstfreemem);
+	msetcursor(5, 14);
+	mprint64(dispTask->currentDir);
    msetcursor(1, 48);
    mprint64(dispTask->rax);
    msetcursor(2, 48);

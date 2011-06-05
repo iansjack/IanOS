@@ -20,5 +20,6 @@ void SetSem(long * semaphore);
 void ClearSem(long * semaphore);
 void KWriteString(char *str, int row, int col);
 struct Task * PidToTask(long pid);
+//long strncmp(char * s1, char * s2, long length);
 
 #endif

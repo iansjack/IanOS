@@ -20,6 +20,6 @@ void sys_WriteDouble(int n, int x, int y);
 void sys_WriteString(unsigned char * string, int x, int y);
 long sys_GetTicks();
 long sys_GetCurrentConsole();
-long sys_GetCurrentDirectory();
+long sys_SetCurrentDirectory(long directory);
 
 #endif
