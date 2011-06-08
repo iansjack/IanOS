@@ -10,6 +10,7 @@ extern struct DeadTaskList *deadTasks;
 
 unsigned char * oMemMax;
 long nPagesFree;
+long nPages;
 struct MemStruct *firstFreeKMem;
 /*static*/
 long nextKPage;

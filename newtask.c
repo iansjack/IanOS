@@ -26,6 +26,7 @@ extern long *tempstack;
 extern long *tempstack0;
 extern unsigned short int *PMap;
 extern long nPagesFree;
+extern long nPages;
 
 static long nextpid = 3;
 
@@ -103,6 +104,12 @@ NewTask(char *name, char *environment, struct MessagePort * parentPort,
    asm ("sti");
 }
 
+//===============================================================================
+// This loads the program "name" into memory, if it exists.
+// It is never called directly, but only as part of the System Call LOADPROGRAM.
+// It sets RCX to either the start of the program (if it has been loaded)
+// or to the KILLTASK System Call if the program didn't exist.
+//===============================================================================
 void
 LoadTheProgram(long start, char * name)
 {
@@ -279,6 +286,7 @@ KillTask(void)
    deadTask->pid = currentTask->pid;
    deadTasks = deadTask;
 
+   // Remove task from allTasks queue;
    struct TaskList * tl = allTasks;
    struct TaskList * tl1;
    if (tl->task == task)
@@ -297,19 +305,7 @@ KillTask(void)
       DeallocMem(tl1);
    }
 
-   // If there's any allocated shared memory, then free it
-   DeallocSharedMem(task->pid);
-
-   // If there's any allocated kernel memory, then free it
-   // DeallocKMem(task->pid);
-   // Careful!!! LinkTask() allocates kernel memory that is needed after the parent task has been killed.
-   // Hopefully all kernel memory should be explicitly allocated, without need for this cleanup.
-
-   // Reset PID so that OS knows the slot is free
    task->pid = 0;
-   //    RemoveFromQ(task, &allTasks[0], &allTasks[1]);
-
-   //SwTasks();
    SWTASKS;
 }
 
@@ -425,8 +421,32 @@ PidToTask(long pid)
 void
 dummyTask()
 {
+   unsigned short int pid;
+   struct DeadTaskList * t;
+   int count;
+
    while (1)
    {
-      asm("hlt");
+      if (deadTasks)
+      {
+         t = deadTasks;
+         deadTasks = deadTasks->next;
+         pid = t->pid;
+         DeallocMem(t);
+         for (count = 0; count < nPages; count++)
+         {
+            if (PMap[count] == pid)
+            {
+               PMap[count] = 0;
+               nPagesFree++;
+            }
+         }
+         DeallocSharedMem(pid);
+         // DeallocKMem(task->pid);
+         // Careful!!! LinkTask() allocates kernel memory that is needed after the parent task has been killed.
+         // Hopefully all kernel memory should be explicitly allocated, without need for this cleanup.
+      }
+      else
+         asm("hlt");
    }
 }

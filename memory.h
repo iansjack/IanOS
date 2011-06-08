@@ -12,17 +12,13 @@
 #define OSCode          0x0000000000001000L
 #define OSData          0x0000000000010000L
 #define StaticPort      0x000000000006F000L
-#define PageMap         0x000000000007F000L
 #define TaskStruct      0x0000000000080000L
 #define TempUserCode    0x0000000000095000L
 #define TempUserData    0x0000000000096000L
 #define TempKStack      0x0000000000097000L
 #define TempUStack      0x0000000000098000L
-#define PageTableL4     0x0000000000200000L     // we will create the tables and fill in
-#define PageTableL3     0x0000000000201000L     // the physical addresses
-#define PageTableL2     0x0000000000202000L     //
-#define PageTableL11    0x0000000000203000L     // This contains the entries for 0x0000000000000000 - 0x00000000001FFFFF
-#define PageTableL12    0x0000000000204000L     // This contains the entries for 0x0000000000200000 - 0x00000000003FFFFF
+#define PageMap         0x0000000000100000L
+// Shared Memory        0x00000000001F0000 - 0x0000000000200000
 #define UserCode        0x0000000000300000L
 #define UserData        0x0000000000310000L
 #define KernelStack     0x00000000003FC000L
