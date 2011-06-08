@@ -6,6 +6,7 @@ extern struct Task *runnableTasks[2]; // [0] = Head, [1] = Tail
 extern struct Task *blockedTasks[2];
 extern struct TaskList * allTasks;
 extern struct Task *lowPriTask;
+extern struct DeadTaskList *deadTasks;
 
 unsigned char * oMemMax;
 long nPagesFree;
@@ -13,14 +14,14 @@ struct MemStruct *firstFreeKMem;
 /*static*/
 long nextKPage;
 struct MemStruct *firstFreeSharedMem;
-unsigned char *PMap;
+unsigned short int *PMap;
 long NoOfAllocations;
 long memorySemaphore;
 
 void
 InitMem64(void)
 {
-   PMap = (unsigned char *) PageMap;
+   PMap = (unsigned short int *) PageMap;
    firstFreeKMem = (struct MemStruct *) 0x11000;
    firstFreeKMem->next = 0;
    firstFreeKMem->size = 0xFE0;
@@ -33,6 +34,7 @@ InitMem64(void)
    allTasks = AllocKMem(sizeof(struct TaskList));
    allTasks->task = currentTask;
    allTasks->next = 0;
+   deadTasks = 0;
    lowPriTask = blockedTasks[0] = blockedTasks[1] = 0L;
    NoOfAllocations = 0;
    memorySemaphore = 0;
@@ -45,6 +47,9 @@ InitMem64(void)
 void *
 AllocMem(long sizeRequested, struct MemStruct *list)
 {
+   unsigned char kernel = 0;
+   if (list == firstFreeKMem || list == firstFreeSharedMem)
+      kernel = 1;
    // We want the memory allocation to be atomic, so set a semaphore before proceeding
    SetSem(&memorySemaphore);
    while (list->size < sizeRequested)
@@ -55,7 +60,10 @@ AllocMem(long sizeRequested, struct MemStruct *list)
          long temp = (long) list >> 12;
          while (list->size < sizeRequested)
          {
-            CreatePTE(AllocPage(), ++temp << 12);
+            if (kernel)
+               CreatePTE(AllocPage(1), ++temp << 12);
+            else
+               CreatePTE(AllocPage(currentTask->pid), ++temp << 12);
             list->size += PageSize;
          }
       }

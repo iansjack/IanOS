@@ -20,13 +20,14 @@ struct Task *blockedTasks[2] =
    { 0, 0 };
 struct Task *lowPriTask = 0;
 struct TaskList * allTasks = 0;
+struct DeadTaskList *deadTasks;
 
 extern long *tempstack;
 extern long *tempstack0;
-extern unsigned char *PMap;
+extern unsigned short int *PMap;
 extern long nPagesFree;
 
-static long nextpid = 2;
+static long nextpid = 3;
 
 //============================================
 //  Find the next free entry in the task table
@@ -45,7 +46,6 @@ nextfreetss()
 
 //===============================
 // Link task into the task table
-// Also allocate a pid
 //===============================
 void
 LinkTask(struct Task *task)
@@ -54,7 +54,6 @@ LinkTask(struct Task *task)
 
    task->nexttask = runnableTasks[0];
    runnableTasks[0] = task;
-   task->pid = nextpid++;
    if (tl->task)
    {
       while (tl->next)
@@ -78,12 +77,13 @@ NewTask(char *name, char *environment, struct MessagePort * parentPort,
    struct Task *task = nextfreetss();
    int result;
 
+   task->pid = nextpid++;
    task->environment = environment;
    task->parentPort = parentPort;
    task->currentDir = currentTask->currentDir;
    task->console = console;
    task->waiting = 0;
-   task->cr3 = (long) (VCreatePageDir());
+   task->cr3 = (long) (VCreatePageDir(task->pid));
    task->ds = udata64 + 3;
    copyMem((unsigned char *) StartTask, (unsigned char *) TempUserCode,
          (long) NewKernelTask - (long) StartTask);
@@ -134,7 +134,7 @@ LoadTheProgram(long start, char * name)
       size = codelen;
       while (codelen > PageSize)
       {
-         CreatePTE(AllocPage(), ++currentPage);
+         CreatePTE(AllocPage(currentTask->pid), ++currentPage);
          size -= PageSize;
       }
       ReadFromFile(fHandle, (char *) UserCode, codelen);
@@ -142,7 +142,7 @@ LoadTheProgram(long start, char * name)
       size = datalen;
       while (datalen > PageSize)
       {
-         CreatePTE(AllocPage(), ++currentPage);
+         CreatePTE(AllocPage(currentTask->pid), ++currentPage);
          size -= PageSize;
       }
       ReadFromFile(fHandle, (char *) UserData, datalen);
@@ -189,8 +189,9 @@ NewKernelTask(void *TaskCode)
    struct Task *task = nextfreetss();
    long *data;
 
+   task->pid = nextpid++;
    task->waiting = 0;
-   task->cr3 = (long) VCreatePageDir();
+   task->cr3 = (long) VCreatePageDir(task->pid);
    task->ds = data64;
    stack = (long *) (TempUStack + PageSize) - 5;
    task->rsp = (long) ((long *) (UserStack + PageSize) - 5);
@@ -271,32 +272,13 @@ KillTask(void)
       }
    }
 
-   // Release allocated memory
-   long *mem = (long *) PageTableL12;
-   long count;
-   for (count = 0x0; count < 0x3; count++)
-   {
-      PMap[mem[count] >> 12] = 0;
-      nPagesFree++;
-   }
-   for (count = 0x4; count < 0x200; count++)
-   {
-      if (mem[count] != 0)
-      {
-         PMap[mem[count] >> 12] = 0;
-         nPagesFree++;
-      }
-   }
+   // Add the task to the Dead Tasks queue
+   // The dummy task will scan this queue and mark pages assigned by this task as free
+   struct DeadTaskList * deadTask = AllocKMem(sizeof(struct DeadTaskList));
+   deadTask->next = deadTasks;
+   deadTask->pid = currentTask->pid;
+   deadTasks = deadTask;
 
-   // If there's any allocated shared memory, then free it
-   //DeallocSharedMem(task->pid);
-
-   // If there's any allocated kernel memory, then free it
-   //DeallocKMem(task->pid);
-
-   // Reset PID so that OS knows the slot is free
-   task->pid = 0;
-   //    RemoveFromQ(task, &allTasks[0], &allTasks[1]);
    struct TaskList * tl = allTasks;
    struct TaskList * tl1;
    if (tl->task == task)
@@ -314,6 +296,18 @@ KillTask(void)
       tl->next = tl->next->next;
       DeallocMem(tl1);
    }
+
+   // If there's any allocated shared memory, then free it
+   DeallocSharedMem(task->pid);
+
+   // If there's any allocated kernel memory, then free it
+   // DeallocKMem(task->pid);
+   // Careful!!! LinkTask() allocates kernel memory that is needed after the parent task has been killed.
+   // Hopefully all kernel memory should be explicitly allocated, without need for this cleanup.
+
+   // Reset PID so that OS knows the slot is free
+   task->pid = 0;
+   //    RemoveFromQ(task, &allTasks[0], &allTasks[1]);
 
    //SwTasks();
    SWTASKS;

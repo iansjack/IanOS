@@ -1,63 +1,49 @@
+#include "kstructs.h"
 #include "memory.h"
 #include "pagetab.h"
 
-extern long nPagesFree;
-extern unsigned char *PMap;
+#define VIRT(type, name) ((struct type *) ((long) name + 0x8000000000))
 
-/* Oops! I think we need to do this before we start paging.
-// Create the Page Tables entries mapping Physical memory to Physical + 0x1000000000
-long CreatePhysicalMapping(void)
-{
-   struct PML4e * base;
-   base = AllocPage64();
-   base->P = 0;
-   base->RW = 0;
-   base->US = 0;
-   base->PWT = 0;
-   base->PCD = 0;
-   base->A = 0;
-   base->ZEROS = 0;
-   base->Base = AllocPage64();
-   base->AVL = 0;
-   base->NX = 0;
-   return base;
-}
-*/
+extern long nPagesFree;
+extern unsigned short int *PMap;
+long kernelPT;
+long virtualPDP;
+extern struct Task *currentTask;
 
 //=====================================================
 // Create a Page Table for a new process
 // Return a pointer to the Page Directory of this table
 //=====================================================
 void *
-VCreatePageDir(void)
+VCreatePageDir(unsigned short pid)
 {
-   long *TPTL4 = (long *) TempPTL4;
-   long *TPTL3 = (long *) TempPTL3;
-   long *TPTL2 = (long *) TempPTL2;
-   long *TPTL12 = (long *) TempPTL12;
-   long *PTL12 = (long *) PageTableL12;
+   struct PML4 * pml4 = (struct PML4 *) AllocPage(pid);
+   struct PDP * pdp = (struct PDP *) AllocPage(pid);
+   struct PD * pd = (struct PD *) AllocPage(pid);
+   struct PT * pt = (struct PT *) AllocPage(pid);
 
-   void *PD = AllocPage();
+   VIRT(PML4,pml4)->entries[0].value = (long) pdp | P | RW | US;
+   VIRT(PML4,pml4)->entries[1].value = virtualPDP | P | RW | US;
+   VIRT(PDP,pdp)->entries[0].value = (long) pd | P | RW | US;
+   VIRT(PD,pd)->entries[0].value = kernelPT | P | RW | US;
+   VIRT(PD,pd)->entries[1].value = (long) pt | P | RW | US;
 
-   CreatePTE(PD, (long) TempPTL4);
-   TPTL4[0] = CreatePTE(AllocPage(), TempPTL3);
-   TPTL3[0] = CreatePTE(AllocPage(), TempPTL2);
-   TPTL2[0] = PTL12[3];
-   TPTL2[1] = CreatePTE(AllocPage(), TempPTL12);
-   TPTL12[0] = (long) PD + 7;
-   TPTL12[1] = TPTL4[0];
-   TPTL12[2] = TPTL3[0];
-   TPTL12[3] = TPTL2[0];
-   TPTL12[4] = TPTL2[1];
+   // Entries for the page table itself. We should be able to eliminate these!
+   VIRT(PT,pt)->entries[0].value = (long) pml4 + 7;
+   VIRT(PT,pt)->entries[1].value = VIRT(PML4,pml4)->entries[0].value;
+   VIRT(PT,pt)->entries[2].value = VIRT(PDP,pdp)->entries[0].value;
+   VIRT(PT,pt)->entries[3].value = VIRT(PD,pd)->entries[0].value;
+   VIRT(PT,pt)->entries[4].value = VIRT(PD,pd)->entries[1].value;
+
    // 1 Page for User Code
-   TPTL12[0x100] = CreatePTE(AllocPage(), TempUserCode);
+   VIRT(PT,pt)->entries[0x100].value = CreatePTE(AllocPage(pid), TempUserCode);
    // 1 Page for User Data
-   TPTL12[0x110] = CreatePTE(AllocPage(), TempUserData);
+   VIRT(PT,pt)->entries[0x110].value = CreatePTE(AllocPage(pid), TempUserData);
    // 1 Page for kernel stack
-   TPTL12[0x1FC] = CreatePTE(AllocPage(), TempKStack);
+   VIRT(PT,pt)->entries[0x1FC].value = CreatePTE(AllocPage(pid), TempKStack);
    // 1 Page for user stack
-   TPTL12[0x1FE] = CreatePTE(AllocPage(), TempUStack);
-   return (PD);
+   VIRT(PT,pt)->entries[0x1FE].value = CreatePTE(AllocPage(pid), TempUStack);
+   return (void *) pml4;
 }
 
 //====================================================
@@ -66,21 +52,38 @@ VCreatePageDir(void)
 long
 CreatePTE(void *pAddress, long lAddress)
 {
-   long *PTableL11 = (long *) PageTableL11;
+   int ptIndex = lAddress >> 12 & 0x1FF;
+   int pdIndex = lAddress >> 21 & 0x1FF;
+   int pdpIndex = lAddress >> 30 & 0x1FF;
+   int pml4Index = lAddress >> 39 & 0x1FF;
+
+   // Get the logical address of appropriate PageTable
+   struct PML4 * pml4 = (struct PML4 *) (currentTask->cr3 & 0xFFFFF000);
+   struct PDP * pdp = (struct PDP *) (VIRT(PML4,pml4)->entries[pml4Index].value
+         & 0xFFFFF000);
+   struct PD * pd = (struct PD *) (VIRT(PDP,pdp)->entries[pdpIndex].value
+         & 0xFFFFF000);
+   struct PT * pt = (struct PT *) (VIRT(PD,pd)->entries[pdIndex].value
+         & 0xFFFFF000);
 
    // We don't want this function to be interrupted.
    asm ("cli");
-   PTableL11[lAddress >> 12] = (long) pAddress | 7;
-   char *c = (char *) lAddress;
+
+   VIRT(PT,pt)->entries[ptIndex].value = ((long) pAddress & 0xFFFFF000) | RW
+         | US | P;
+
    // These lines update the page table cache.
-   // Without them results will be unpredictable.
+   // Without them results may be unpredictable.
    asm ("push %rbx");
    asm ("mov %cr3, %rbx");
    asm ("mov %rbx, %cr3");
    asm ("pop %rbx");
+
+   char *c = (char *) lAddress;
    int count;
    for (count = 0; count < PageSize; count++)
       c[count] = 0;
+
    asm ("sti");
 
    return ((long) pAddress | 7);
@@ -91,7 +94,7 @@ CreatePTE(void *pAddress, long lAddress)
 // Returns a pointer to the allocated page.
 //=========================================
 void *
-AllocPage()
+AllocPage(unsigned short int PID)
 {
    long i = 0;
 
@@ -99,9 +102,8 @@ AllocPage()
    {
       i++;
    }
-   PMap[i] = 1;
+   PMap[i] = PID;
    i = i << 12;
    nPagesFree--;
    return ((void *) i);
 }
-

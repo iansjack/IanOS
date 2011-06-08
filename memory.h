@@ -14,11 +14,6 @@
 #define StaticPort      0x000000000006F000L
 #define PageMap         0x000000000007F000L
 #define TaskStruct      0x0000000000080000L
-#define TempPTL4        0x0000000000090000L
-#define TempPTL3        0x0000000000091000L
-#define TempPTL2        0x0000000000092000L
-#define TempPTL11       0x0000000000093000L
-#define TempPTL12       0x0000000000094000L
 #define TempUserCode    0x0000000000095000L
 #define TempUserData    0x0000000000096000L
 #define TempKStack      0x0000000000097000L
@@ -33,7 +28,8 @@
 #define KernelStack     0x00000000003FC000L
 #define UserStack       0x00000000003FE000L
 
-// Free			0x0000000000400000 - 0xFFFFFFFFFFFFFFFF
+// Free			0x0000000000400000 - 0x0000003FFFFFFFFF
+// Virtual     0x0000003FFFFFFFFF - 0x000000FFFFFFFFFF   // Complete map of physical addresses
 
 #define PageSize       0x1000
 #define KbdPort        0x6F010L

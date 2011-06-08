@@ -51,8 +51,10 @@ start64:
 	movq %r15, TS.r15(%r15)
 	movb $0, TS.waiting(%r15)		# We don't want task1 to be waiting when it starts
 	movq $UserData, TS.firstfreemem(%r15)
-	movq $1, TS.pid(%r15)
-	movq $0, TS.currentDir
+	movq $2, TS.pid(%r15)
+	movq $0, TS.currentDir(%r15)
+	mov  %cr3, %rax
+	mov  %rax, TS.cr3(%r15)
 
 	mov $0xFF, %al
 	call AllocPage					# Page for kernel stack

@@ -11,6 +11,7 @@
 #define PAT 128
 #define G 256
 
+#ifdef CODE_32
 struct PML4e
 {
    long Lo :32;
@@ -34,6 +35,27 @@ struct PTE
    long Lo :32;
    long Hi :32;
 };
+#else
+struct PML4e
+{
+   long value;
+};
+
+struct PDPE
+{
+   long value;
+};
+
+struct PDE
+{
+   long value;
+};
+
+struct PTE
+{
+   long value;
+};
+#endif
 
 struct PML4
 {
@@ -56,10 +78,10 @@ struct PT
 };
 
 void *
-AllocPage();
+AllocPage(unsigned short int pid);
 long
 CreatePTE(void *pAddress, long lAddress);
 void *
-VCreatePageDir(void);
+VCreatePageDir(unsigned short pid);
 
 #endif

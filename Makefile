@@ -34,20 +34,20 @@ boot.o: boot.s memory.inc
 startup.o: startup.s
 	as  startup.s -o startup.o
 
-memory32.o: memory32.s memory.inc
-	as  memory32.s -o memory32.o
+#memory32.o: memory32.s memory.inc
+#	as  memory32.s -o memory32.o
 	
-mem32.o: mem32.c	
-	gcc -m32 $(CFLAGS) $(CPPFLAGS) $(INCLUDES) -S mem32.c
+mem32.o: mem32.c	memory.h
+	gcc -m32 -D CODE_32 $(CFLAGS) $(CPPFLAGS) $(INCLUDES) -S mem32.c
 	cat code32.s mem32.s >tmem32.s
 	as tmem32.s -o mem32.o
 	rm tmem32.s mem32.s
 
-pagetab32.o: pagetab32.s
-	as  pagetab32.s -o pagetab32.o
+#pagetab32.o: pagetab32.s
+#	as  pagetab32.s -o pagetab32.o
 
-ptab32.o: ptab32.c	
-	gcc -m32 -fno-stack-protector -ffixed-r15 -g -I . -I .. -S ptab32.c
+ptab32.o: ptab32.c memory.h
+	gcc -m32 -D CODE_32 -fno-stack-protector -ffixed-r15 -g -I . -I .. -S ptab32.c
 	cat code32.s ptab32.s >tptab32.s
 	as tptab32.s -o ptab32.o
 	rm tptab32.s ptab32.s
@@ -63,7 +63,7 @@ messages.o: messages.c
 
 memory.o: memory.c memory.h kstructs.h
 
-pagetab.o: pagetab.c memory.h pagetab.h
+pagetab.o: pagetab.c memory.h pagetab.h kstructs.h
 
 keyboard.o: keyboard.c memory.h kstructs.h
 

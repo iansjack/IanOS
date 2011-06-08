@@ -91,10 +91,17 @@ extern long memorySemaphore;
 extern long NoOfAllocations;
 extern long nPagesFree;
 extern unsigned char * oMemMax;
+long nPages;
 
-void InitMemManagement()
+//========================================
+// Find out how much memory is present.
+// Initialize some variables.
+// Create PageMap.
+//========================================
+void
+InitMemManagement()
 {
-   unsigned char *PMap = (unsigned char *) PageMap;
+   unsigned short int *PMap = (unsigned short int *) PageMap;
 
    memorySemaphore = 0;
    *(&memorySemaphore + 1) = 0;
@@ -102,20 +109,26 @@ void InitMemManagement()
    *(&NoOfAllocations + 1) = 0;
    nPagesFree = 256;
    *(&nPagesFree + 1) = 0;
-   long * mempos = (long *) 0x0019FFCC;
+
+   // Find number of free pages by writing a pattern to memory and seeing if it reads back OK
+   // We start at 1Mb and go up in 1Mb increments. Each Mb is 256 pages.
+   long * mempos = (long *) 0x100000;
    long testpattern = 0x6d72646c;
    while (1)
    {
       *mempos = testpattern;
-      if (*mempos != testpattern) break;
-      oMemMax = (unsigned char *)(mempos + 0x60003);
-      *(&oMemMax + 1) = 0;
-      mempos += 0x100000;
+      if (*mempos != testpattern)
+         break;
+      //      oMemMax = (unsigned char *)(mempos + 0x60003);
+      //      *(&oMemMax + 1) = 0;
+      mempos += 0x100000 / (sizeof * mempos);
       nPagesFree += 256;
    }
+   nPages = nPagesFree;
+
    int count;
    for (count = 0; count++; count < 0x4000)
-   PMap[count] = 0;
+      PMap[count] = 0;
 
    // GDT and IDT
    PMap[0] = 1;
@@ -160,17 +173,20 @@ void InitMemManagement()
 
 }
 
+//============================================
+// Allocate a page of memory and zero fill it
+//============================================
 void *
-AllocPage32(unsigned char process)
+AllocPage32(unsigned short int PID)
 {
-   unsigned char *PMap = (unsigned char *) PageMap;
+   unsigned short int *PMap = (unsigned short int *) PageMap;
    int count = 0;
 
    while (PMap[++count])
       ;
-   PMap[count] = process;
+   PMap[count] = PID;
    nPagesFree--;
-   unsigned char * mem = count << 12;
+   unsigned char * mem = (unsigned char *)(count << 12);
    for (count = 0; count < PageSize; count++)
       mem[count] = 0;
    return (void *) mem;

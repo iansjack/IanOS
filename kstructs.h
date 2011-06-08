@@ -31,7 +31,7 @@ struct Task
     long          firstdata;
     long          firstfreemem;
     long          nextpage;
-    long          pid;
+    unsigned short pid;
     long          timer;
     char * 			environment;
     struct MessagePort * parentPort;
@@ -102,6 +102,12 @@ struct TaskList
 {
   struct TaskList * next;
   struct Task * task;
+};
+
+struct DeadTaskList
+{
+   struct DeadTaskList * next;
+   unsigned short int pid;
 };
 
 
