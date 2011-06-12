@@ -20,7 +20,7 @@
 	</natures>
 	<filteredResources>
 		<filter>
-			<id>1305802273746</id>
+			<id>1307614767462</id>
 			<name></name>
 			<type>22</type>
 			<matcher>
@@ -29,7 +29,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1305802273758</id>
+			<id>1307614767475</id>
 			<name></name>
 			<type>22</type>
 			<matcher>
@@ -38,7 +38,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1305802273769</id>
+			<id>1307614767487</id>
 			<name></name>
 			<type>6</type>
 			<matcher>
@@ -47,7 +47,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1305802273780</id>
+			<id>1307614767498</id>
 			<name></name>
 			<type>22</type>
 			<matcher>
@@ -56,7 +56,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1305802273795</id>
+			<id>1307614767512</id>
 			<name></name>
 			<type>6</type>
 			<matcher>
@@ -65,7 +65,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1305802273806</id>
+			<id>1307614767529</id>
 			<name></name>
 			<type>22</type>
 			<matcher>
@@ -74,7 +74,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1305802273808</id>
+			<id>1307614767542</id>
 			<name></name>
 			<type>6</type>
 			<matcher>
@@ -83,7 +83,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1305802273810</id>
+			<id>1307614767545</id>
 			<name></name>
 			<type>6</type>
 			<matcher>
@@ -92,7 +92,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1305802273812</id>
+			<id>1307614767554</id>
 			<name></name>
 			<type>22</type>
 			<matcher>
@@ -101,7 +101,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1305802273837</id>
+			<id>1307614767565</id>
 			<name></name>
 			<type>22</type>
 			<matcher>
@@ -110,7 +110,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1305802273839</id>
+			<id>1307614767566</id>
 			<name></name>
 			<type>6</type>
 			<matcher>
@@ -119,7 +119,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1305802273841</id>
+			<id>1307614767588</id>
 			<name></name>
 			<type>22</type>
 			<matcher>
@@ -128,12 +128,21 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1305802273845</id>
+			<id>1307614767602</id>
 			<name></name>
 			<type>22</type>
 			<matcher>
 				<id>org.eclipse.ui.ide.multiFilter</id>
 				<arguments>1.0-name-matches-false-false-TASK?</arguments>
+			</matcher>
+		</filter>
+		<filter>
+			<id>1307614767604</id>
+			<name></name>
+			<type>5</type>
+			<matcher>
+				<id>org.eclipse.ui.ide.multiFilter</id>
+				<arguments>1.0-name-matches-false-false-*</arguments>
 			</matcher>
 		</filter>
 	</filteredResources>

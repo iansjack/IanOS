@@ -114,7 +114,7 @@ HdInt:	push %rax
 	out  %al, $0x20
 	out  %al, $0xA0
 	mov  blockedTasks, %r15
-.again2: 
+.again2:
 	cmpb $HDINT, TS.waiting(%r15)
 	jne  .goon
 	movb $0, TS.waiting(%r15)
@@ -142,8 +142,8 @@ SpecificSwitchTasks:		# int 22
 	call SpecificTaskSwitch
 	iretq
 
-intr:	
-	KWRITE_DOUBLE %rax, $9, $60	
+intr:
+	KWRITE_DOUBLE %rax, $9, $60
 	KWRITE_DOUBLE %rbx, $10, $60
 	KWRITE_DOUBLE %rcx, $11, $60
 	KWRITE_DOUBLE %rdx, $12,$60
@@ -190,7 +190,7 @@ ib:	movb $'b, 0xB8000
 ic:	movb $'c, 0xB8000
 	jmp intr
 gpf:
-	KWRITE_DOUBLE %rax, $9, $60	
+	KWRITE_DOUBLE %rax, $9, $60
 	KWRITE_DOUBLE %rbx, $10, $60
 	KWRITE_DOUBLE %rcx, $11, $60
 	KWRITE_DOUBLE %rdx, $12,$60
@@ -208,19 +208,19 @@ gpf:
 	hlt
 	iretq
 pf:
-	KWRITE_DOUBLE %rax, $9, $60	
+	KWRITE_DOUBLE %rax, $9, $60
 	KWRITE_DOUBLE %rbx, $10, $60
 	KWRITE_DOUBLE %rcx, $11, $60
 	KWRITE_DOUBLE %rdx, $12,$60
-	KWRITE_STRING $PFmessage, $0, $0	
+	KWRITE_STRING $PFmessage, $0, $0
 	KWRITE_DOUBLE 0x20(%esp), $0, $60
 	KWRITE_DOUBLE 0x28(%esp), $1, $60
 	KWRITE_DOUBLE 0x30(%esp), $2, $60
 	KWRITE_DOUBLE 0x38(%esp), $3, $60
 	KWRITE_DOUBLE 0x40(%esp), $4, $60
 	KWRITE_DOUBLE 0x48(%esp), $5, $60
-	KWRITE_DOUBLE 0x50(%esp), $6, $60
-	KWRITE_DOUBLE 0x58(%esp), $7, $60
+	#KWRITE_DOUBLE 0x50(%esp), $6, $60
+	#KWRITE_DOUBLE 0x58(%esp), $7, $60
 	pop %rax
 	cli
 	hlt

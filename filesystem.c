@@ -108,6 +108,7 @@ FindDirectoryBuffer(long directory)
       DirectoryBuffers[count].Directory = directory;
       DirectoryBuffers[count].Buffer = (void *) ReadDirectoryBuffer(directory);
    }
+   bufferno = count;
    return (bufferno);
 }
 //==========================================================
@@ -523,6 +524,7 @@ fsTaskCode()
          break;
 
       case CLOSEFILE:
+         debug();
          CloseFile((struct FCB *) FSMsg->quad);
          DeallocMem((void *) FSMsg->quad);
          tempPort = (struct MessagePort *) FSMsg->tempPort;
@@ -559,6 +561,7 @@ fsTaskCode()
 
       case GETDIRENTRY:
          ;
+         debug();
          short int bufferNo = FindDirectoryBuffer(
                PidToTask(FSMsg->pid)->currentDir);
          struct DirEntry
@@ -590,7 +593,7 @@ fsTaskCode()
    }
 }
 
-int
+void
 debug()
 {
    // Just a place marker

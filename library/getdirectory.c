@@ -1,12 +1,12 @@
-#include "memory.h"
-#include "kstructs.h"
-#include "lib.h"
-#include "library/syscalls.h"
-#include "filesystem.h"
+#include "../memory.h"
+#include "../kstructs.h"
+//#include "lib.h"
+//#include "library/syscalls.h"
+#include "../filesystem.h"
 #include "syscalls.h"
-#include "fat.h"
+#include "../fat.h"
 
-struct FCB *
+/*struct FCB *
 CreateFile(char *s)
 {
    char *S = sys_AllocSharedMem(12);
@@ -164,6 +164,7 @@ GetDirectoryEntry(int n, struct DirEntry * entry)
    sys_DeallocMem(msg);
    return (retval);
 }
+*/
 
 long
 GetDirectory(char * directory)

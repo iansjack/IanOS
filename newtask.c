@@ -441,7 +441,7 @@ dummyTask()
                nPagesFree++;
             }
          }
-         DeallocSharedMem(pid);
+         //DeallocSharedMem(pid);
          // DeallocKMem(task->pid);
          // Careful!!! LinkTask() allocates kernel memory that is needed after the parent task has been killed.
          // Hopefully all kernel memory should be explicitly allocated, without need for this cleanup.

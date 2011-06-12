@@ -90,7 +90,7 @@ tas1.o: tas1.c memory.h library/syscalls.h
 monitor.o: monitor.c memory.h kernel.h console.h
 
 clean:
-	rm -f a.out linkmap $(OBJS) *.bin boot.o IanOS.fdd *~
+	rm -f linkmap $(OBJS) *.bin boot.o IanOS.fdd *~
 	cd library; make clean
 	cd tasks; make clean
 

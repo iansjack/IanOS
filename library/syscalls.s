@@ -1,7 +1,5 @@
 	.include "../syscalls.inc"
 
-	.global sys_AllocMem
-	.global sys_AllocSharedMem
 	.global sys_CreateKTask
 	.global sys_CreateLPTask
 	.global sys_GetCommandLine
@@ -12,7 +10,6 @@
 	.global sys_SendMessage
 	.global sys_SendReceive
 	.global sys_Sleep
-	.global sys_GetTicks
 	.global sys_WriteDouble
 	.global sys_WriteString
 	.global sys_AllocMessagePort
@@ -21,16 +18,6 @@
 	.global sys_SetCurrentDirectory
 
 	.text
-
-sys_AllocMem:
-	mov $ALLOCMEM, %r9
-	syscall
-	ret
-
-sys_AllocSharedMem:
-	mov $ALLOCSHAREDMEM, %r9
-	syscall
-	ret
 
 sys_CreateKTask:
 	mov $CREATEKTASK, %r9
@@ -80,11 +67,6 @@ sys_SendReceive:
 
 sys_Sleep:
 	mov $SLEEP, %r9
-	syscall
-	ret
-
-sys_GetTicks:
-	mov $GETTICKS, %r9
 	syscall
 	ret
 

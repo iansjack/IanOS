@@ -15,14 +15,14 @@ int main(void)
       if (entry.name[0] == 0) break;
       if (entry.name[0] != 0xE5)
       {
-         for (count2 = 0; count2 < 11; count2++) writeconsolechar(entry.name[count2]);
+         for (count2 = 0; count2 < 11; count2++) WriteConsoleChar(entry.name[count2]);
          if (entry.attribute & 0x10)
-            writeconsolestring(" <DIR> ");
+            WriteConsoleString(" <DIR> ");
          else
-            writeconsolestring("       ");
+            WriteConsoleString("       ");
          intToAsc(entry.fileSize, buffer, 8);
-         writeconsolestring(buffer);
-         writeconsolechar('\r');
+         WriteConsoleString(buffer);
+         WriteConsoleChar('\r');
       }
    }
    sys_KillTask();

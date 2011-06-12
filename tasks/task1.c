@@ -15,9 +15,9 @@ main(void)
    char *environment = sys_AllocSharedMem(81);
    int i;
 
-   consoleclrscr();
-   writeconsolestring("IanOS Version 0.1.2 - 2011\r");
-   writeconsolestring("#> _\b");
+   ConsoleClrScr();
+   WriteConsoleString("IanOS Version 0.1.2 - 2011\r");
+   WriteConsoleString("#> _\b");
    name[80] = environment[80] = 0;
    for (i = 0; i < 80; i++)
    {
@@ -33,12 +33,13 @@ main(void)
       case BACKSPACE:
          if (column > 0)
          {
-            writeconsolestring(" \b\b_\b");
+            WriteConsoleString(" \b\b_\b");
             commandline[column--] = 0;
          }
          break;
 
       case CR:
+         commandline[column] = 0;
          column = 0;
 
          i = 0;
@@ -62,7 +63,7 @@ main(void)
             environment[i] = commandline[i];
          }
 
-         writeconsolestring(" \r");
+         WriteConsoleString(" \r");
 
          // Process "CD" command;
          if (name[0] == 'C' && name[1] == 'D' && name[2] == 0)
@@ -76,10 +77,10 @@ main(void)
             directory[i] = 0;
             int dir = GetDirectory(directory);
             if (dir == -1)
-               writeconsolestring("Directory not found!");
+               WriteConsoleString("Directory not found!");
             else
             {
-               writeconsolechar(dir + '0');
+               //writeconsolechar(dir + '0');
                sys_SetCurrentDirectory(dir);
             }
          }
@@ -103,7 +104,7 @@ main(void)
             }
          }
 
-         writeconsolestring("#> _\b");
+         WriteConsoleString("#> _\b");
 
          // Clear commandline[]
          for (i = 0; i < 80; i++)
@@ -114,8 +115,8 @@ main(void)
 
       default:
          commandline[column++] = c;
-         writeconsolechar(c);
-         writeconsolestring("_\b");
+         WriteConsoleChar(c);
+         WriteConsoleString("_\b");
          break;
          }
    }
