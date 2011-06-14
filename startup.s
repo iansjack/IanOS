@@ -20,9 +20,9 @@ here:
 	mov $OsDataSeg, %eax
 	mov %eax, %ds
 	mov %eax, %ss
+	mov $tempstack, %esp
 	call InitMemManagement
 	call HwSetup
-	mov $tempstack, %esp
 
 	# create 64-bit page tables
 	call CreatePageDir	    		# task1

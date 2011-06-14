@@ -11,8 +11,8 @@ main(void)
    int column = 0;
    char commandline[81];
    char buffer[512];
-   char *name = sys_AllocSharedMem(81);
-   char *environment = sys_AllocSharedMem(81);
+   char *name = sys_AllocMem(81); //sys_AllocSharedMem(81);
+   char *environment; //= sys_AllocSharedMem(81);
    int i;
 
    ConsoleClrScr();
@@ -58,6 +58,7 @@ main(void)
                name[i] = name[i] - 0x20;
          }
 
+         environment = sys_AllocSharedMem(81);
          for (i = 0; i < 80; i++)
          {
             environment[i] = commandline[i];
@@ -79,18 +80,13 @@ main(void)
             if (dir == -1)
                WriteConsoleString("Directory not found!");
             else
-            {
-               //writeconsolechar(dir + '0');
                sys_SetCurrentDirectory(dir);
-            }
          }
          else
          {
             if (name[0] == '&')
-            {
                sys_CreateTask(name + 1, environment + 1, 0,
                      sys_GetCurrentConsole());
-            }
             else
             {
                struct Message *msg = (struct Message *) sys_AllocMem(

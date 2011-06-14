@@ -2,10 +2,12 @@ include ../Flags.mak
 
 CFLAGS:=$(CFLAGS) -O -I ..
 LIBS = ../library/liblib.a ../library/libsyscalls.a 
-LIBOBJS = console.o writeconsolechar.o writeconsolestring.o consoleclrscr.o \
+LIBOBJS = writeconsolechar.o writeconsolestring.o consoleclrscr.o \
 	getchar.o createfile.o deletefile.o openfile.o closefile.o readfile.o writefile.o \
 	getfspid.o getdirectoryentry.o getdirectory.o convert.o
-SYSCALLSOBJS = syscalls.o allocmem.o allocsharedmem.o getticks.o
+SYSCALLSOBJS = syscalls.o allocmem.o allocsharedmem.o deallocmem.o \
+	createtask.o createktask.o createlptask.o killtask.o\
+	getcommandline.o getticks.o sleep.o
 
 all: liblib.a libsyscalls.a
 
@@ -46,8 +48,22 @@ syscalls.o: syscalls.s ../syscalls.inc
 
 allocmem.o: allocmem.s ../syscalls.inc
 
+deallocmem.o: deallocmem.s ../syscalls.inc
+
 allocsharedmem.o: allocsharedmem.s ../syscalls.inc
 
+createktask.o: createktask.s ../syscalls.inc
+
+createtask.o: createtask.s ../syscalls.inc
+
+createlptask.o: createlptask.s ../syscalls.inc
+
+killtask.o: killtask.s ../syscalls.inc
+
+getcommandline.o: getcommandline.s ../syscalls.inc
+
 getticks.o: getticks.s ../syscalls.inc
+
+sleep.o: sleep.s ../syscalls.inc
 
 convert.o: convert.c

@@ -1,15 +1,8 @@
 	.include "../syscalls.inc"
 
-	.global sys_CreateKTask
-	.global sys_CreateLPTask
-	.global sys_GetCommandLine
-	.global sys_CreateTask
-	.global sys_DeallocMem
-	.global sys_KillTask
 	.global sys_ReceiveMessage
 	.global sys_SendMessage
 	.global sys_SendReceive
-	.global sys_Sleep
 	.global sys_WriteDouble
 	.global sys_WriteString
 	.global sys_AllocMessagePort
@@ -18,37 +11,6 @@
 	.global sys_SetCurrentDirectory
 
 	.text
-
-sys_CreateKTask:
-	mov $CREATEKTASK, %r9
-	syscall
-	ret
-
-sys_CreateLPTask:
-	mov $CREATELPTASK, %r9
-	syscall
-	ret
-
-sys_GetCommandLine:
-	mov $GETCOMMANDLINE, %r9
-	syscall
-	ret
-
-sys_CreateTask:
-	mov $CREATETASK, %r9
-	mov %rcx, %r14
-	syscall
-	ret
-
-sys_DeallocMem:
-	mov $DEALLOCMEM, %r9
-	syscall
-	ret
-
-sys_KillTask:
-	mov $KILLTASK, %r9
-	syscall
-	ret
 
 sys_ReceiveMessage:
 	mov $RECEIVEMESSAGE, %r9
@@ -62,11 +24,6 @@ sys_SendMessage:
 
 sys_SendReceive:
 	mov $SENDRECEIVE, %r9
-	syscall
-	ret
-
-sys_Sleep:
-	mov $SLEEP, %r9
 	syscall
 	ret
 

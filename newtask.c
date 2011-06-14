@@ -12,6 +12,8 @@ void
 StartTask();
 struct Task *
 NewKernelTask(void *TaskCode);
+long
+ParseEnvironmentString(long *);
 
 struct Task *currentTask = 0;
 struct Task *runnableTasks[2] =
@@ -91,7 +93,7 @@ NewTask(char *name, char *environment, struct MessagePort * parentPort,
    copyMem(name, (unsigned char *) TempUserData, 100);
    stack = (long *) (TempUStack + PageSize) - 5;
    task->rsp = (long) ((long *) (UserStack + PageSize) - 5);
-   task->r13 = (long) name;
+   task->r13 = (long) TempUserData; //name;
    task->r15 = (long) task;
    stack[0] = UserCode;
    stack[1] = user64 + 3;
@@ -119,6 +121,8 @@ LoadTheProgram(long start, char * name)
    long *data;
    long currentPage;
    long size;
+   long argc;
+   long argv;
 
    struct Message *FSMsg;
 
@@ -164,6 +168,23 @@ LoadTheProgram(long start, char * name)
       FSMsg->quad = (long) fHandle;
       SendReceiveMessage((struct MessagePort *) FSPort, FSMsg);
       DeallocMem(FSMsg);
+      char * env = currentTask->environment;
+      if (env)
+      {
+         char * newenv = AllocMem(81,
+               (struct MemStruct *) currentTask->firstfreemem);
+         copyMem(env, newenv, 81);
+         DeallocMem(env);
+         currentTask->environment = newenv;
+         argc = ParseEnvironmentString(&argv);
+         asm ("mov %0,%%rdi;"
+               "mov %1,%%rsi"
+               :
+               :"r"(argc), "r"(argv)
+               :"%rax","%rdi"
+         );
+
+      }
       asm("mov $0x300000, %rcx");
    }
    else
@@ -231,7 +252,6 @@ NewLowPriTask(void *TaskCode)
    lowPriTask = NewKernelTask(TaskCode);
    struct Task *temp = runnableTasks[0];
    RemoveFromQ(lowPriTask, &runnableTasks[0], &runnableTasks[1]);
-   //    AddToQ(lowPriTask, &allTasks[0], &allTasks[1]);
 }
 
 //=======================
@@ -337,13 +357,14 @@ moveTaskToEndOfQueue()
 {
    struct Task *temp = runnableTasks[0];
 
-   if (temp->nexttask)
-   {
-      runnableTasks[0] = temp->nexttask;
-      runnableTasks[1]->nexttask = temp;
-      runnableTasks[1] = temp;
-      temp->nexttask = 0;
-   }
+   if (temp)
+      if (temp->nexttask)
+      {
+         runnableTasks[0] = temp->nexttask;
+         runnableTasks[1]->nexttask = temp;
+         runnableTasks[1] = temp;
+         temp->nexttask = 0;
+      }
 }
 
 //========================
@@ -450,3 +471,31 @@ dummyTask()
          asm("hlt");
    }
 }
+
+long
+ParseEnvironmentString(long * l)
+{
+   long argc = 0;
+   int count = 0;
+
+   char * env = currentTask->environment;
+
+   *l = (long)AllocMem(80, (struct MemStruct *) currentTask->firstfreemem);
+   long * argv = *l;
+   argv[0] = (long)env;
+   while (env[count])
+   {
+      while (env[count] && env[count] != ' ')
+      {
+         count++;
+      }
+      argc++;
+      if (env[count])
+      {
+         env[count] = 0;
+         argv[argc] = (long)env + ++count;
+      }
+   }
+   return argc;
+}
+
