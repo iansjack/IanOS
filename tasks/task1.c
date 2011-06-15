@@ -16,7 +16,7 @@ main(void)
    int i;
 
    ConsoleClrScr();
-   WriteConsoleString("IanOS Version 0.1.2 - 2011\r");
+   WriteConsoleString("IanOS Version 0.1.2 - 2011\n");
    WriteConsoleString("#> _\b");
    name[80] = environment[80] = 0;
    for (i = 0; i < 80; i++)
@@ -64,7 +64,7 @@ main(void)
             environment[i] = commandline[i];
          }
 
-         WriteConsoleString(" \r");
+         WriteConsoleString(" \n");
 
          // Process "CD" command;
          if (name[0] == 'C' && name[1] == 'D' && name[2] == 0)

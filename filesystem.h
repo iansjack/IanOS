@@ -10,11 +10,17 @@
 #define GETPID       7
 #define GETDIRENTRY  8
 #define GETDIRECTORY 9
+#define GETFILEINFO  10
 
 struct DirectoryBuffer
 {
    long Directory;   // The cluster number of the directory
    void * Buffer;    // A buffer containing the directory
+};
+
+struct FileInfo
+{
+   long Length;
 };
 
 unsigned char   *DiskBuffer;

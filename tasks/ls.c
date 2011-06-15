@@ -1,5 +1,6 @@
 #include "kstructs.h"
 #include "library/syscalls.h"
+#include "library/lib.h"
 #include "fat.h"
 
 int main(void)
@@ -22,7 +23,7 @@ int main(void)
             WriteConsoleString("       ");
          intToAsc(entry.fileSize, buffer, 8);
          WriteConsoleString(buffer);
-         WriteConsoleChar('\r');
+         WriteConsoleChar('\n');
       }
    }
    sys_KillTask();

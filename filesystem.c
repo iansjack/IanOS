@@ -351,8 +351,10 @@ CloseFile(struct FCB *fHandle)
 
    if (fHandle->bufIsDirty)
    {
-      WriteSector(fHandle->filebuf, ClusterToSector(fHandle->currentCluster)
-            + fHandle->sectorInCluster - 1);
+      WriteSector(
+            fHandle->filebuf,
+            ClusterToSector(fHandle->currentCluster) + fHandle->sectorInCluster
+                  - 1);
    }
    fHandle->directory->fileSize = fHandle->length;
    SaveDir();
@@ -389,8 +391,10 @@ ReadFile(struct FCB *fHandle, char *buffer, long noBytes)
       {
          if (fHandle->bufIsDirty)
          {
-            WriteSector(fHandle->filebuf, ClusterToSector(
-                  fHandle->currentCluster) + fHandle->sectorInCluster - 1);
+            WriteSector(
+                  fHandle->filebuf,
+                  ClusterToSector(fHandle->currentCluster)
+                        + fHandle->sectorInCluster - 1);
          }
          if (fHandle->sectorInCluster++ == SectorsPerCluster)
          {
@@ -429,8 +433,10 @@ WriteFile(struct FCB *fHandle, char *buffer, long noBytes)
       // If we have written past the end of the buffer we need to flush the sector to the disk
       if ((fHandle->bufCursor == 512) && (bytesWritten < noBytes))
       {
-         WriteSector(fHandle->filebuf, ClusterToSector(fHandle->currentCluster)
-               + fHandle->sectorInCluster - 1);
+         WriteSector(
+               fHandle->filebuf,
+               ClusterToSector(fHandle->currentCluster)
+                     + fHandle->sectorInCluster - 1);
          if (fHandle->sectorInCluster++ > SectorsPerCluster)
          {
             // Allocate another cluster
@@ -561,7 +567,6 @@ fsTaskCode()
 
       case GETDIRENTRY:
          ;
-         debug();
          short int bufferNo = FindDirectoryBuffer(
                PidToTask(FSMsg->pid)->currentDir);
          struct DirEntry
@@ -577,12 +582,24 @@ fsTaskCode()
       case GETDIRECTORY:
          ;
          struct DirEntry *entry;
-         entry = (struct DirEntry *) FindFile((char *) FSMsg->quad, PidToTask(
-               FSMsg->pid)->currentDir);
+         entry = (struct DirEntry *) FindFile((char *) FSMsg->quad,
+               PidToTask(FSMsg->pid)->currentDir);
          if (entry)
             FSMsg->quad = entry->startingCluster;
          else
             FSMsg->quad = -1;
+         tempPort = (struct MessagePort *) FSMsg->tempPort;
+         SendMessage(tempPort, FSMsg);
+         break;
+
+      case GETFILEINFO:
+         ;
+         struct FileInfo info;
+         struct FCB *fcb = (struct FCB *) FSMsg->quad;
+         info.Length = fcb->length;
+         count;
+         for (count = 0; count < sizeof(struct FileInfo); count++)
+            ((char *) FSMsg->quad2)[count] = ((char *) (&info))[count];
          tempPort = (struct MessagePort *) FSMsg->tempPort;
          SendMessage(tempPort, FSMsg);
          break;

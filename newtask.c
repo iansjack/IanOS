@@ -261,7 +261,6 @@ void
 KillTask(void)
 {
    struct Task *task = currentTask;
-   struct Task *temp = runnableTasks[0];
 
    if (task->parentPort)
    {
@@ -275,6 +274,8 @@ KillTask(void)
    asm ("cli");
 
    // Unlink task from runnable queue
+   struct Task *temp = runnableTasks[0];
+
    if (temp == task)
    {
       runnableTasks[0] = temp->nexttask;

@@ -2,6 +2,7 @@
 #define LIB_H
 
 #include "kstructs.h"
+#include "filesystem.h"
 
 char getchar();
 void send(struct Message * msg);
@@ -15,5 +16,6 @@ long ReadFile(struct FCB *fHandle, char *buffer, long noBytes);
 long WriteFile(struct FCB *fHandle, char *buffer, long noBytes);
 struct FCB *DeleteFile(struct FCB *fHandle);
 long GetDirectoryEntry(int n, struct DirEntry * entry);
+long GetFileInfo(struct FCB *fHandle, struct FileInfo *info);
 
 #endif

@@ -69,7 +69,7 @@ void printchar ( unsigned char c )
         currCons->column = 0;
         break;
 
-    case CR:
+    case LF:
         currCons->column = 0;
         currCons->row++;
         if ( currCons->row == 25 )

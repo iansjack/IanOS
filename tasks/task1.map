@@ -28,10 +28,10 @@ DataStart           0x8               ../library/liblib.a(getdirectory.o)
 SectorsPerCluster   0x1               ../library/liblib.a(getdirectory.o)
 FATLength           0x8               ../library/liblib.a(getdirectory.o)
 FirstFAT            0x8               ../library/liblib.a(getdirectory.o)
-DiskBuffer          0x8               ../library/liblib.a(getdirectory.o)
+DiskBuffer          0x8               task1.o
 RootDirectoryEntries
                     0x2               ../library/liblib.a(getdirectory.o)
-FAT                 0x8               ../library/liblib.a(getdirectory.o)
+FAT                 0x8               task1.o
 RootDir             0x8               ../library/liblib.a(getdirectory.o)
 BytesPerSector      0x2               ../library/liblib.a(getdirectory.o)
 
@@ -127,19 +127,20 @@ OUTPUT(TASK1 binary)
 .bss            0x00000000003101b8       0x44 load address 0x0000000000300820
  .bss           0x00000000003101b8        0x0 inittask.o
  .bss           0x00000000003101b8        0x0 task1.o
- .bss           0x00000000003101b8        0x0 ../library/liblib.a(writeconsolechar.o)
- .bss           0x00000000003101b8        0x0 ../library/liblib.a(writeconsolestring.o)
- .bss           0x00000000003101b8        0x0 ../library/liblib.a(consoleclrscr.o)
- .bss           0x00000000003101b8        0x0 ../library/liblib.a(getchar.o)
- .bss           0x00000000003101b8        0x0 ../library/liblib.a(getdirectory.o)
- COMMON         0x00000000003101b8       0x42 ../library/liblib.a(getdirectory.o)
-                0x00000000003101b8                DataStart
-                0x00000000003101c0                SectorsPerCluster
-                0x00000000003101c8                FATLength
-                0x00000000003101d0                FirstFAT
-                0x00000000003101d8                DiskBuffer
-                0x00000000003101e0                RootDirectoryEntries
-                0x00000000003101e8                FAT
+ COMMON         0x00000000003101b8       0x10 task1.o
+                0x00000000003101b8                DiskBuffer
+                0x00000000003101c0                FAT
+ .bss           0x00000000003101c8        0x0 ../library/liblib.a(writeconsolechar.o)
+ .bss           0x00000000003101c8        0x0 ../library/liblib.a(writeconsolestring.o)
+ .bss           0x00000000003101c8        0x0 ../library/liblib.a(consoleclrscr.o)
+ .bss           0x00000000003101c8        0x0 ../library/liblib.a(getchar.o)
+ .bss           0x00000000003101c8        0x0 ../library/liblib.a(getdirectory.o)
+ COMMON         0x00000000003101c8       0x32 ../library/liblib.a(getdirectory.o)
+                0x00000000003101c8                DataStart
+                0x00000000003101d0                SectorsPerCluster
+                0x00000000003101d8                FATLength
+                0x00000000003101e0                FirstFAT
+                0x00000000003101e8                RootDirectoryEntries
                 0x00000000003101f0                RootDir
                 0x00000000003101f8                BytesPerSector
  *fill*         0x00000000003101fa        0x2 00
@@ -149,21 +150,21 @@ OUTPUT(TASK1 binary)
  .bss           0x00000000003101fc        0x0 ../library/libsyscalls.a(deallocmem.o)
  .bss           0x00000000003101fc        0x0 ../library/libsyscalls.a(createtask.o)
 
-.debug_info     0x0000000000000000      0xa33
- .debug_info    0x0000000000000000      0x421 task1.o
- .debug_info    0x0000000000000421       0xfe ../library/liblib.a(writeconsolechar.o)
- .debug_info    0x000000000000051f      0x120 ../library/liblib.a(writeconsolestring.o)
- .debug_info    0x000000000000063f       0xf0 ../library/liblib.a(consoleclrscr.o)
- .debug_info    0x000000000000072f      0x101 ../library/liblib.a(getchar.o)
- .debug_info    0x0000000000000830      0x203 ../library/liblib.a(getdirectory.o)
+.debug_info     0x0000000000000000      0xa6f
+ .debug_info    0x0000000000000000      0x45d task1.o
+ .debug_info    0x000000000000045d       0xfe ../library/liblib.a(writeconsolechar.o)
+ .debug_info    0x000000000000055b      0x120 ../library/liblib.a(writeconsolestring.o)
+ .debug_info    0x000000000000067b       0xf0 ../library/liblib.a(consoleclrscr.o)
+ .debug_info    0x000000000000076b      0x101 ../library/liblib.a(getchar.o)
+ .debug_info    0x000000000000086c      0x203 ../library/liblib.a(getdirectory.o)
 
-.debug_abbrev   0x0000000000000000      0x3bc
- .debug_abbrev  0x0000000000000000       0xf4 task1.o
- .debug_abbrev  0x00000000000000f4       0x88 ../library/liblib.a(writeconsolechar.o)
- .debug_abbrev  0x000000000000017c       0x88 ../library/liblib.a(writeconsolestring.o)
- .debug_abbrev  0x0000000000000204       0x77 ../library/liblib.a(consoleclrscr.o)
- .debug_abbrev  0x000000000000027b       0x88 ../library/liblib.a(getchar.o)
- .debug_abbrev  0x0000000000000303       0xb9 ../library/liblib.a(getdirectory.o)
+.debug_abbrev   0x0000000000000000      0x3d7
+ .debug_abbrev  0x0000000000000000      0x10f task1.o
+ .debug_abbrev  0x000000000000010f       0x88 ../library/liblib.a(writeconsolechar.o)
+ .debug_abbrev  0x0000000000000197       0x88 ../library/liblib.a(writeconsolestring.o)
+ .debug_abbrev  0x000000000000021f       0x77 ../library/liblib.a(consoleclrscr.o)
+ .debug_abbrev  0x0000000000000296       0x88 ../library/liblib.a(getchar.o)
+ .debug_abbrev  0x000000000000031e       0xb9 ../library/liblib.a(getdirectory.o)
 
 .debug_aranges  0x0000000000000000      0x120
  .debug_aranges
@@ -182,21 +183,21 @@ OUTPUT(TASK1 binary)
 .debug_ranges   0x0000000000000000       0x30
  .debug_ranges  0x0000000000000000       0x30 task1.o
 
-.debug_line     0x0000000000000000      0x2dd
- .debug_line    0x0000000000000000       0xf0 task1.o
- .debug_line    0x00000000000000f0       0x5d ../library/liblib.a(writeconsolechar.o)
- .debug_line    0x000000000000014d       0x67 ../library/liblib.a(writeconsolestring.o)
- .debug_line    0x00000000000001b4       0x5a ../library/liblib.a(consoleclrscr.o)
- .debug_line    0x000000000000020e       0x53 ../library/liblib.a(getchar.o)
- .debug_line    0x0000000000000261       0x7c ../library/liblib.a(getdirectory.o)
+.debug_line     0x0000000000000000      0x2ec
+ .debug_line    0x0000000000000000      0x100 task1.o
+ .debug_line    0x0000000000000100       0x5d ../library/liblib.a(writeconsolechar.o)
+ .debug_line    0x000000000000015d       0x67 ../library/liblib.a(writeconsolestring.o)
+ .debug_line    0x00000000000001c4       0x5a ../library/liblib.a(consoleclrscr.o)
+ .debug_line    0x000000000000021e       0x53 ../library/liblib.a(getchar.o)
+ .debug_line    0x0000000000000271       0x7b ../library/liblib.a(getdirectory.o)
 
-.debug_str      0x0000000000000000      0x6cc
- .debug_str     0x0000000000000000      0x1cb task1.o
- .debug_str     0x00000000000001cb       0xee ../library/liblib.a(writeconsolechar.o)
- .debug_str     0x00000000000002b9       0xf2 ../library/liblib.a(writeconsolestring.o)
- .debug_str     0x00000000000003ab       0xe8 ../library/liblib.a(consoleclrscr.o)
- .debug_str     0x0000000000000493       0xe3 ../library/liblib.a(getchar.o)
- .debug_str     0x0000000000000576      0x156 ../library/liblib.a(getdirectory.o)
+.debug_str      0x0000000000000000      0x6d7
+ .debug_str     0x0000000000000000      0x1d6 task1.o
+ .debug_str     0x00000000000001d6       0xee ../library/liblib.a(writeconsolechar.o)
+ .debug_str     0x00000000000002c4       0xf2 ../library/liblib.a(writeconsolestring.o)
+ .debug_str     0x00000000000003b6       0xe8 ../library/liblib.a(consoleclrscr.o)
+ .debug_str     0x000000000000049e       0xe3 ../library/liblib.a(getchar.o)
+ .debug_str     0x0000000000000581      0x156 ../library/liblib.a(getdirectory.o)
 
 .comment        0x0000000000000000      0x10e
  .comment       0x0000000000000000       0x2d task1.o

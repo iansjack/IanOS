@@ -3,7 +3,7 @@ include ../Flags.mak
 CFLAGS:=$(CFLAGS) -O -I ..
 LIBS = ../library/liblib.a ../library/libsyscalls.a 
 LIBOBJS = writeconsolechar.o writeconsolestring.o consoleclrscr.o \
-	getchar.o createfile.o deletefile.o openfile.o closefile.o readfile.o writefile.o \
+	getchar.o createfile.o deletefile.o openfile.o closefile.o readfile.o writefile.o getfileinfo.o \
 	getfspid.o getdirectoryentry.o getdirectory.o convert.o
 SYSCALLSOBJS = syscalls.o allocmem.o allocsharedmem.o deallocmem.o \
 	createtask.o createktask.o createlptask.o killtask.o\
@@ -37,6 +37,8 @@ deletefile.o: deletefile.c ../kstructs.h ../memory.h ../filesystem.h syscalls.h
 readfile.o: readfile.c ../kstructs.h ../memory.h ../filesystem.h syscalls.h
 
 writefile.o: writefile.c ../kstructs.h ../memory.h ../filesystem.h syscalls.h
+
+getfileinfo.o: getfileinfo.c ../kstructs.h ../filesystem.h syscalls.h
 
 getfspid.o: getfspid.c ../kstructs.h ../memory.h ../filesystem.h syscalls.h
 

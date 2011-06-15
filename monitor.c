@@ -19,6 +19,7 @@ extern struct Task *lowPriTask;
 extern long NoOfAllocations;
 extern long nextKPage;
 extern long nPagesFree;
+extern long nPages;
 extern struct TaskList * allTasks;
 
 char *mVideoBuffer;
@@ -169,15 +170,16 @@ void MainDisplay()
    if (printTemplate)
    {
       mclrscr();
-      mprintString("Monitor\r");
-      mprintString("=======\r");
-      mprintString("\rTicks:");
-      mprintString("\rcurrentTask:");
-      mprintString("\rrunnableTasks:");
-      mprintString("\rblockedTasks:");
-      mprintString("\r\rlowPriTask:");
-      mprintString("\rFree Pages");
-      mprintString("\rAllocations:");
+      mprintString("Monitor\n");
+      mprintString("=======\n");
+      mprintString("\nTicks:");
+      mprintString("\ncurrentTask:");
+      mprintString("\nrunnableTasks:");
+      mprintString("\nblockedTasks:");
+      mprintString("\n\nlowPriTask:");
+      mprintString("\nTotalPages");
+      mprintString("\nFree Pages");
+      mprintString("\nAllocations:");
    }
 
    msetcursor(3, 18);
@@ -205,8 +207,10 @@ void MainDisplay()
    msetcursor(8, 18);
    mprint64((long)lowPriTask);
    msetcursor(9, 18);
-   mprint64((long)nPagesFree);
+   mprint64(nPages);
    msetcursor(10, 18);
+   mprint64(nPagesFree);
+   msetcursor(11, 18);
    mprint64(NoOfAllocations);
 }
 
@@ -219,8 +223,8 @@ void ProcessDisplay(int n)
    if (printTemplate)
    {
       mclrscr();
-      mprintString("Processes\r");
-      mprintString("=========\r");
+      mprintString("Processes\n");
+      mprintString("=========\n");
    }
    msetcursor(3, 0);
    while (tl->next)
@@ -237,7 +241,7 @@ void ProcessDisplay(int n)
       }
       else mprint64((long)t);
       tl = tl->next;
-      mprintchar ('\r');
+      mprintchar ('\n');
    }
    t = tl->task;
    mprint64(t->pid);
@@ -250,7 +254,7 @@ void ProcessDisplay(int n)
       dispTask = t;
    }
    else mprint64((long)t);
-   mprintchar('\r');
+   mprintchar('\n');
    mclreol();
 }
 
@@ -259,11 +263,11 @@ void ProcessDetails()
 	if (printTemplate)
    {
 		mclrscr();
-	   mprintString("\rProcess:");
-      mprintString("\rPID:");
-      mprintString("\rNext Task:");
-		mprintString("\rFirstFreeMem:");
-		mprintString("\rCurrentDir:");
+	   mprintString("\nProcess:");
+      mprintString("\nPID:");
+      mprintString("\nNext Task:");
+		mprintString("\nFirstFreeMem:");
+		mprintString("\nCurrentDir:");
       msetcursor(1, 40);
       mprintString("RAX:");
       msetcursor(2, 40);
@@ -386,8 +390,8 @@ void ProcessMemory()
 	if (printTemplate)
    {
 		mclrscr();
-      mprintString("Process Memory\r");
-		mprintString("==============\r");
+      mprintString("Process Memory\n");
+		mprintString("==============\n");
  	}
 
 	for (i = 0; i < 8; i++)
