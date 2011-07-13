@@ -5,7 +5,7 @@
 
 	.global TaskSwitch
 	.global SpecificTaskSwitch
-	.global CreateKernelTask
+#	.global CreateKernelTask
 
 #===================================================================================================
 # Save the current task, restore the next ready one (if there is one!), and initiate a task switch.

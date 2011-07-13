@@ -75,6 +75,26 @@
 	pop %rax
 .endm
 
+.macro PUSH_ALL
+	push %rax
+   push %rbx
+   push %rcx
+   push %rdx
+   push %rsi
+   push %rdi
+   push %rbp
+.endm
+
+.macro POP_ALL
+	pop  %rbp
+   pop  %rdi
+   pop  %rsi
+   pop  %rdx
+   pop  %rcx
+   pop  %rbx
+   pop  %rax
+.endm
+
 .macro SWITCH_TASKS
 	int $20
 .endm
@@ -104,7 +124,7 @@
 
 .macro CODE64_SEG_DESCR name,dpl
 	SEG_DESCRIP \name, 0, 0, 0, 1, 0, 1, \dpl, 1, 8
-.endm	
+.endm
 
 .macro DATA_SEG_DESCR name,base,limit
 	SEG_DESCRIP \name,\base,1,1,0,\limit,1,0,1,2

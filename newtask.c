@@ -53,6 +53,7 @@ nextfreetss()
 void
 LinkTask(struct Task *task)
 {
+   asm("cli");
    struct TaskList *tl = allTasks;
 
    task->nexttask = runnableTasks[0];
@@ -67,6 +68,7 @@ LinkTask(struct Task *task)
    tl->next = AllocKMem(sizeof(struct TaskList));
    tl->next->next = 0;
    tl->next->task = task;
+   asm("sti");
 }
 
 //========================
@@ -250,8 +252,9 @@ void
 NewLowPriTask(void *TaskCode)
 {
    lowPriTask = NewKernelTask(TaskCode);
-   struct Task *temp = runnableTasks[0];
+   // struct Task *temp = runnableTasks[0];
    RemoveFromQ(lowPriTask, &runnableTasks[0], &runnableTasks[1]);
+   lowPriTask->nexttask = (struct Task *) 0;
 }
 
 //=======================
@@ -356,6 +359,7 @@ UnBlockTask(struct Task *task)
 void
 moveTaskToEndOfQueue()
 {
+   asm("cli");
    struct Task *temp = runnableTasks[0];
 
    if (temp)
@@ -366,6 +370,7 @@ moveTaskToEndOfQueue()
          runnableTasks[1] = temp;
          temp->nexttask = 0;
       }
+   asm("sti");
 }
 
 //========================
@@ -374,6 +379,7 @@ moveTaskToEndOfQueue()
 void
 RemoveFromQ(struct Task *task, struct Task **QHead, struct Task **QTail)
 {
+   asm("cli");
    struct Task *temp = *QHead;
 
    if (temp == task)
@@ -399,6 +405,7 @@ RemoveFromQ(struct Task *task, struct Task **QHead, struct Task **QTail)
          temp = temp->nexttask;
       }
    }
+   asm("sti");
 }
 
 //======================
@@ -407,6 +414,7 @@ RemoveFromQ(struct Task *task, struct Task **QHead, struct Task **QTail)
 void
 AddToQ(struct Task *task, struct Task **QHead, struct Task **QTail)
 {
+   asm("cli");
    if (*QHead == 0)
    {
       *QHead = *QTail = task;
@@ -418,6 +426,7 @@ AddToQ(struct Task *task, struct Task **QHead, struct Task **QTail)
       *QTail = task;
       task->nexttask = 0;
    }
+   asm("sti");
 }
 
 //=========================================
@@ -482,7 +491,7 @@ ParseEnvironmentString(long * l)
    char * env = currentTask->environment;
 
    *l = (long)AllocMem(80, (struct MemStruct *) currentTask->firstfreemem);
-   long * argv = *l;
+   long * argv = (long *) *l;
    argv[0] = (long)env;
    while (env[count])
    {

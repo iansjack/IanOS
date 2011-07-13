@@ -37,12 +37,8 @@ HDINT 		= 3
 #===================
 # Keyboard interrupt
 #===================
-KbInt:	push %rax
-	push %rbx
-   push %rcx
-   push %rdx
-   push %rsi
-   push %rdi
+KbInt:
+	PUSH_ALL
 	in   $0x60, %al		 # MUST read byte from keyboard - else no more ints
 	mov  $kbBuffer, %rbx
    add  (kbBufCurrent), %rbx
@@ -56,24 +52,14 @@ KbInt:	push %rax
    call keyPressed
 	mov  $0x20, %al		  # clear int
 	out  %al, $0x20
-   pop  %rdi
-   pop  %rsi
-   pop  %rdx
-   pop  %rcx
-   pop  %rbx
-	pop  %rax
+	POP_ALL
 	iretq
 
 #================
 # Timer interrupt
 #================
 TimerInt:
-	push %rax
-   push %rbx
-   push %rcx
-   push %rdx
-   push %rsi
-   push %rdi
+	PUSH_ALL
 	mov  $0x20, %al
 	out  %al, $0x20
 	incq Ticks
@@ -96,13 +82,8 @@ TimerInt:
 	jnz  .tdone
 	movb $5, TimeSliceCount
 .tdone:
+	POP_ALL
 	SWITCH_TASKS
-   pop  %rdi
-   pop  %rsi
-   pop  %rdx
-   pop  %rcx
-   pop  %rbx
-   pop  %rax
 	iretq
 
 #=====================
@@ -119,7 +100,9 @@ HdInt:	push %rax
 	jne  .goon
 	movb $0, TS.waiting(%r15)
 	mov  %r15, %rdi
+	PUSH_ALL
 	call UnBlockTask
+	POP_ALL
 	SWITCH_TASKS_R15
 	jmp  .done2
 .goon:	mov  TS.nexttask(%r15), %r15

@@ -39,7 +39,7 @@ here:
 	wrmsr									# actually be in Long Mode until paging is enabled)
 
 	mov  	%cr0, %eax
-	# bts	$16, %eax					# enable write protection
+#	bts	$16, %eax					# enable write protection
 	bts  	$31, %eax					# enable paging
 	mov  %eax, %cr0
 

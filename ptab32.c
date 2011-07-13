@@ -45,7 +45,9 @@ void CreatePT164(struct PT * pt)
    unsigned short int *PMap = (unsigned short int *) PageMap;
    int count;
 
-   for (count = 0; count < 0x10; count++)
+   pt->entries[0].Hi = 0;
+   pt->entries[0].Lo = P | RW;
+   for (count = 1; count < 0x10; count++)
    {
       pt->entries[count].Hi = 0;
       pt->entries[count].Lo = (count << 12) | P;

@@ -14,6 +14,7 @@ void SendMessage(struct MessagePort *MP, struct Message *Msg)
 
    copyMem((unsigned char *)Msg, (unsigned char *)temp, sizeof(struct Message));
    temp->pid = currentTask->pid;
+   asm("cli");
    if (MP->msgQueue == 0)
    {
       MP->msgQueue = temp;
@@ -27,6 +28,7 @@ void SendMessage(struct MessagePort *MP, struct Message *Msg)
       }
       pMsg->nextMessage = temp;
    }
+   asm("sti");
    if (MP->waitingProc != (struct Task *)-1L)
    {
       struct Task *task = MP->waitingProc;
@@ -50,9 +52,11 @@ void ReceiveMessage(struct MessagePort *MP, struct Message *Msg)
       BlockTask(currentTask);
       SWTASKS;
    }
+   asm("cli");
    struct Message *temp = MP->msgQueue;
    MP->msgQueue = temp->nextMessage;
    temp->nextMessage = 0;
+   asm("sti");
    copyMem((unsigned char *)temp, (unsigned char *)Msg, sizeof(struct Message));
    DeallocMem(temp);
 }

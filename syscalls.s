@@ -288,10 +288,12 @@ SetCurrentDirectory:
 
 
 GoToSleep:
+	push %rdx
 	mov currentTask, %r15
 	movb $SLEEPINT, TS.waiting(%r15)
 	mov %rdi, TS.timer(%r15)
 	mov %r15, %rdi
 	call BlockTask
+	pop %rdx
 	SWITCH_TASKS		       # The current task is no longer runnable
 	ret

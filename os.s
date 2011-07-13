@@ -37,6 +37,11 @@ start64:
 	ltr %ax
 	lidt idt_64
 
+	mov  	%cr0, %rax
+	bts	$16, %rax					# enable write protection
+#	bts  	$31, %eax					# enable paging
+	mov  %rax, %cr0
+
 # Final preparations before starting tasking
 	call InitMem64
 	mov $0xFFF, %rcx			# Zero page of memory locations for task structures

@@ -23,7 +23,7 @@ void tas1(void)
    sys_Sleep(4);
    sys_CreateTask("TASK1", "", 0, 2);
    sys_Sleep(4);
-   sys_CreateKTask(monitorTaskCode);
+//   sys_CreateKTask(monitorTaskCode);
    sys_Sleep(4);
    sys_KillTask();
 }
