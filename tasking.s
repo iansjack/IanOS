@@ -18,15 +18,22 @@ TaskSwitch:
 	push %r15
 	push %rax
 	push %rdx
-	call moveTaskToEndOfQueue
+	push %rdi
+	mov runnableTasks, %rdi
+	call MoveTaskToEndOfList
+	mov %rax, runnableTasks
+	pop %rdi
 	pop  %rdx
 	pop  %rax
 # Is there another task ready to run?
 .nexttask:
 	mov  runnableTasks, %r15
 	cmp  $0, %r15
-	jne  TS1
+	je	.loPri
+	mov	8(%r15), %r15
+	jmp  TS1
 # There's no other runnable task, so pick the low-priority task
+.loPri:
 	mov  lowPriTask, %r15
 	jmp  TS1
 

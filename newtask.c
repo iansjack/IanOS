@@ -3,11 +3,8 @@
 #include "memory.h"
 #include "filesystem.h"
 #include "fat.h"
+#include "tasklist.h"
 
-void
-RemoveFromQ(struct Task *task, struct Task **QHead, struct Task **QTail);
-void
-AddToQ(struct Task *task, struct Task **QHead, struct Task **QTail);
 void
 StartTask();
 struct Task *
@@ -15,14 +12,12 @@ NewKernelTask(void *TaskCode);
 long
 ParseEnvironmentString(long *);
 
-struct Task *currentTask = 0;
-struct Task *runnableTasks[2] =
-   { 0, 0 }; // [0] = Head, [1] = Tail
-struct Task *blockedTasks[2] =
-   { 0, 0 };
-struct Task *lowPriTask = 0;
+struct Task * currentTask = 0;
+struct TaskList * runnableTasks = 0;
+struct TaskList * blockedTasks = 0;
+struct Task * lowPriTask = 0;
 struct TaskList * allTasks = 0;
-struct DeadTaskList *deadTasks;
+struct TaskList * deadTasks;
 
 extern long *tempstack;
 extern long *tempstack0;
@@ -54,20 +49,8 @@ void
 LinkTask(struct Task *task)
 {
    asm("cli");
-   struct TaskList *tl = allTasks;
-
-   task->nexttask = runnableTasks[0];
-   runnableTasks[0] = task;
-   if (tl->task)
-   {
-      while (tl->next)
-      {
-         tl = tl->next;
-      }
-   }
-   tl->next = AllocKMem(sizeof(struct TaskList));
-   tl->next->next = 0;
-   tl->next->task = task;
+   allTasks = AddToTailOfTaskList(allTasks, task);
+   runnableTasks = AddToTailOfTaskList(runnableTasks, task);
    asm("sti");
 }
 
@@ -252,8 +235,7 @@ void
 NewLowPriTask(void *TaskCode)
 {
    lowPriTask = NewKernelTask(TaskCode);
-   // struct Task *temp = runnableTasks[0];
-   RemoveFromQ(lowPriTask, &runnableTasks[0], &runnableTasks[1]);
+   runnableTasks = RemoveFromTaskList(runnableTasks, lowPriTask);
    lowPriTask->nexttask = (struct Task *) 0;
 }
 
@@ -277,57 +259,13 @@ KillTask(void)
    asm ("cli");
 
    // Unlink task from runnable queue
-   struct Task *temp = runnableTasks[0];
-
-   if (temp == task)
-   {
-      runnableTasks[0] = temp->nexttask;
-      if (runnableTasks[0] == 0)
-      {
-         runnableTasks[1] = 0;
-      }
-   }
-   else
-   {
-      while (temp)
-      {
-         if (temp->nexttask == task)
-         {
-            temp->nexttask = temp->nexttask->nexttask;
-         }
-         if (temp->nexttask == 0)
-         {
-            runnableTasks[1] = temp;
-         }
-         temp = temp->nexttask;
-      }
-   }
+   runnableTasks = RemoveFromTaskList(runnableTasks, task);
 
    // Add the task to the Dead Tasks queue
-   // The dummy task will scan this queue and mark pages assigned by this task as free
-   struct DeadTaskList * deadTask = AllocKMem(sizeof(struct DeadTaskList));
-   deadTask->next = deadTasks;
-   deadTask->pid = currentTask->pid;
-   deadTasks = deadTask;
+   deadTasks = AddToHeadOfTaskList(deadTasks, currentTask);
 
    // Remove task from allTasks queue;
-   struct TaskList * tl = allTasks;
-   struct TaskList * tl1;
-   if (tl->task == task)
-   {
-      allTasks->next = allTasks->next->next;
-      allTasks->task = allTasks->next->task;
-   }
-   else
-   {
-      while (tl->next->task != task)
-      {
-         tl = tl->next;
-      }
-      tl1 = tl->next;
-      tl->next = tl->next->next;
-      DeallocMem(tl1);
-   }
+   allTasks = RemoveFromTaskList(allTasks, currentTask);
 
    task->pid = 0;
    SWTASKS;
@@ -339,8 +277,10 @@ KillTask(void)
 void
 BlockTask(struct Task *task)
 {
-   RemoveFromQ(task, &runnableTasks[0], &runnableTasks[1]);
-   AddToQ(task, &blockedTasks[0], &blockedTasks[1]);
+	asm("cli");
+	runnableTasks = RemoveFromTaskList(runnableTasks, task);
+	blockedTasks = AddToTailOfTaskList(blockedTasks, task);
+	asm("sti");
 }
 
 //===============================================
@@ -349,84 +289,10 @@ BlockTask(struct Task *task)
 void
 UnBlockTask(struct Task *task)
 {
-   RemoveFromQ(task, &blockedTasks[0], &blockedTasks[1]);
-   AddToQ(task, &runnableTasks[0], &runnableTasks[1]);
-}
-
-//===========================================================
-// Move the task at the head of the runnable queue to the end
-//===========================================================
-void
-moveTaskToEndOfQueue()
-{
-   asm("cli");
-   struct Task *temp = runnableTasks[0];
-
-   if (temp)
-      if (temp->nexttask)
-      {
-         runnableTasks[0] = temp->nexttask;
-         runnableTasks[1]->nexttask = temp;
-         runnableTasks[1] = temp;
-         temp->nexttask = 0;
-      }
-   asm("sti");
-}
-
-//========================
-// Unlink task from queue
-//========================
-void
-RemoveFromQ(struct Task *task, struct Task **QHead, struct Task **QTail)
-{
-   asm("cli");
-   struct Task *temp = *QHead;
-
-   if (temp == task)
-   {
-      *QHead = temp->nexttask;
-      if (*QHead == 0)
-      {
-         *QTail = 0;
-      }
-   }
-   else
-   {
-      while (temp)
-      {
-         if (temp->nexttask == task)
-         {
-            temp->nexttask = temp->nexttask->nexttask;
-         }
-         if (temp->nexttask == 0)
-         {
-            *QTail = temp;
-         }
-         temp = temp->nexttask;
-      }
-   }
-   asm("sti");
-}
-
-//======================
-// Put task on to queue
-//======================
-void
-AddToQ(struct Task *task, struct Task **QHead, struct Task **QTail)
-{
-   asm("cli");
-   if (*QHead == 0)
-   {
-      *QHead = *QTail = task;
-      task->nexttask = 0;
-   }
-   else
-   {
-      (*QTail)->nexttask = task;
-      *QTail = task;
-      task->nexttask = 0;
-   }
-   asm("sti");
+	asm("cli");
+	blockedTasks = RemoveFromTaskList(blockedTasks, task);
+	runnableTasks = AddToTailOfTaskList(runnableTasks, task);
+	asm("sti");
 }
 
 //=========================================
@@ -453,7 +319,7 @@ void
 dummyTask()
 {
    unsigned short int pid;
-   struct DeadTaskList * t;
+   struct TaskList * t;
    int count;
 
    while (1)
@@ -462,7 +328,7 @@ dummyTask()
       {
          t = deadTasks;
          deadTasks = deadTasks->next;
-         pid = t->pid;
+         pid = t->task->pid;
          DeallocMem(t);
          for (count = 0; count < nPages; count++)
          {

@@ -35,7 +35,8 @@ void SendMessage(struct MessagePort *MP, struct Message *Msg)
       MP->waitingProc = (struct Task *)-1L;
       task->waiting   = 0;
       UnBlockTask(task);
-      SWTASKS15;
+      SWTASKS;
+      //SWTASKS15;
    }
 }
 

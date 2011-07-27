@@ -530,7 +530,6 @@ fsTaskCode()
          break;
 
       case CLOSEFILE:
-         debug();
          CloseFile((struct FCB *) FSMsg->quad);
          DeallocMem((void *) FSMsg->quad);
          tempPort = (struct MessagePort *) FSMsg->tempPort;

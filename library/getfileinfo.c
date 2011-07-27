@@ -16,7 +16,7 @@ GetFileInfo(struct FCB *fHandle, struct FileInfo *info)
 
    msg->nextMessage = 0;
    msg->byte = GETFILEINFO;
-   msg->quad = fHandle;
+   msg->quad = (long) fHandle;
    msg->quad2 = (long) buff;
    sys_SendReceive(FSPort, msg);
    for (i = 0; i < sizeof(struct FileInfo); i++)

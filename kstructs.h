@@ -98,18 +98,6 @@ struct Console
   short colour;
 };
 
-struct TaskList
-{
-  struct TaskList * next;
-  struct Task * task;
-};
-
-struct DeadTaskList
-{
-   struct DeadTaskList * next;
-   unsigned short int pid;
-};
-
 
 #define SWTASKS      asm ("int $20")
 #define SWTASKS15    asm ("mov %rdi, %r15"); asm ("int $22")

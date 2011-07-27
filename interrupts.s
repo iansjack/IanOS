@@ -41,15 +41,15 @@ KbInt:
 	PUSH_ALL
 	in   $0x60, %al		 # MUST read byte from keyboard - else no more ints
 	mov  $kbBuffer, %rbx
-   add  (kbBufCurrent), %rbx
+   	add  (kbBufCurrent), %rbx
 	mov  %al, (%rbx)
 	incl kbBufCurrent
-   incb (kbBufCount)
-   cmpl $128, (kbBufCurrent)
+   	incb (kbBufCount)
+   	cmpl $128, (kbBufCurrent)
 	jne  .kbistaskwaiting
-   movl $0, (kbBufCurrent)
+   	movl $0, (kbBufCurrent)
 .kbistaskwaiting:
-   call keyPressed
+   	call keyPressed
 	mov  $0x20, %al		  # clear int
 	out  %al, $0x20
 	POP_ALL
@@ -64,20 +64,24 @@ TimerInt:
 	out  %al, $0x20
 	incq Ticks
 	# Check for tasks waiting on timer
-	mov  blockedTasks, %r15
-	cmp $0, %r15
+	mov  blockedTasks, %rbx
+	cmp $0, %rbx
 	jz   .notimer
-.again:	cmpb $SLEEPINT, TS.waiting(%r15)
+.again:
+	mov 8(%rbx), %r15
+	cmpb $SLEEPINT, TS.waiting(%r15)
 	jne  .next
 	decq TS.timer(%r15)
 	jnz  .next
 	mov  %r15, %rdi
-   call UnBlockTask
-.next:	mov  TS.nexttask(%r15), %r15
-	cmp $0, %r15
+	push %rbx
+   	call UnBlockTask
+   	pop %rbx
+.next:
+	mov  (%rbx), %rbx
+	cmp $0, %rbx
    jne  .again
 .notimer:
-#	pop  %rax
 	decb TimeSliceCount
 	jnz  .tdone
 	movb $5, TimeSliceCount

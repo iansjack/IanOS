@@ -2,7 +2,7 @@ include Flags.mak
 
 OBJS = startup.o mem32.o ptab32.o hwsetup.o os.o gates.o messages.o memory.o pagetab.o keyboard.o \
 		console.o filesystem.o syscalls.o newtask.o tasking.o messaging.o interrupts.o \
-		ide.o kernlib.o  monitor.o tas1.o
+		ide.o kernlib.o  tasklist.o tas1.o
 
 all: bootdisk IanOS.o
 	cd library; make all; cd ..
@@ -61,7 +61,7 @@ gates.o: gates.c memory.h
 
 messages.o: messages.c
 
-memory.o: memory.c memory.h kstructs.h
+memory.o: memory.c memory.h kstructs.h tasklist.h
 
 pagetab.o: pagetab.c memory.h pagetab.h kstructs.h
 
@@ -73,7 +73,7 @@ filesystem.o: filesystem.c memory.h kstructs.h
 
 syscalls.o: syscalls.s memory.inc kstructs.inc
 
-newtask.o: newtask.c memory.h kstructs.h filesystem.h
+newtask.o: newtask.c memory.h kstructs.h filesystem.h kernel.h fat.h tasklist.h
 
 tasking.o: tasking.s memory.inc kstructs.inc
 
@@ -84,6 +84,8 @@ interrupts.o: interrupts.s macros.s memory.h kstructs.h
 ide.o: ide.s
 
 kernlib.o: kernlib.c
+
+tasklist.o: tasklist.c tasklist.h memory.h
 
 tas1.o: tas1.c memory.h library/syscalls.h
 

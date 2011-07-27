@@ -1,12 +1,13 @@
 #include "memory.h"
 #include "kernel.h"
+#include "tasklist.h"
 
-extern struct Task *currentTask;
-extern struct Task *runnableTasks[2]; // [0] = Head, [1] = Tail
-extern struct Task *blockedTasks[2];
+extern struct Task * currentTask;
+extern struct TaskList * runnableTasks;
+extern struct TaskList * blockedTasks;
 extern struct TaskList * allTasks;
 extern struct Task *lowPriTask;
-extern struct DeadTaskList *deadTasks;
+extern struct TaskList * deadTasks;
 
 unsigned char * oMemMax;
 long nPagesFree;
@@ -30,13 +31,16 @@ InitMem64(void)
    firstFreeSharedMem->next = 0;
    firstFreeSharedMem->size = 0xFE0;
    nextKPage = 0x12;
-   currentTask = runnableTasks[0] = runnableTasks[1]
-         = (struct Task *) TaskStruct;
-   allTasks = AllocKMem(sizeof(struct TaskList));
+   currentTask = (struct Task *) TaskStruct;
+   runnableTasks = (struct TaskList*)AllocKMem(sizeof(struct TaskList));
+   runnableTasks->next = 0L;
+   runnableTasks->task = currentTask;
+   allTasks = (struct TaskList *)AllocKMem(sizeof(struct TaskList));
    allTasks->task = currentTask;
    allTasks->next = 0;
    deadTasks = 0;
-   lowPriTask = blockedTasks[0] = blockedTasks[1] = 0L;
+   lowPriTask = 0L;
+   blockedTasks = 0L;
    NoOfAllocations = 0;
    memorySemaphore = 0;
 }

@@ -67,7 +67,7 @@ CreatePTE(void *pAddress, long lAddress)
          & 0xFFFFF000);
 
    // We don't want this function to be interrupted.
-   asm ("cli");
+   //asm ("cli");
 
    VIRT(PT,pt)->entries[ptIndex].value = ((long) pAddress & 0xFFFFF000) | RW
          | US | P;
@@ -84,7 +84,7 @@ CreatePTE(void *pAddress, long lAddress)
    for (count = 0; count < PageSize; count++)
       c[count] = 0;
 
-   asm ("sti");
+   //asm ("sti");
 
    return ((long) pAddress | 7);
 }
