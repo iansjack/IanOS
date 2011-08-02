@@ -85,12 +85,23 @@ void keyPressed()
 
 void ProcessMsgQueue(struct Console * console)
 {
+//	if (currentBuffer != 0)
+//	{
+//		KWriteString("In ProcessMsgQueue", 20, 0);
+//		while (1);
+//	}
+
    while (console->kbBufCount && console->MsgQueue)
    {
       unsigned char temp = console->kbBuffer[console->kbBufStart];
       console->kbBufCount--;
       console->kbBufStart++;
       struct Message * tempMsg = console->MsgQueue;
+//      if (tempMsg == 0)
+//      {
+//    		KWriteString("Ooops In ProcessMsgQueue", 20, 0);
+//    		while (1);
+//      }
       console->MsgQueue = tempMsg->nextMessage;
       if (tempMsg->byte == GETCHAR)
       {
@@ -109,6 +120,8 @@ void ProcessMsgQueue(struct Console * console)
 //=====================================================
 void kbTaskCode()
 {
+	KWriteString("Starting Keyboard Task", 1, 0);
+
    unsigned char      temp;
    struct MessagePort *tempPort;
    struct Message     *KbdMsg;

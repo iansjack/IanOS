@@ -84,10 +84,13 @@ TimerInt:
 .notimer:
 	decb TimeSliceCount
 	jnz  .tdone
-	movb $5, TimeSliceCount
+	movb $10, TimeSliceCount
+	cmp $0, canSwitch
+	jnz .tdone
+	SWITCH_TASKS
 .tdone:
 	POP_ALL
-	SWITCH_TASKS
+//	SWITCH_TASKS
 	iretq
 
 #=====================
@@ -107,7 +110,8 @@ HdInt:	push %rax
 	PUSH_ALL
 	call UnBlockTask
 	POP_ALL
-	SWITCH_TASKS_R15
+	SWITCH_TASKS
+#	SWITCH_TASKS_R15
 	jmp  .done2
 .goon:	mov  TS.nexttask(%r15), %r15
 	cmpq $0, %r15
@@ -275,8 +279,8 @@ SetSem:
 	mov  $1, %rbx
 	cmpxchg %rbx, (%rdi)
 	jne  .sdone
-   pop  %rbx
-   pop  %rax
+   	pop  %rbx
+   	pop  %rax
 	SWITCH_TASKS
 	jmp .sagain
 .sdone:

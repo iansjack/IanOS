@@ -101,5 +101,7 @@ struct Console
 
 #define SWTASKS      asm ("int $20")
 #define SWTASKS15    asm ("mov %rdi, %r15"); asm ("int $22")
+#define CLI			asm ("pushf"); asm("cli")
+#define STI			asm ("popf")
 
 #endif

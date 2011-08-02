@@ -14,24 +14,24 @@ CallNo:
 	.quad	PrintString				# PRINTSTRING
 	.quad	PrintDouble				# PRINTDOUBLE
 	.quad	PrintChar				# PRINTCHAR
-	.quad	Newtask 					# CREATETASK
-	.quad	GetTicks					# GETTICKS
-	.quad	Sleep						# SLEEP
+	.quad	Newtask 				# CREATETASK
+	.quad	GetTicks				# GETTICKS
+	.quad	Sleep					# SLEEP
 	.quad	Alloc_Mem				# ALLOCMEM
-	.quad	Alloc_Message_Port	# ALLOCMSGPORT
+	.quad	Alloc_Message_Port		# ALLOCMSGPORT
 	.quad	Send_Message			# SENDMESSAGE
 	.quad	Receive_Message 		# RECEIVEMESSAGE
 	.quad	Dealloc_Mem				# DEALLOCMEM
 	.quad	Send_Receive			# SENDRECEIVE
 	.quad	Kill_Task				# KILLTASK
-	.quad NewKerneltask			# CREATEKTASK
+	.quad 	NewKerneltask			# CREATEKTASK
 	.quad	Alloc_Shared_Mem		# ALLOCSHAREDMEM
 	.quad	NewLPtask				# CREATELPTASK
-	.quad CommandLine				# GETCOMMANDLINE
+	.quad 	CommandLine				# GETCOMMANDLINE
 	.quad	LoadProgram				# LOADPROGRAM
 	.quad	GetCurrentConsole		# GETCURRENTCONSOLE
-	.quad GetCurrentDirectory	# GETCURRENTDIR
-	.quad SetCurrentDirectory	# SETCURRENTDIR
+	.quad 	GetCurrentDirectory		# GETCURRENTDIR
+	.quad 	SetCurrentDirectory		# SETCURRENTDIR
 
 SysCalls:
 	jmp *(CallNo - 8)(,%r9, 8)

@@ -50,7 +50,7 @@ HwSetup:
 	mov $0x45, %al
 	out %al, $0x60
 
-#   in   $0x60, %al       # Clear any pending Kbd interrupt
+   in   $0x60, %al       # Clear any pending Kbd interrupt
 
 
 # enable interrupts

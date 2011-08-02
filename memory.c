@@ -8,6 +8,8 @@ extern struct TaskList * blockedTasks;
 extern struct TaskList * allTasks;
 extern struct Task *lowPriTask;
 extern struct TaskList * deadTasks;
+extern long canSwitch;
+extern long pass;
 
 unsigned char * oMemMax;
 long nPagesFree;
@@ -43,6 +45,8 @@ InitMem64(void)
    blockedTasks = 0L;
    NoOfAllocations = 0;
    memorySemaphore = 0;
+   canSwitch = 0;
+   pass = 0;
 }
 
 //=========================================================================================

@@ -8,6 +8,7 @@
 
 extern unsigned char currentBuffer;
 extern struct Console consoles[8];
+extern long canSwitch;
 
 unsigned char *VideoBuffer;
 unsigned char *ConsoleBuffer;
@@ -16,6 +17,9 @@ struct Message ConsoleMsg;
 void
 switchConsole(long console)
 {
+//	KWriteString("In SwitchBuffer", 20, 0);
+//	while (1);
+	asm("cli");
    if (currentBuffer != console)
    {
       int i;
@@ -24,11 +28,15 @@ switchConsole(long console)
          VideoBuffer[i] = ConsoleBuffer[i];
    }
    currentBuffer = console;
+   asm("sti");
+//	while (1);
 }
 
 void
 scrollscreen(long console)
 {
+	asm("cli");
+	canSwitch++;
    short int row;
    short int column;
    struct Console * currCons = &(consoles[console]);
@@ -49,6 +57,8 @@ scrollscreen(long console)
       for (column = 0; column < 80; column++)
          VideoBuffer[160 * 24 + 2 * column] = ' ';
    }
+   canSwitch--;
+   asm("sti");
 }
 
 void
@@ -115,6 +125,7 @@ printchar(unsigned char c)
 void
 consoleTaskCode()
 {
+	KWriteString("Starting Console Task", 2, 0);
 
    VideoBuffer = (char *) 0xB8000;
    ((struct MessagePort *) ConsolePort)->waitingProc = (struct Task *) -1L;

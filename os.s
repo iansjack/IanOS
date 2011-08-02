@@ -60,6 +60,7 @@ start64:
 	movq $0, TS.currentDir(%r15)
 	mov  %cr3, %rax
 	mov  %rax, TS.cr3(%r15)
+	mov	%r15, currentTask
 
 	mov $0xFF, %al
 	call AllocPage					# Page for kernel stack
