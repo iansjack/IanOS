@@ -15,7 +15,8 @@ foreach $file (@words) {
 	open (INPUT, "HTML/HTML/$nfile") || die "Can't open $nfile\n";
 	print "Processing $nfile\n";
 	while (<INPUT>) {
-		if (/\'(\w+)\'\>*\s*(\w+):/) {
+		print ;
+		if (/\'(\w+).+\>(\w+):/) {
 			print OUTPUT "$2\t$nfile\#$1\n";
 			print "$2\t$nfile\#$1\n";
 		}

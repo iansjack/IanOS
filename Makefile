@@ -24,6 +24,7 @@ bootdisk: bootsect.bin 32sect IanOS.bin
 	cat bootsect.bin 32sect IanOS.bin floppy >I.fdd
 	dd if=I.fdd of=IanOS.fdd count=2880
 	rm I.fdd
+	qemu-img convert IanOS.fdd -O raw IanOS.vfd
 
 bootsect.bin: boot.o
 	ld -Tbootlink.ld boot.o -obootsect.bin
@@ -34,17 +35,11 @@ boot.o: boot.s memory.inc
 startup.o: startup.s
 	as  startup.s -o startup.o
 
-#memory32.o: memory32.s memory.inc
-#	as  memory32.s -o memory32.o
-	
 mem32.o: mem32.c	memory.h
 	gcc -m32 -D CODE_32 $(CFLAGS) $(CPPFLAGS) $(INCLUDES) -S mem32.c
 	cat code32.s mem32.s >tmem32.s
 	as tmem32.s -o mem32.o
 	rm tmem32.s mem32.s
-
-#pagetab32.o: pagetab32.s
-#	as  pagetab32.s -o pagetab32.o
 
 ptab32.o: ptab32.c memory.h
 	gcc -m32 -D CODE_32 -fno-stack-protector -ffixed-r15 -g -I . -I .. -S ptab32.c
