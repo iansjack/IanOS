@@ -11,6 +11,18 @@
 	.global SetCurrentDirectory
 
 CallNo:
+	.quad	Sys_Exit
+	.quad	Sys_Fork
+	.quad	Sys_Read
+	.quad	Sys_Write
+	.quad	Sys_Open
+	.quad	Sys_Close	
+	.quad	SysWaitPID
+	.quad	Sys_Creat
+	.quad	Sys_Link
+	.quad	Sys_UnLink
+	.quad	Sys_Execve
+	.quad	Sys_ChDir				
 	.quad	PrintString				# PRINTSTRING
 	.quad	PrintDouble				# PRINTDOUBLE
 	.quad	PrintChar				# PRINTCHAR
@@ -23,7 +35,6 @@ CallNo:
 	.quad	Receive_Message 		# RECEIVEMESSAGE
 	.quad	Dealloc_Mem				# DEALLOCMEM
 	.quad	Send_Receive			# SENDRECEIVE
-	.quad	Kill_Task				# KILLTASK
 	.quad 	NewKerneltask			# CREATEKTASK
 	.quad	Alloc_Shared_Mem		# ALLOCSHAREDMEM
 	.quad	NewLPtask				# CREATELPTASK
@@ -34,7 +45,90 @@ CallNo:
 	.quad 	SetCurrentDirectory		# SETCURRENTDIR
 
 SysCalls:
-	jmp *(CallNo - 8)(,%r9, 8)
+	jmp *(CallNo - 8)(,%r9, 8)	
+
+#=========================================================
+# Kill the current task, freeing all memory owned by task
+# This syscall should never return
+#=========================================================
+Sys_Exit:
+	push %rcx
+	call KillTask
+	pop  %rcx
+	sysretq
+
+#=========================================================
+# 
+#=========================================================	
+Sys_Fork:
+	sysretq
+	
+#=========================================================
+# 
+#=========================================================	
+Sys_Read:
+	sysretq
+	
+#=========================================================
+# 
+#=========================================================
+Sys_Write:
+	sysretq
+	
+#=========================================================
+# Opens the file whose name is pointed to by RDI.
+# Returns in RAX the File Descriptor
+#=========================================================
+Sys_Open:
+	push %rcx
+	call KOpenFile
+	pop %rcx
+	sysretq
+	
+#=========================================================
+# 
+#=========================================================
+Sys_Close:
+	push %rcx
+	call KCloseFile
+	pop %rcx
+	sysretq				
+
+#=========================================================
+# 
+#=========================================================
+SysWaitPID:
+	sysret
+	
+#=========================================================
+# 
+#=========================================================
+Sys_Creat:
+	sysret
+
+#=========================================================
+# 
+#=========================================================
+Sys_Link:
+	sysret
+
+#=========================================================
+# 
+#=========================================================
+Sys_UnLink:
+	sysret
+
+#=========================================================
+# 
+#=========================================================
+Sys_Execve:
+	sysret
+
+#=========================================================
+# 
+#=========================================================
+Sys_ChDir:
+	sysret				
 
 #========================================================
 # Print [EDX] as string at position row BH col BL
@@ -193,16 +287,6 @@ Send_Receive:
 	push %rcx
 	call SendReceiveMessage
 	pop %rcx
-	sysretq
-
-#=========================================================
-# Kill the current task, freeing all memory owned by task
-# This syscall should never return
-#=========================================================
-Kill_Task:
-	push %rcx
-	call KillTask
-	pop  %rcx
 	sysretq
 
 #=================================================================

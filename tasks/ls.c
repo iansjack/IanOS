@@ -26,6 +26,6 @@ int main(void)
          WriteConsoleChar('\n');
       }
    }
-   sys_KillTask();
+   sys_Exit();
    return(0);
 }

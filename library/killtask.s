@@ -1,10 +1,10 @@
 	.include "../syscalls.inc"
 
-	.global sys_KillTask
+	.global sys_Exit
 
 	.text
 
-sys_KillTask:
-	mov $KILLTASK, %r9
+sys_Exit:
+	mov $SYS_EXIT, %r9
 	syscall
 	ret

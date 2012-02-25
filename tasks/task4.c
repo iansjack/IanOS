@@ -6,7 +6,7 @@
 int main(void)
 {
    sys_WriteString("Task 4 is now running.", 14, 50);
-   struct FCB *fHandle = OpenFile("TEST.TXT");
+   struct FCB *fHandle = Sys_Open("TEST.TXT");
    sys_WriteDouble((long)fHandle, 24, 40);
    if (fHandle)
    {

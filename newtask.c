@@ -183,9 +183,9 @@ void LoadTheProgram(long start, char * name)
 //==================================
 void StartTask()
 {
-	asm("mov $18, %r9;" // LOADPROGRAM
+	asm("mov $29, %r9;" // LOADPROGRAM
 			"syscall;"
-			"mov $13, %r9;" // KILLTASK
+			"mov $1, %r9;" // SYS_EXIT
 			"syscall;"
 	);
 }

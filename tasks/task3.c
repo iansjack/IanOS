@@ -23,6 +23,6 @@ int main(void)
        WriteConsoleString("Directory not found!");
     else
        WriteConsoleChar(directory + '0');
-    sys_KillTask();
+    sys_Exit();
     return(0);
 }

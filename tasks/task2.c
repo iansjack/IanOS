@@ -15,7 +15,7 @@ int main(void)
 	if (fHandle)
 	{
 		WriteFile(fHandle, "1234\n", 5);
-		CloseFile(fHandle);
+		Sys_Close(fHandle);
 	}
 	sys_Sleep(200);
 	int count;
@@ -25,6 +25,6 @@ int main(void)
 		sys_WriteString((unsigned char *) &entry, 23, 0);
 		sys_Sleep(100);
 	}
-	sys_KillTask();
+	sys_Exit();
 	return (0);
 }

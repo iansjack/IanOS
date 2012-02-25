@@ -5,7 +5,7 @@
 int
 main(int argc, char **argv)
 {
-   struct FCB * InFile = OpenFile(argv[1]);
+	struct FCB * InFile = Sys_Open(argv[1]);
    if (InFile)
    {
       struct FileInfo inf;
@@ -15,9 +15,9 @@ main(int argc, char **argv)
       ReadFile(InFile, buffer, inf.Length);
       buffer[inf.Length] = 0;
       WriteConsoleString(buffer);
-      CloseFile(InFile);
+	   Sys_Close(InFile);
       sys_DeallocMem(buffer);
    }
-   sys_KillTask();
+   sys_Exit();
    return (0);
 }

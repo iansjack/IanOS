@@ -119,3 +119,43 @@ strncmp(char * s1, char * s2, long length)
       return (0);
 }
 */
+
+//=========================================================
+// 
+//=========================================================
+struct FCB *
+KOpenFile(char *s)
+{
+   char *S = AllocKMem(12);
+   char *str = S;
+
+   while (*s != 0)
+   {
+      *S++ = *s++;
+   }
+   *S = 0;
+   struct Message *msg =
+         (struct Message *) AllocKMem(sizeof(struct Message));
+   msg->nextMessage = 0;
+   msg->byte = OPENFILE;
+   msg->quad = (long) str;
+   SendReceiveMessage(FSPort, msg);
+   DeallocMem(S);
+   return ((struct FCB *) msg->quad);
+}
+
+//=========================================================
+// 
+//=========================================================
+struct FCB *
+KCloseFile(struct FCB *fHandle)
+{
+   struct Message *msg =
+         (struct Message *) AllocKMem(sizeof(struct Message));
+
+   msg->nextMessage = 0;
+   msg->byte = CLOSEFILE;
+   msg->quad = (long) fHandle;
+   SendReceiveMessage(FSPort, msg);
+   return ((struct FCB *) msg->quad);
+}

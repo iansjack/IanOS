@@ -21,5 +21,7 @@ void sys_WriteString(unsigned char * string, int x, int y);
 long sys_GetTicks();
 long sys_GetCurrentConsole();
 long sys_SetCurrentDirectory(long directory);
+struct FCB * Sys_Open(char * filename);
+struct FCB * Sys_close(char * filename);
 
 #endif

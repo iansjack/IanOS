@@ -34,6 +34,8 @@ boot.o: boot.s memory.inc
 
 startup.o: startup.s
 	as  startup.s -o startup.o
+	
+starttask.o: starttask.s syscalls.inc
 
 mem32.o: mem32.c	memory.h
 	gcc -m32 -D CODE_32 $(CFLAGS) $(CPPFLAGS) $(INCLUDES) -S mem32.c

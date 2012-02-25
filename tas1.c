@@ -25,5 +25,5 @@ void tas1(void)
    sys_Sleep(40);
 //   sys_CreateKTask(monitorTaskCode);
    sys_Sleep(4);
-   sys_KillTask();
+   sys_Exit();
 }
