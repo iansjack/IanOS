@@ -1,5 +1,5 @@
-	.include "memory.inc"
-	.include "kstructs.inc"
+	.include "include/memory.inc"
+	.include "include/kstructs.inc"
 
 	.text
 

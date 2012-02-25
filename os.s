@@ -1,6 +1,6 @@
-	.include "memory.inc"
-	.include "syscalls.inc"
-	.include "kstructs.inc"
+	.include "include/memory.inc"
+	.include "include/syscalls.inc"
+	.include "include/kstructs.inc"
 
 	.text
 

@@ -1,5 +1,5 @@
-#include "../kstructs.h"
-#include "../memory.h"
+#include "kstructs.h"
+#include "memory.h"
 #include "syscalls.h"
 
 char getchar()

@@ -1,6 +1,6 @@
 #include "kstructs.h"
-#include "library/syscalls.h"
-#include "library/lib.h"
+#include "syscalls.h"
+#include "lib.h"
 #include "fat.h"
 
 int main(void)

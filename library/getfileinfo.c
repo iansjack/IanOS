@@ -1,10 +1,10 @@
-#include "../memory.h"
-#include "../kstructs.h"
+#include "memory.h"
+#include "kstructs.h"
 //#include "lib.h"
 //#include "library/syscalls.h"
-#include "../filesystem.h"
+#include "filesystem.h"
 #include "syscalls.h"
-#include "../fat.h"
+#include "fat.h"
 
 long
 GetFileInfo(struct FCB *fHandle, struct FileInfo *info)

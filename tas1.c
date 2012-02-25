@@ -1,5 +1,5 @@
 #include "memory.h"
-#include "library/syscalls.h"
+#include "syscalls.h"
 
 extern void kbTaskCode(void);
 extern void consoleTaskCode(void);

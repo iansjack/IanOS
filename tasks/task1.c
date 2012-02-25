@@ -1,7 +1,7 @@
 #include "kstructs.h"
 #include "memory.h"
-#include "library/syscalls.h"
-#include "library/lib.h"
+#include "syscalls.h"
+#include "lib.h"
 #include "console.h"
 
 int

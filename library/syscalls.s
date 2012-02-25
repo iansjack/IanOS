@@ -1,4 +1,4 @@
-	.include "../syscalls.inc"
+	.include "../include/syscalls.inc"
 
 	.global sys_ReceiveMessage
 	.global sys_SendMessage

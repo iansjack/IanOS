@@ -1,7 +1,7 @@
 	SLEEPINT = 2
 
-	.include "memory.inc"
-	.include "kstructs.inc"
+	.include "include/memory.inc"
+	.include "include/kstructs.inc"
 	.include "macros.s"
 
 	.text
@@ -86,7 +86,7 @@ Sys_Open:
 	sysretq
 	
 #=========================================================
-# 
+# Closes the file whose FD is pointed to by RDI
 #=========================================================
 Sys_Close:
 	push %rcx

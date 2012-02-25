@@ -185,13 +185,13 @@ OUTPUT(TASK1 binary)
 .debug_ranges   0x0000000000000000       0x30
  .debug_ranges  0x0000000000000000       0x30 task1.o
 
-.debug_line     0x0000000000000000      0x353
- .debug_line    0x0000000000000000      0x100 task1.o
- .debug_line    0x0000000000000100       0x76 ../library/liblib.a(writeconsolechar.o)
- .debug_line    0x0000000000000176       0x80 ../library/liblib.a(writeconsolestring.o)
- .debug_line    0x00000000000001f6       0x73 ../library/liblib.a(consoleclrscr.o)
- .debug_line    0x0000000000000269       0x61 ../library/liblib.a(getchar.o)
- .debug_line    0x00000000000002ca       0x89 ../library/liblib.a(getdirectory.o)
+.debug_line     0x0000000000000000      0x3b0
+ .debug_line    0x0000000000000000      0x115 task1.o
+ .debug_line    0x0000000000000115       0x80 ../library/liblib.a(writeconsolechar.o)
+ .debug_line    0x0000000000000195       0x8a ../library/liblib.a(writeconsolestring.o)
+ .debug_line    0x000000000000021f       0x7d ../library/liblib.a(consoleclrscr.o)
+ .debug_line    0x000000000000029c       0x76 ../library/liblib.a(getchar.o)
+ .debug_line    0x0000000000000312       0x9e ../library/liblib.a(getdirectory.o)
 
 .debug_str      0x0000000000000000      0xa1a
  .debug_str     0x0000000000000000      0x225 task1.o

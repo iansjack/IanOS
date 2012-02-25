@@ -1,7 +1,7 @@
 include ../Flags.mak
 
 CFLAGS:=$(CFLAGS) -O -I ..
-LIBS = ../library/liblib.a ../library/libsyscalls.a 
+LIBS = $(INC)/library/liblib.a $(INC)/library/libsyscalls.a 
 LIBOBJS = writeconsolechar.o writeconsolestring.o consoleclrscr.o \
 	getchar.o createfile.o deletefile.o readfile.o writefile.o getfileinfo.o \
 	getfspid.o getdirectoryentry.o getdirectory.o convert.o
@@ -20,52 +20,52 @@ libsyscalls.a: $(SYSCALLSOBJS)
 clean:
 	rm -f *.a *.o *~
 
-writeconsolechar.o: writeconsolechar.c ../console.h ../kstructs.h ../memory.h syscalls.h
+writeconsolechar.o: writeconsolechar.c $(INC)/console.h $(INC)/kstructs.h $(INC)/memory.h $(INC)/syscalls.h
 
-writeconsolestring.o: writeconsolestring.c ../console.h ../kstructs.h ../memory.h syscalls.h
+writeconsolestring.o: writeconsolestring.c $(INC)/console.h $(INC)/kstructs.h $(INC)/memory.h $(INC)/syscalls.h
 
-consoleclrscr.o: consoleclrscr.c ../console.h ../kstructs.h ../memory.h syscalls.h
+consoleclrscr.o: consoleclrscr.c $(INC)/console.h $(INC)/kstructs.h $(INC)/memory.h $(INC)/syscalls.h
 
-createfile.o: createfile.c ../kstructs.h ../memory.h ../filesystem.h syscalls.h
+createfile.o: createfile.c $(INC)/kstructs.h $(INC)/memory.h $(INC)/filesystem.h $(INC)/syscalls.h
 
-openfile.o: openfile.c ../kstructs.h ../memory.h ../filesystem.h syscalls.h
+openfile.o: openfile.c $(INC)/kstructs.h $(INC)/memory.h $(INC)/filesystem.h $(INC)/syscalls.h
 
-closefile.o: closefile.c ../kstructs.h ../memory.h ../filesystem.h syscalls.h
+closefile.o: closefile.c $(INC)/kstructs.h $(INC)/memory.h $(INC)/filesystem.h $(INC)/syscalls.h
 
-deletefile.o: deletefile.c ../kstructs.h ../memory.h ../filesystem.h syscalls.h
+deletefile.o: deletefile.c $(INC)/kstructs.h $(INC)/memory.h $(INC)/filesystem.h $(INC)/syscalls.h
 
-readfile.o: readfile.c ../kstructs.h ../memory.h ../filesystem.h syscalls.h
+readfile.o: readfile.c $(INC)/kstructs.h $(INC)/memory.h $(INC)/filesystem.h $(INC)/syscalls.h
 
-writefile.o: writefile.c ../kstructs.h ../memory.h ../filesystem.h syscalls.h
+writefile.o: writefile.c $(INC)/kstructs.h $(INC)/memory.h $(INC)/filesystem.h $(INC)/syscalls.h
 
-getfileinfo.o: getfileinfo.c ../kstructs.h ../filesystem.h syscalls.h
+getfileinfo.o: getfileinfo.c $(INC)/kstructs.h $(INC)/filesystem.h $(INC)/syscalls.h
 
-getfspid.o: getfspid.c ../kstructs.h ../memory.h ../filesystem.h syscalls.h
+getfspid.o: getfspid.c $(INC)/kstructs.h $(INC)/memory.h $(INC)/filesystem.h $(INC)/syscalls.h
 
-getdirectoryentry.o: getdirectoryentry.c ../kstructs.h ../memory.h ../filesystem.h syscalls.h
+getdirectoryentry.o: getdirectoryentry.c $(INC)/kstructs.h $(INC)/memory.h $(INC)/filesystem.h $(INC)/syscalls.h
 
-getdirectory.o: getdirectory.c ../kstructs.h ../memory.h ../filesystem.h syscalls.h
+getdirectory.o: getdirectory.c $(INC)/kstructs.h $(INC)/memory.h $(INC)/filesystem.h $(INC)/syscalls.h
 
-syscalls.o: syscalls.s ../syscalls.inc
+syscalls.o: syscalls.s $(INC)/syscalls.inc
 
-allocmem.o: allocmem.s ../syscalls.inc
+allocmem.o: allocmem.s $(INC)/syscalls.inc
 
-deallocmem.o: deallocmem.s ../syscalls.inc
+deallocmem.o: deallocmem.s $(INC)/syscalls.inc
 
-allocsharedmem.o: allocsharedmem.s ../syscalls.inc
+allocsharedmem.o: allocsharedmem.s $(INC)/syscalls.inc
 
-createktask.o: createktask.s ../syscalls.inc
+createktask.o: createktask.s $(INC)/syscalls.inc
 
-createtask.o: createtask.s ../syscalls.inc
+createtask.o: createtask.s $(INC)/syscalls.inc
 
-createlptask.o: createlptask.s ../syscalls.inc
+createlptask.o: createlptask.s $(INC)/syscalls.inc
 
-killtask.o: killtask.s ../syscalls.inc
+killtask.o: killtask.s $(INC)/syscalls.inc
 
-getcommandline.o: getcommandline.s ../syscalls.inc
+getcommandline.o: getcommandline.s $(INC)/syscalls.inc
 
-getticks.o: getticks.s ../syscalls.inc
+getticks.o: getticks.s $(INC)/syscalls.inc
 
-sleep.o: sleep.s ../syscalls.inc
+sleep.o: sleep.s $(INC)/syscalls.inc
 
 convert.o: convert.c

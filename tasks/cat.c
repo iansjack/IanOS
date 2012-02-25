@@ -1,6 +1,6 @@
 #include "kstructs.h"
-#include "library/syscalls.h"
-#include "library/lib.h"
+#include "syscalls.h"
+#include "lib.h"
 
 int
 main(int argc, char **argv)
