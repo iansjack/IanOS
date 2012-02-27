@@ -17,8 +17,6 @@ struct Message ConsoleMsg;
 void
 switchConsole(long console)
 {
-//	KWriteString("In SwitchBuffer", 20, 0);
-//	while (1);
 	asm("cli");
    if (currentBuffer != console)
    {
@@ -29,7 +27,6 @@ switchConsole(long console)
    }
    currentBuffer = console;
    asm("sti");
-//	while (1);
 }
 
 void
@@ -88,9 +85,7 @@ printchar(unsigned char c)
       currCons->row++;
       if (currCons->row == 25)
       {
-//         asm("cli");
          scrollscreen(console);
-//         asm("sti");
          currCons->row--;
       }
       break;
@@ -113,9 +108,7 @@ printchar(unsigned char c)
          currCons->row++;
          if (currCons->row == 25)
          {
-//            asm("cli");
             scrollscreen(console);
-//            asm("sti");
             currCons->row--;
          }
       }

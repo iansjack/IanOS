@@ -44,7 +44,7 @@ Linker script and memory map
 
 LOAD inittask.o
 
-.text           0x0000000000300000      0x675
+.text           0x0000000000300000      0x67d
                 0x0000000000300014                phys = _start
  *(.text)
  .text          0x0000000000300000       0x19 inittask.o
@@ -67,7 +67,7 @@ LOAD inittask.o
  .text          0x000000000030054c       0x6e ../library/liblib.a(getdirectory.o)
                 0x000000000030054c                GetDirectory
  *fill*         0x00000000003005ba        0x2 00
- .text          0x00000000003005bc       0x86 ../library/libsyscalls.a(syscalls.o)
+ .text          0x00000000003005bc       0x90 ../library/libsyscalls.a(syscalls.o)
                 0x00000000003005bc                sys_ReceiveMessage
                 0x00000000003005c6                sys_SendMessage
                 0x00000000003005d0                sys_SendReceive
@@ -79,21 +79,21 @@ LOAD inittask.o
                 0x0000000000300624                sys_SetCurrentDirectory
                 0x000000000030062e                Sys_Open
                 0x0000000000300638                Sys_Close
- *fill*         0x0000000000300642        0x2 00
- .text          0x0000000000300644        0xa ../library/libsyscalls.a(allocmem.o)
-                0x0000000000300644                sys_AllocMem
- *fill*         0x000000000030064e        0x2 00
- .text          0x0000000000300650        0xa ../library/libsyscalls.a(allocsharedmem.o)
-                0x0000000000300650                sys_AllocSharedMem
- *fill*         0x000000000030065a        0x2 00
- .text          0x000000000030065c        0xa ../library/libsyscalls.a(deallocmem.o)
-                0x000000000030065c                sys_DeallocMem
- *fill*         0x0000000000300666        0x2 00
- .text          0x0000000000300668        0xd ../library/libsyscalls.a(createtask.o)
-                0x0000000000300668                sys_CreateTask
-                0x0000000000000661                CodeLength = (. - phys)
+                0x0000000000300642                Sys_Fork
+ .text          0x000000000030064c        0xa ../library/libsyscalls.a(allocmem.o)
+                0x000000000030064c                sys_AllocMem
+ *fill*         0x0000000000300656        0x2 00
+ .text          0x0000000000300658        0xa ../library/libsyscalls.a(allocsharedmem.o)
+                0x0000000000300658                sys_AllocSharedMem
+ *fill*         0x0000000000300662        0x2 00
+ .text          0x0000000000300664        0xa ../library/libsyscalls.a(deallocmem.o)
+                0x0000000000300664                sys_DeallocMem
+ *fill*         0x000000000030066e        0x2 00
+ .text          0x0000000000300670        0xd ../library/libsyscalls.a(createtask.o)
+                0x0000000000300670                sys_CreateTask
+                0x0000000000000669                CodeLength = (. - phys)
 
-.data           0x0000000000310000       0x47 load address 0x0000000000300675
+.data           0x0000000000310000       0x47 load address 0x000000000030067d
  *(.data)
  .data          0x0000000000310000        0x0 inittask.o
  .data          0x0000000000310000        0x0 task1.o
@@ -113,7 +113,7 @@ LOAD inittask.o
  .rodata        0x0000000000310004       0x43 task1.o
                 0x0000000000000047                DataLength = SIZEOF (.data)
 
-.eh_frame       0x0000000000310048      0x170 load address 0x00000000003006c0
+.eh_frame       0x0000000000310048      0x170 load address 0x00000000003006c8
  *(.eh_frame)
  .eh_frame      0x0000000000310048       0x38 task1.o
  .eh_frame      0x0000000000310080       0x38 ../library/liblib.a(writeconsolechar.o)
@@ -126,7 +126,7 @@ LOAD ../library/liblib.a
 LOAD ../library/libsyscalls.a
 OUTPUT(TASK1 binary)
 
-.bss            0x00000000003101b8       0x44 load address 0x0000000000300830
+.bss            0x00000000003101b8       0x44 load address 0x0000000000300838
  .bss           0x00000000003101b8        0x0 inittask.o
  .bss           0x00000000003101b8        0x0 task1.o
  COMMON         0x00000000003101b8       0x10 task1.o
@@ -152,13 +152,13 @@ OUTPUT(TASK1 binary)
  .bss           0x00000000003101fc        0x0 ../library/libsyscalls.a(deallocmem.o)
  .bss           0x00000000003101fc        0x0 ../library/libsyscalls.a(createtask.o)
 
-.debug_info     0x0000000000000000      0xe03
- .debug_info    0x0000000000000000      0x451 task1.o
- .debug_info    0x0000000000000451      0x1a9 ../library/liblib.a(writeconsolechar.o)
- .debug_info    0x00000000000005fa      0x211 ../library/liblib.a(writeconsolestring.o)
- .debug_info    0x000000000000080b      0x19c ../library/liblib.a(consoleclrscr.o)
- .debug_info    0x00000000000009a7      0x1ad ../library/liblib.a(getchar.o)
- .debug_info    0x0000000000000b54      0x2af ../library/liblib.a(getdirectory.o)
+.debug_info     0x0000000000000000      0xe0f
+ .debug_info    0x0000000000000000      0x45d task1.o
+ .debug_info    0x000000000000045d      0x1a9 ../library/liblib.a(writeconsolechar.o)
+ .debug_info    0x0000000000000606      0x211 ../library/liblib.a(writeconsolestring.o)
+ .debug_info    0x0000000000000817      0x19c ../library/liblib.a(consoleclrscr.o)
+ .debug_info    0x00000000000009b3      0x1ad ../library/liblib.a(getchar.o)
+ .debug_info    0x0000000000000b60      0x2af ../library/liblib.a(getdirectory.o)
 
 .debug_abbrev   0x0000000000000000      0x69e
  .debug_abbrev  0x0000000000000000      0x112 task1.o
@@ -193,13 +193,13 @@ OUTPUT(TASK1 binary)
  .debug_line    0x000000000000029c       0x76 ../library/liblib.a(getchar.o)
  .debug_line    0x0000000000000312       0x9e ../library/liblib.a(getdirectory.o)
 
-.debug_str      0x0000000000000000      0xa1a
- .debug_str     0x0000000000000000      0x225 task1.o
- .debug_str     0x0000000000000225      0x182 ../library/liblib.a(writeconsolechar.o)
- .debug_str     0x00000000000003a7      0x199 ../library/liblib.a(writeconsolestring.o)
- .debug_str     0x0000000000000540      0x17c ../library/liblib.a(consoleclrscr.o)
- .debug_str     0x00000000000006bc      0x177 ../library/liblib.a(getchar.o)
- .debug_str     0x0000000000000833      0x1e7 ../library/liblib.a(getdirectory.o)
+.debug_str      0x0000000000000000      0xa22
+ .debug_str     0x0000000000000000      0x22d task1.o
+ .debug_str     0x000000000000022d      0x182 ../library/liblib.a(writeconsolechar.o)
+ .debug_str     0x00000000000003af      0x199 ../library/liblib.a(writeconsolestring.o)
+ .debug_str     0x0000000000000548      0x17c ../library/liblib.a(consoleclrscr.o)
+ .debug_str     0x00000000000006c4      0x177 ../library/liblib.a(getchar.o)
+ .debug_str     0x000000000000083b      0x1e7 ../library/liblib.a(getdirectory.o)
 
 .comment        0x0000000000000000      0x10e
  .comment       0x0000000000000000       0x2d task1.o

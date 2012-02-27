@@ -32,7 +32,8 @@ TS.environment		= 197		# dq 0
 TS.parentPort		= 205		# dq 0
 TS.currentDir 		= 213		# dq 0
 TS.console			= 221
-TS.size				= 229
+TS.forking			= 222		
+TS.size				= 230
 
 Msg.nextMessage	= 0
 Msg.byte				= 8

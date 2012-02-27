@@ -11,6 +11,7 @@
 	.global sys_SetCurrentDirectory
 	.global Sys_Open
 	.global Sys_Close
+	.global Sys_Fork
 
 	.text
 
@@ -80,3 +81,9 @@ Sys_Close:
 	mov $SYS_CLOSE, %r9
 	syscall
 	ret
+	
+Sys_Fork:
+	mov $SYS_FORK, %r9
+	syscall
+	ret
+	

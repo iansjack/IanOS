@@ -55,6 +55,33 @@ void LinkTask(struct Task *task)
 	asm("sti");
 }
 
+//=========================================================================
+// Fork the current process.
+// Return the pid of the new process
+//=========================================================================
+long DoFork()
+{
+	// Copy task structure, with adjustments
+	struct Task * task = nextfreetss();
+	copyMem(currentTask, task, sizeof(struct Task));
+	int pid = task->pid = nextpid++;
+
+	// Copy Page Table and pages
+	task->cr3 = (long) VCreatePageDir(pid, currentTask->pid);
+		
+	// Run the forked process
+	asm ("cli");
+	LinkTask(task);
+	asm ("sti");
+	// We want the forked process to return to this point. So we
+	// need to save the registers from here to the new task structure.
+	SaveRegisters(task);
+
+	// Return 0 to the forked process, the new pid to the forking one.
+	if (pid == currentTask->pid) pid = 0;
+	return pid;
+}
+
 //========================
 // Create a new User task
 //========================
@@ -71,7 +98,7 @@ void NewTask(char *name, char *environment, struct MessagePort * parentPort,
 	task->currentDir = currentTask->currentDir;
 	task->console = console;
 	task->waiting = 0;
-	task->cr3 = (long) (VCreatePageDir(task->pid));
+	task->cr3 = (long) (VCreatePageDir(task->pid, 0));
 	task->ds = udata64 + 3;
 	copyMem((unsigned char *) StartTask, (unsigned char *) TempUserCode,
 			(long) NewKernelTask - (long) StartTask);
@@ -202,7 +229,7 @@ NewKernelTask(void *TaskCode)
 
 	task->pid = nextpid++;
 	task->waiting = 0;
-	task->cr3 = (long) VCreatePageDir(task->pid);
+	task->cr3 = (long) VCreatePageDir(task->pid, 0);
 	task->ds = data64;
 	stack = (long *) (TempUStack + PageSize) - 5;
 	task->rsp = (long) ((long *) (UserStack + PageSize) - 5);

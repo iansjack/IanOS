@@ -6,6 +6,7 @@
 	.global TaskSwitch
 	.global SpecificTaskSwitch
 #	.global CreateKernelTask
+	.global SaveRegisters
 
 #===================================================================================================
 # Save the current task, restore the next ready one (if there is one!), and initiate a task switch.
@@ -70,7 +71,11 @@ TS1:	xchg currentTask, %r15
 	mov  TS.cr3(%r15), %rax
 	mov  %rax, %cr3
 	mov  TS.rsp(%r15), %rsp
+	cmp  $1,TS.forking(%r15)
+	je   forking			# Forking is a special case
 	push %rcx
+forking:
+	movb $0, TS.forking(%r15) # Don't want to process forking more than once!
 	mov  TS.rcx(%r15), %rcx
 	mov  TS.rdx(%r15), %rdx
 	mov  TS.rbp(%r15), %rbp
@@ -88,7 +93,41 @@ TS1:	xchg currentTask, %r15
 	mov  TS.rbx(%r15), %rbx
 	mov  TS.r15(%r15), %r15
 	ret
-
+	
+SaveRegisters:
+	pop  %rsi
+	push %rsi
+	push %r15	
+	mov	 %rdi, %r15
+	mov  %rax, TS.rax(%r15)
+	mov  %rbx, TS.rbx(%r15)
+	mov  %rcx, TS.rcx(%r15)
+	mov  %rdx, TS.rdx(%r15)
+	mov  %rbp, TS.rbp(%r15)
+	mov  %rsi, TS.rsi(%r15)
+	mov  %rdi, TS.rdi(%r15)
+	mov  %r8,  TS.r8(%r15)
+	mov  %r9,  TS.r9(%r15)
+	mov  %r10, TS.r10(%r15)
+	mov  %r11, TS.r11(%r15)
+	mov  %r12, TS.r12(%r15)
+	mov  %r13, TS.r13(%r15)
+	mov  %r14, TS.r14(%r15)
+	mov  %r15, TS.r15(%r15)
+	movb  $1, TS.forking(%r15)
+	mov  %rsp, %rdi
+	add  $0x8, %rdi
+	mov  %rdi, TS.rsp(%r15)
+	mov  %cr3,%rdi
+	mov  TS.cr3(%r15),%rax
+	mov  %rax,%cr3
+	add  $0x10,%rsp
+	push %rsi
+	mov  %rdi,%cr3
+	sub  $0x8,%rsp
+	pop  %r15
+	ret
+	
 	.data
 
 	.global currentTask

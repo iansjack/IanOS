@@ -10,11 +10,15 @@ long kernelPT;
 long virtualPDP;
 extern struct Task *currentTask;
 
+void Debug()
+{
+}
+
 //=====================================================
 // Create a Page Table for a new process
 // Return a pointer to the Page Directory of this table
 //=====================================================
-void * VCreatePageDir(unsigned short pid)
+void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 {
 	struct PML4 * pml4 = (struct PML4 *) AllocPage(pid);
 	struct PDP * pdp = (struct PDP *) AllocPage(pid);
@@ -27,25 +31,44 @@ void * VCreatePageDir(unsigned short pid)
 	VIRT(PD,pd)->entries[0].value = kernelPT | P | RW | US;
 	VIRT(PD,pd)->entries[1].value = (long) pt | P | RW | US;
 
-	// Entries for the page table itself. We should be able to eliminate these!
-	VIRT(PT,pt)->entries[0].value = (long) pml4 + 7;
-	VIRT(PT,pt)->entries[1].value = VIRT(PML4,pml4)->entries[0].value;
-	VIRT(PT,pt)->entries[2].value = VIRT(PDP,pdp)->entries[0].value;
-	VIRT(PT,pt)->entries[3].value = VIRT(PD,pd)->entries[0].value;
-	VIRT(PT,pt)->entries[4].value = VIRT(PD,pd)->entries[1].value;
-
-	// 1 Page for User Code
-	VIRT(PT,pt)->entries[0x100].value = CreatePTE(AllocPage(pid),
-			TempUserCode);
-	// 1 Page for User Data
-	VIRT(PT,pt)->entries[0x110].value = CreatePTE(AllocPage(pid),
-			TempUserData);
-	// 1 Page for kernel stack
-	VIRT(PT,pt)->entries[0x1FC].value = CreatePTE(AllocPage(pid),
+	if (parentPid == 0) // Just create some default PTEs
+	{
+		// 1 Page for User Code
+		VIRT(PT,pt)->entries[0x100].value = CreatePTE(AllocPage(pid),
+				TempUserCode);
+		// CreatePTE(AllocPage(pid), UserCode);
+		// 1 Page for User Data
+		VIRT(PT,pt)->entries[0x110].value = CreatePTE(AllocPage(pid),
+				TempUserData);
+		// 1 Page for kernel stack
+		VIRT(PT,pt)->entries[0x1FC].value = CreatePTE(AllocPage(pid),
 			TempKStack);
-	// 1 Page for user stack
-	VIRT(PT,pt)->entries[0x1FE].value = CreatePTE(AllocPage(pid),
-			TempUStack);
+		// 1 Page for user stack
+		VIRT(PT,pt)->entries[0x1FE].value = CreatePTE(AllocPage(pid),
+				TempUStack);
+	}
+	else // Create PTEs and copy pages based on parent PT
+	{
+		long temp = (long)pml4;
+		// Get physical address of current PT
+		pml4 = (struct PML4 *)currentTask->cr3;
+		pdp = (struct PDP *)((VIRT(PML4,pml4)->entries[0].value) & 0xFFFFF000);
+		pd = (struct PD *)((VIRT(PDP,pdp)->entries[0].value) & 0xFFFFF000);
+		// Copy memory pages
+		int i;
+		struct PT *currentPT = (struct PT *)((VIRT(PD,pd)->entries[1].value) & 0xFFFFF000);
+		for (i = 0x100; i < 0x200; i++)
+		{
+			if (VIRT(PT,currentPT)->entries[i].value)
+			{
+				VIRT(PT,pt)->entries[i].value = CreatePTE(AllocPage(pid), TempUserCode);
+				copyMem(((VIRT(PT,currentPT)->entries[i].value) & 0xFFFFF000) + 0x8000000000,
+				        ((VIRT(PT,pt)->entries[i].value) & 0xFFFFF000) + 0x8000000000,
+				        PageSize); // Copying physical memory!
+			}
+		}
+		pml4 = (struct PML4 *)temp;
+	}
 	return (void *) pml4;
 }
 

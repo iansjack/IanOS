@@ -82,6 +82,6 @@ AllocPage(unsigned short int pid);
 long
 CreatePTE(void *pAddress, long lAddress);
 void *
-VCreatePageDir(unsigned short pid);
+VCreatePageDir(unsigned short pid, unsigned short parentPid);
 
 #endif

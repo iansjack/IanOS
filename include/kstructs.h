@@ -37,6 +37,7 @@ struct Task
     struct MessagePort * parentPort;
     long          currentDir;
     long          console;
+	unsigned char forking;
 };
 
 struct Message

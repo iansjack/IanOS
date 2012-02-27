@@ -139,7 +139,7 @@ KOpenFile(char *s)
    msg->nextMessage = 0;
    msg->byte = OPENFILE;
    msg->quad = (long) str;
-   SendReceiveMessage(FSPort, msg);
+   SendReceiveMessage((struct MessagePort *)FSPort, msg);
    DeallocMem(S);
    return ((struct FCB *) msg->quad);
 }
@@ -156,6 +156,6 @@ KCloseFile(struct FCB *fHandle)
    msg->nextMessage = 0;
    msg->byte = CLOSEFILE;
    msg->quad = (long) fHandle;
-   SendReceiveMessage(FSPort, msg);
+   SendReceiveMessage((struct MessagePort *)FSPort, msg);
    return ((struct FCB *) msg->quad);
 }
