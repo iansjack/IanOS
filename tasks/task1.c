@@ -11,8 +11,8 @@ main(void)
    int column = 0;
    char commandline[81];
    char buffer[512];
-   char *name = sys_AllocMem(81); //sys_AllocSharedMem(81);
-   char *environment; //= sys_AllocSharedMem(81);
+   char name[81];
+   char environment[81];
    int i;
 
    ConsoleClrScr();
@@ -58,7 +58,6 @@ main(void)
                name[i] = name[i] - 0x20;
          }
 
-         environment = sys_AllocSharedMem(81);
          for (i = 0; i < 80; i++)
          {
             environment[i] = commandline[i];
@@ -84,20 +83,11 @@ main(void)
          }
          else
          {
-            if (name[0] == '&')
-               sys_CreateTask(name + 1, environment + 1, 0,
-                     sys_GetCurrentConsole());
-            else
-            {
-               struct Message *msg = (struct Message *) sys_AllocMem(
-                     sizeof(struct Message));
-               struct MessagePort * parentPort = sys_AllocMessagePort();
-               sys_CreateTask(name, environment, parentPort,
-                     sys_GetCurrentConsole());
-               sys_ReceiveMessage((long int) parentPort, msg);
-               sys_DeallocMem(parentPort);
-               sys_DeallocMem(msg);
-            }
+			int pid = Sys_Fork();
+			if (!pid)
+				Sys_Execve(name, environment);
+			 else
+				 Sys_Wait(pid);
          }
 
          WriteConsoleString("#> _\b");

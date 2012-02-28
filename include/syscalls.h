@@ -23,5 +23,7 @@ long sys_GetCurrentConsole();
 long sys_SetCurrentDirectory(long directory);
 struct FCB * Sys_Open(char * filename);
 struct FCB * Sys_close(char * filename);
+long Sys_Execve(char * name, char * environment);
+void Sys_WaitPid(unsigned short pid);
 
 #endif

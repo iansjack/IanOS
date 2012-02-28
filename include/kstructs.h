@@ -33,7 +33,7 @@ struct Task
     long          nextpage;
     unsigned short pid;
     long          timer;
-    char * 			environment;
+    char * 		  environment;
     struct MessagePort * parentPort;
     long          currentDir;
     long          console;

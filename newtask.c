@@ -118,6 +118,105 @@ void NewTask(char *name, char *environment, struct MessagePort * parentPort,
 	asm ("sti");
 }
 
+long DoExec(char * name, char * environment)
+{
+	struct FCB * fHandle;
+	long codelen, datalen;
+	char header[3];
+	long *data;
+	long currentPage;
+	long size;
+	long argc;
+	long argv;
+
+	char * kname = AllocKMem(81);
+	char * kenvironment = AllocKMem(81);
+	int i;
+	for (i = 0; i < 81; i++)
+	{
+		kname[i] = name[i];
+		kenvironment[i] = environment[i];
+	}
+	struct Message *FSMsg;
+
+	FSMsg = (struct Message *) AllocKMem(sizeof(struct Message));
+
+	// Open file
+	FSMsg->nextMessage = 0;
+	FSMsg->byte = OPENFILE;
+	FSMsg->quad = (long) kname;
+	FSMsg->quad2 = (long) fHandle;
+	SendReceiveMessage((struct MessagePort *) FSPort, FSMsg);
+
+	fHandle = (struct FCB *) FSMsg->quad;
+	if (fHandle)
+	{
+		ReadFromFile(fHandle, header, 4);
+		ReadFromFile(fHandle, (char *) &codelen, 8);
+		ReadFromFile(fHandle, (char *) &datalen, 8);
+		currentPage = UserCode;
+		size = codelen;
+		while (codelen > PageSize)
+		{
+			CreatePTE(AllocPage(currentTask->pid), ++currentPage);
+			size -= PageSize;
+		}
+		ReadFromFile(fHandle, (char *) UserCode, codelen);
+		currentPage = UserData;
+		size = datalen;
+		while (datalen > PageSize)
+		{
+			CreatePTE(AllocPage(currentTask->pid), ++currentPage);
+			size -= PageSize;
+		}
+		ReadFromFile(fHandle, (char *) UserData, datalen);
+		data = (long *) (UserData + datalen);
+		data[0] = 0;
+		data[1] = PageSize - datalen - 0x10;
+		currentTask->firstfreemem = UserData + datalen;
+
+		//Close file
+		FSMsg->nextMessage = 0;
+		FSMsg->byte = CLOSEFILE;
+		FSMsg->quad = (long) fHandle;
+		SendReceiveMessage((struct MessagePort *) FSPort, FSMsg);
+		DeallocMem(kenvironment);
+		DeallocMem(kname);
+		DeallocMem(FSMsg);
+		char * newenv = AllocMem(81,
+				(struct MemStruct *) currentTask->firstfreemem);
+		copyMem(kenvironment, newenv, 81);
+		DeallocMem(kenvironment);
+		currentTask->environment = newenv;
+		argc = ParseEnvironmentString(&argv);
+		asm ("mov %0,%%rdi;"
+				"mov %1,%%rsi"
+				:
+				:"r"(argc), "r"(argv)
+				:"%rax","%rdi"
+		);
+		return 0;
+	}
+	else
+	{
+		DeallocMem(kenvironment);
+		DeallocMem(kname);
+		DeallocMem(FSMsg);
+		return 1;
+	}
+}
+
+void Do_Wait(unsigned short pid)
+{
+	struct Task * task = PidToTask(pid);
+	struct MessagePort * parentPort = AllocMessagePort();
+	struct Message * message = AllocKMem(sizeof (struct Message));
+	task->parentPort = parentPort;
+	ReceiveMessage(parentPort, message);
+	DeallocMem(message);
+	DeallocMem(parentPort);
+}
+
 //===============================================================================
 // This loads the program "name" into memory, if it exists.
 // It is never called directly, but only as part of the System Call LOADPROGRAM.

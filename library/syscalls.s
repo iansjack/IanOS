@@ -12,6 +12,8 @@
 	.global Sys_Open
 	.global Sys_Close
 	.global Sys_Fork
+	.global Sys_Execve
+	.global Sys_Wait
 
 	.text
 
@@ -87,3 +89,13 @@ Sys_Fork:
 	syscall
 	ret
 	
+Sys_Execve:
+	mov $SYS_EXECVE, %r9
+	syscall
+	ret
+
+Sys_Wait:
+	mov $SYS_WAITPID, %r9
+	syscall
+	ret
+		
