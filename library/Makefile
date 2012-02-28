@@ -6,7 +6,7 @@ LIBOBJS = writeconsolechar.o writeconsolestring.o consoleclrscr.o \
 	getchar.o createfile.o deletefile.o readfile.o writefile.o getfileinfo.o \
 	getfspid.o getdirectoryentry.o getdirectory.o convert.o
 SYSCALLSOBJS = syscalls.o allocmem.o allocsharedmem.o deallocmem.o \
-	createtask.o createktask.o createlptask.o killtask.o\
+	killtask.o\
 	getcommandline.o getticks.o sleep.o
 
 all: liblib.a libsyscalls.a
@@ -53,12 +53,6 @@ allocmem.o: allocmem.s $(INC)/syscalls.inc
 deallocmem.o: deallocmem.s $(INC)/syscalls.inc
 
 allocsharedmem.o: allocsharedmem.s $(INC)/syscalls.inc
-
-createktask.o: createktask.s $(INC)/syscalls.inc
-
-createtask.o: createtask.s $(INC)/syscalls.inc
-
-createlptask.o: createlptask.s $(INC)/syscalls.inc
 
 killtask.o: killtask.s $(INC)/syscalls.inc
 

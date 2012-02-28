@@ -32,6 +32,7 @@ sys_SendReceive:
 	syscall
 	ret
 
+/*
 sys_WriteDouble:
 	push %rbx
 	movq %rsi, %rbx
@@ -53,6 +54,7 @@ sys_WriteString:
 	syscall
 	pop %rbx
 	ret
+*/
 
 sys_AllocMessagePort:
 	mov $ALLOCMSGPORT, %r9

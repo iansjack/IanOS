@@ -23,10 +23,6 @@ CallNo:
 	.quad	Sys_UnLink
 	.quad	Sys_Execve
 	.quad	Sys_ChDir				
-	.quad	PrintString				# PRINTSTRING
-	.quad	PrintDouble				# PRINTDOUBLE
-	.quad	PrintChar				# PRINTCHAR
-	.quad	Newtask 				# CREATETASK
 	.quad	GetTicks				# GETTICKS
 	.quad	Sleep					# SLEEP
 	.quad	Alloc_Mem				# ALLOCMEM
@@ -35,11 +31,8 @@ CallNo:
 	.quad	Receive_Message 		# RECEIVEMESSAGE
 	.quad	Dealloc_Mem				# DEALLOCMEM
 	.quad	Send_Receive			# SENDRECEIVE
-	.quad 	NewKerneltask			# CREATEKTASK
 	.quad	Alloc_Shared_Mem		# ALLOCSHAREDMEM
-	.quad	NewLPtask				# CREATELPTASK
 	.quad 	CommandLine				# GETCOMMANDLINE
-	.quad	LoadProgram				# LOADPROGRAM
 	.quad	GetCurrentConsole		# GETCURRENTCONSOLE
 	.quad 	GetCurrentDirectory		# GETCURRENTDIR
 	.quad 	SetCurrentDirectory		# SETCURRENTDIR
@@ -144,6 +137,7 @@ notLoaded:
 Sys_ChDir:
 	sysret				
 
+/*
 #========================================================
 # Print [EDX] as string at position row BH col BL
 # Affects RAX, RBX, RDX
@@ -205,19 +199,7 @@ PrintChar:
 	pop  %ax
 	mov  %ah, 0xB8000(%ebx)
 	sysretq
-
-#=================================================================
-# Create a new task from the file whose name is pointed to by RDI
-# Passes environment string in RSI
-# Affects RAX, RDI
-#=================================================================
-Newtask:
-	push %rcx
-	mov %r14, %rcx
-	call NewTask
-	int  $20
-	pop %rcx
-	sysretq
+*/
 
 #=============================================================================
 # Return in RAX the number of (10ms) clock ticks since the system was started
@@ -303,20 +285,6 @@ Send_Receive:
 	pop %rcx
 	sysretq
 
-#=================================================================
-# Create a new kernel task from the code pointed to by RDI
-# Affects RAX, RDI
-# Note - we really, really shouldn't have a system call to create
-# a new kernel task! On the other hand, it calls code compiled
-# into the kernel, so no real harm done.
-#=================================================================
-NewKerneltask:
-	push %rcx
-	call NewKernelTask
-	int $20
-	pop %rcx
-	sysretq
-
 #==============================================================
 # Allocate some shared memory. RDI = amount to allocate
 # Returns in RAX address of allocated memory.
@@ -327,19 +295,6 @@ Alloc_Shared_Mem:
 	pop  %rcx
 	sysretq
 
-#=================================================================
-# Create the low-priority task from the code pointed to by RDI
-# Affects RAX, RDI
-# Note - we really, really shouldn't have a system call to create
-# this task! We only want it to happen once.
-#=================================================================
-NewLPtask:
-	push %rcx
-	call NewLowPriTask
-	int $20
-	pop %rcx
-	sysretq
-
 #==================================================
 # Return a pointer to the command line of the task
 # Affects RAX
@@ -347,17 +302,6 @@ NewLPtask:
 CommandLine:
 	mov  currentTask, %r15
 	mov  TS.environment(%r15), %rax
-	sysretq
-
-#====================================================================
-# Loads a program from the hard disk and overwrites the current task
-# RCX = Address to load to
-# R13 = Program Name
-#====================================================================
-LoadProgram:
-	mov %rcx, %rdi
-	mov %r13, %rsi
-	call LoadTheProgram
 	sysretq
 
 #=================================================

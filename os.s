@@ -50,7 +50,7 @@ start64:
 	mov $TaskStruct, %rdi
 	cld
 	rep stosq
-
+	
 	mov $TaskStruct, %r15			# Set up skeleton task structure for first task
 	movq $0, TS.nexttask(%r15)
 	movq %r15, TS.r15(%r15)
@@ -91,6 +91,8 @@ start64:
 	mov $0x1000, %rcx				# How do we find the length of tas1? It's so small
 	cld								# that we just assume it's under 0x1000 bytes
 	rep movsb
+
+	call StartTasks
 
 	mov $UserCode, %rcx		  	# Task 1
 	pushfq

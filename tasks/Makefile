@@ -1,7 +1,7 @@
 include ../Flags.mak
 
 LIBS = ../library/liblib.a ../library/libsyscalls.a 
-TASKS = TASK1 TASK2 TASK3 TASK4 LS CAT
+TASKS = TASK1 LS CAT
 
 all: $(TASKS) 
 

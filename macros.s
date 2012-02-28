@@ -29,51 +29,51 @@
 	pop %rax
 .endm
 
-.macro WRITE_CHAR char, row, col
-	push %rax
-	push %rbx
-	mov \char, %ah
-	mov $0, %ebx
-	mov \row, %bh
-	mov \col, %bl
-	SYS $PRINTCHAR
-	pop %rbx
-	pop %rax
-.endm
+#.macro WRITE_CHAR char, row, col
+#	push %rax
+#	push %rbx
+#	mov \char, %ah
+#	mov $0, %ebx
+#	mov \row, %bh
+#	mov \col, %bl
+#	SYS $PRINTCHAR
+#	pop %rbx
+#	pop %rax
+#.endm
 
-.macro WRITE_DOUBLE number, row, col
-	push %rax
-	push %rbx
-	push %rcx
-	push %rdx
-	push %r9
-	mov \number, %rdx
-	mov $0, %ebx
-	mov \row, %bh
-	mov \col, %bl
-	SYS $PRINTDOUBLE
-	pop %r9
-	pop %rdx
-	pop %rcx
-	pop %rbx
-	pop %rax
-.endm
+#.macro WRITE_DOUBLE number, row, col
+#	push %rax
+#	push %rbx
+#	push %rcx
+#	push %rdx
+#	push %r9
+#	mov \number, %rdx
+#	mov $0, %ebx
+#	mov \row, %bh
+#	mov \col, %bl
+#	SYS $PRINTDOUBLE
+#	pop %r9
+#	pop %rdx
+#	pop %rcx
+#	pop %rbx
+#	pop %rax
+#.endm
 
-.macro WRITE_STRING str, row, col
-	push %rax
-	push %rbx
-	push %rdx
-	push %r9
-	mov \str, %rdx
-	mov $0, %ebx
-	mov \row, %bh
-	mov \col, %bl
-	SYS $PRINTSTRING
-	pop %r9
-	pop %rdx
-	pop %rbx
-	pop %rax
-.endm
+#.macro WRITE_STRING str, row, col
+#	push %rax
+#	push %rbx
+#	push %rdx
+#	push %r9
+#	mov \str, %rdx
+#	mov $0, %ebx
+#	mov \row, %bh
+#	mov \col, %bl
+#	SYS $PRINTSTRING
+#	pop %r9
+#	pop %rdx
+#	pop %rbx
+#	pop %rax
+#.endm
 
 .macro PUSH_ALL
 	push %rax
@@ -103,10 +103,10 @@
 	int $22
 .endm
 
-.macro SYS callnum
-	mov \callnum, %r9
-	syscall
-.endm
+#.macro SYS callnum
+#	mov \callnum, %r9
+#	syscall
+#.endm
 
 .macro SEG_DESCRIP name,base,g,segsize,longmode,limit,p,dpl,dt,type
 	\name = . - mygdt

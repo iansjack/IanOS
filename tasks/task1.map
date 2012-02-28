@@ -42,7 +42,7 @@ Linker script and memory map
 
 LOAD inittask.o
 
-.text           0x0000000000300000      0x5fa
+.text           0x0000000000300000      0x5ce
                 0x0000000000300014                phys = _start
  *(.text)
  .text          0x0000000000300000       0x19 inittask.o
@@ -64,32 +64,30 @@ LOAD inittask.o
  .text          0x00000000003004c4       0x6e ../library/liblib.a(getdirectory.o)
                 0x00000000003004c4                GetDirectory
  *fill*         0x0000000000300532        0x2 00
- .text          0x0000000000300534       0xa4 ../library/libsyscalls.a(syscalls.o)
+ .text          0x0000000000300534       0x78 ../library/libsyscalls.a(syscalls.o)
                 0x0000000000300534                sys_ReceiveMessage
                 0x000000000030053e                sys_SendMessage
                 0x0000000000300548                sys_SendReceive
-                0x0000000000300552                sys_WriteDouble
-                0x0000000000300568                sys_WriteString
-                0x000000000030057e                sys_AllocMessagePort
-                0x0000000000300588                sys_GetCurrentConsole
-                0x0000000000300592                sys_GetCurrentDirectory
-                0x000000000030059c                sys_SetCurrentDirectory
-                0x00000000003005a6                Sys_Open
-                0x00000000003005b0                Sys_Close
-                0x00000000003005ba                Sys_Fork
-                0x00000000003005c4                Sys_Execve
-                0x00000000003005ce                Sys_Wait
- .text          0x00000000003005d8        0xa ../library/libsyscalls.a(allocmem.o)
-                0x00000000003005d8                sys_AllocMem
- *fill*         0x00000000003005e2        0x2 00
- .text          0x00000000003005e4        0xa ../library/libsyscalls.a(allocsharedmem.o)
-                0x00000000003005e4                sys_AllocSharedMem
- *fill*         0x00000000003005ee        0x2 00
- .text          0x00000000003005f0        0xa ../library/libsyscalls.a(deallocmem.o)
-                0x00000000003005f0                sys_DeallocMem
-                0x00000000000005e6                CodeLength = (. - phys)
+                0x0000000000300552                sys_AllocMessagePort
+                0x000000000030055c                sys_GetCurrentConsole
+                0x0000000000300566                sys_GetCurrentDirectory
+                0x0000000000300570                sys_SetCurrentDirectory
+                0x000000000030057a                Sys_Open
+                0x0000000000300584                Sys_Close
+                0x000000000030058e                Sys_Fork
+                0x0000000000300598                Sys_Execve
+                0x00000000003005a2                Sys_Wait
+ .text          0x00000000003005ac        0xa ../library/libsyscalls.a(allocmem.o)
+                0x00000000003005ac                sys_AllocMem
+ *fill*         0x00000000003005b6        0x2 00
+ .text          0x00000000003005b8        0xa ../library/libsyscalls.a(allocsharedmem.o)
+                0x00000000003005b8                sys_AllocSharedMem
+ *fill*         0x00000000003005c2        0x2 00
+ .text          0x00000000003005c4        0xa ../library/libsyscalls.a(deallocmem.o)
+                0x00000000003005c4                sys_DeallocMem
+                0x00000000000005ba                CodeLength = (. - phys)
 
-.data           0x0000000000310000       0x47 load address 0x00000000003005fa
+.data           0x0000000000310000       0x47 load address 0x00000000003005ce
  *(.data)
  .data          0x0000000000310000        0x0 inittask.o
  .data          0x0000000000310000        0x0 task1.o
@@ -108,7 +106,7 @@ LOAD inittask.o
  .rodata        0x0000000000310004       0x43 task1.o
                 0x0000000000000047                DataLength = SIZEOF (.data)
 
-.eh_frame       0x0000000000310048      0x170 load address 0x0000000000300648
+.eh_frame       0x0000000000310048      0x170 load address 0x0000000000300618
  *(.eh_frame)
  .eh_frame      0x0000000000310048       0x38 task1.o
  .eh_frame      0x0000000000310080       0x38 ../library/liblib.a(writeconsolechar.o)
@@ -121,7 +119,7 @@ LOAD ../library/liblib.a
 LOAD ../library/libsyscalls.a
 OUTPUT(TASK1 binary)
 
-.bss            0x00000000003101b8       0x44 load address 0x00000000003007b8
+.bss            0x00000000003101b8       0x44 load address 0x0000000000300788
  .bss           0x00000000003101b8        0x0 inittask.o
  .bss           0x00000000003101b8        0x0 task1.o
  COMMON         0x00000000003101b8       0x10 task1.o

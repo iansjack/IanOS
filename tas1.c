@@ -7,22 +7,15 @@ extern void fsTaskCode(void);
 extern void dummyTask(void);
 extern void monitorTaskCode(void);
 
+// This task is just here to start the ball rolling
+
 void tas1(void)
 {
-   sys_CreateLPTask(dummyTask);
-   sys_CreateKTask(kbTaskCode);
-   sys_CreateKTask(consoleTaskCode);
-   sys_CreateKTask(fsTaskCode);
+	// Give tasks time to set themselves up
+	sys_Sleep(1);
+	
 	long pid = Sys_Fork();
-	if (pid)
-	{
-		sys_WriteString("This is the forking process", 20, 0);
-	}
-	else
-	{
-		sys_WriteString("This is the forked process", 21, 0);
-   		sys_Sleep(100);
+	if (!pid)
 		Sys_Execve("TASK1", 0);
-	}
-   sys_Exit();
+   	sys_Exit();
 }
