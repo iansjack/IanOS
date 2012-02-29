@@ -6,8 +6,7 @@ LIBOBJS = writeconsolechar.o writeconsolestring.o consoleclrscr.o \
 	getchar.o createfile.o deletefile.o readfile.o writefile.o getfileinfo.o \
 	getfspid.o getdirectoryentry.o getdirectory.o convert.o
 SYSCALLSOBJS = syscalls.o allocmem.o allocsharedmem.o deallocmem.o \
-	killtask.o\
-	getcommandline.o getticks.o sleep.o
+	killtask.o getticks.o sleep.o
 
 all: liblib.a libsyscalls.a
 

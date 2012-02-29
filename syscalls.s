@@ -24,15 +24,13 @@ CallNo:
 	.quad	Sys_Execve
 	.quad	Sys_ChDir				
 	.quad	GetTicks				# GETTICKS
-	.quad	Sleep					# SLEEP
+	.quad	Sleep					# SLEEP - this will become Sys_Nanosleep
 	.quad	Alloc_Mem				# ALLOCMEM
-	.quad	Alloc_Message_Port		# ALLOCMSGPORT
 	.quad	Send_Message			# SENDMESSAGE
 	.quad	Receive_Message 		# RECEIVEMESSAGE
 	.quad	Dealloc_Mem				# DEALLOCMEM
 	.quad	Send_Receive			# SENDRECEIVE
 	.quad	Alloc_Shared_Mem		# ALLOCSHAREDMEM
-	.quad 	CommandLine				# GETCOMMANDLINE
 	.quad	GetCurrentConsole		# GETCURRENTCONSOLE
 	.quad 	GetCurrentDirectory		# GETCURRENTDIR
 	.quad 	SetCurrentDirectory		# SETCURRENTDIR
@@ -233,15 +231,6 @@ Alloc_Mem:
 	pop  %rcx
 	sysretq
 
-#=================================================
-# Allocate a message port. Return the port in RAX
-#=================================================
-Alloc_Message_Port:
-	push %rcx
-	call AllocMessagePort
-	pop %rcx
-	sysretq
-
 #===================================
 # Send a message to a message port.
 # RDI = message port
@@ -293,15 +282,6 @@ Alloc_Shared_Mem:
 	push %rcx
 	call AllocSharedMem
 	pop  %rcx
-	sysretq
-
-#==================================================
-# Return a pointer to the command line of the task
-# Affects RAX
-#==================================================
-CommandLine:
-	mov  currentTask, %r15
-	mov  TS.environment(%r15), %rax
 	sysretq
 
 #=================================================

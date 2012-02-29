@@ -9,7 +9,7 @@ inittask.o: inittask.s
 	as inittask.s -o inittask.o
 
 TASK1: task1.o inittask.o $(LIBS)
-	ld --print-map -Tlink.ld task1.o $(LIBS) -oTASK1 >task1.map
+	ld -Tlink.ld task1.o $(LIBS) -oTASK1
 	mcopy -o TASK1 c: 
 
 task1.o: task1.c
@@ -45,5 +45,5 @@ CAT: cat.o inittask.o $(LIBS)
 cat.o: cat.c
 
 clean:
-	rm -f TASK? *.o LS* *~
+	rm -f TASK? *.o LS* CAT* *~
 
