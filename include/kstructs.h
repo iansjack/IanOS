@@ -1,6 +1,10 @@
 #ifndef KSTRUCTS_H
 #define KSTRUCTS_H
 
+#define	CONS	1
+#define	KBD		2
+#define FILE	3
+
 struct Task
 {
     struct Task * nexttask;
@@ -38,6 +42,7 @@ struct Task
     long          currentDir;
     long          console;
 	unsigned char forking;
+	struct FCB *  fcbList;
 };
 
 struct Message
@@ -82,8 +87,11 @@ struct FCB
     unsigned long   fileCursor;
     unsigned short  bufCursor;
     unsigned char   bufIsDirty;          // 0 = clean, 1 = dirty
+	unsigned char	deviceType;
     unsigned char   *filebuf;
+	unsigned char	fileDescriptor;
     long            pid;
+	struct FCB *	nextFCB;
 };
 
 struct Console

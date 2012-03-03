@@ -71,7 +71,7 @@ TS1:	xchg currentTask, %r15
 	mov  TS.cr3(%r15), %rax
 	mov  %rax, %cr3
 	mov  TS.rsp(%r15), %rsp
-	cmp  $1,TS.forking(%r15)
+	cmpb $1,TS.forking(%r15)
 	je   forking			# Forking is a special case
 	push %rcx
 forking:

@@ -63,6 +63,15 @@ long DoFork()
 
 	// Copy Page Table and pages
 	task->cr3 = (long) VCreatePageDir(pid, currentTask->pid);
+	task->forking = 1;
+
+	// Create FCB for descriptor 1 *** We'll need to expand this!!! ***
+	struct FCB * fcb = (struct FCB *)AllocKMem(sizeof (struct FCB));
+	fcb->nextFCB = 0;
+	// STDOUT
+	fcb->fileDescriptor = 1;
+	fcb->deviceType = CONS;
+	task->fcbList = fcb;
 		
 	// Run the forked process
 	asm ("cli");
@@ -240,6 +249,18 @@ void KillTask(void)
 
 	// Unlink task from runnable queue
 	runnableTasks = RemoveFromTaskList(runnableTasks, task);
+
+	// Deallocate FCBs
+	struct FCB *temp;
+	while (task->fcbList)
+	{
+		temp = task->fcbList->nextFCB;
+		if (task->fcbList->deviceType == FILE)
+			KCloseFile(task->fcbList);
+		else
+			DeallocMem(task->fcbList);
+		task->fcbList = temp;
+	}
 
 	// Add the task to the Dead Tasks queue
 	deadTasks = AddToHeadOfTaskList(deadTasks, currentTask);

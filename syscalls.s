@@ -22,7 +22,12 @@ CallNo:
 	.quad	Sys_Link
 	.quad	Sys_UnLink
 	.quad	Sys_Execve
-	.quad	Sys_ChDir				
+	.quad	Sys_ChDir
+	.quad	Sys_Time	
+	.quad	Sys_MkNod
+	.quad	Sys_ChMod
+	.quad	Sys_LChOwn
+	.quad	Sys_Stat			
 	.quad	GetTicks				# GETTICKS
 	.quad	Sleep					# SLEEP - this will become Sys_Nanosleep
 	.quad	Alloc_Mem				# ALLOCMEM
@@ -61,12 +66,18 @@ Sys_Fork:
 # 
 #=========================================================	
 Sys_Read:
+	push %rcx
+	call DoRead
+	pop %rcx
 	sysretq
 	
 #=========================================================
 # 
 #=========================================================
 Sys_Write:
+	push %rcx
+	call DoWrite
+	pop %rcx
 	sysretq
 	
 #=========================================================
@@ -101,6 +112,9 @@ SysWaitPID:
 # 
 #=========================================================
 Sys_Creat:
+	push %rcx
+	call DoCreate
+	pop %rcx
 	sysretq
 
 #=========================================================
@@ -133,7 +147,25 @@ notLoaded:
 # 
 #=========================================================
 Sys_ChDir:
-	sysret				
+	sysretq				
+
+Sys_Time:
+	sysretq
+	
+Sys_MkNod:
+	sysretq
+	
+Sys_ChMod:
+	sysretq
+	
+Sys_LChOwn:
+	sysretq
+	
+Sys_Stat:
+	push %rcx
+	call DoStat
+	pop %rcx
+	sysretq			
 
 /*
 #========================================================

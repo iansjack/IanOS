@@ -5,17 +5,17 @@
 int
 main(int argc, char **argv)
 {
-	struct FCB * InFile = Sys_Open(argv[1]);
+	/*struct FCB * */ unsigned char InFile = Sys_Open(argv[1]);
    if (InFile)
    {
       struct FileInfo inf;
-      GetFileInfo(InFile, &inf);
+      Sys_Stat(InFile, &inf);
 
       char * buffer = (char *) sys_AllocMem(inf.Length + 1);
-      ReadFile(InFile, buffer, inf.Length);
+	   Sys_Read(InFile, buffer, inf.Length);
       buffer[inf.Length] = 0;
       WriteConsoleString(buffer);
-	   Sys_Close(InFile);
+	   Sys_Close(InFile);  // The problem is here, but only after doing a Sys_Stat!!!
       sys_DeallocMem(buffer);
    }
    sys_Exit();

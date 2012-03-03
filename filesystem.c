@@ -345,7 +345,7 @@ OpenFile(char name[11], struct FCB *fHandle)
 // Close a file and release all its resources
 //============================================
 void
-CloseFile(struct FCB *fHandle)
+CloseFile(struct FCB * fHandle)
 {
    struct clusterListEntry *clusters, *nextcluster;
 
@@ -497,7 +497,7 @@ fsTaskCode()
       switch (FSMsg->byte)
          {
       case CREATEFILE:
-         fcb = (struct FCB *) AllocUMem(sizeof(struct FCB));
+         fcb = (struct FCB *) AllocKMem(sizeof(struct FCB));
          result = CreateFile((char *) FSMsg->quad, fcb,
                PidToTask(FSMsg->pid)->currentDir);
          tempPort = (struct MessagePort *) FSMsg->tempPort;
@@ -514,7 +514,7 @@ fsTaskCode()
          break;
 
       case OPENFILE:
-         fcb = (struct FCB *) AllocUMem(sizeof(struct FCB));
+         fcb = (struct FCB *) AllocKMem(sizeof(struct FCB));
          result = OpenFile((char *) FSMsg->quad, fcb);
          tempPort = (struct MessagePort *) FSMsg->tempPort;
          if (result)
@@ -609,8 +609,3 @@ fsTaskCode()
    }
 }
 
-void
-debug()
-{
-   // Just a place marker
-}
