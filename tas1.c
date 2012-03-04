@@ -16,7 +16,7 @@ void tas1(void)
 	
 	long pid = Sys_Fork();
 	if (!pid)
-		Sys_Execve("TASK1", 1);
+		Sys_Execve("TASK1", "");
 //	pid = Sys_Fork();
 //	if (!pid)
 //		Sys_Execve("TASK1", 1);

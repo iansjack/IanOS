@@ -256,7 +256,7 @@ long DoRead(FD fileDescriptor, char *buffer, long noBytes)
    			kbdMsg->nextMessage = 0;
    			kbdMsg->byte        = 1;
    			kbdMsg->quad        = currentTask->console;
-   			SendReceiveMessage(KbdPort, kbdMsg);
+   			SendReceiveMessage((struct MessagePort *)KbdPort, kbdMsg);
    			char c = kbdMsg->byte;
 			buffer[0] = c;
 			buffer[1] = 0;
@@ -341,14 +341,14 @@ long DoWrite(FD fileDescriptor, char *buffer, long noBytes)
 FD DoCreate(char * s)
 {
    	char *S = AllocKMem(12);
-   	char *str = S;
+//   	char *str = S;
 
    	copyString(s, S);
    	struct Message *msg =
          (struct Message *) AllocKMem(sizeof(struct Message));
    	msg->nextMessage = 0;
    	msg->byte = CREATEFILE;
-   	msg->quad = (long) str;
+   	msg->quad = (long) S; //str;
    	SendReceiveMessage((struct MessagePort *)FSPort, msg);
    	DeallocMem(S);
    	long retval = msg->quad;
@@ -370,4 +370,21 @@ FD DoCreate(char * s)
 		return tempID;
 	}
 	return -1;
+}
+
+long DoDelete(char *name)
+{
+	int retval = 0;
+	char *S = AllocKMem(12);
+	copyString(name, S); 
+   	struct Message *msg =
+         (struct Message *) AllocKMem(sizeof(struct Message));
+
+   	msg->nextMessage = 0;
+   	msg->byte = DELETEFILE;
+   	msg->quad = (long)S;
+   	SendReceiveMessage((struct MessagePort *)FSPort, msg);
+	DeallocMem(S);
+	DeallocMem(msg);
+   	return retval;
 }

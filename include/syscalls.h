@@ -23,5 +23,6 @@ int Sys_Stat(FD fileDescriptor, struct FileInfo *info);
 long Sys_Read(FD fileDescriptor, char *buffer, long noBytes);
 long Sys_Write(FD fileDescriptor, char *buffer, long noBytes);
 FD Sys_Create(char *name);
+int Sys_Unlink(char *name);
 
 #endif

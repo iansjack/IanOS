@@ -15,6 +15,7 @@
 	.global Sys_Read
 	.global Sys_Write
 	.global Sys_Creat
+	.global Sys_Unlink
 
 	.text
 
@@ -94,4 +95,10 @@ Sys_Creat:
 	mov $SYS_CREAT, %r9
 	syscall
 	ret
+	
+Sys_Unlink:
+	mov $SYS_UNLINK, %r9
+	syscall 
+	ret
+
 	

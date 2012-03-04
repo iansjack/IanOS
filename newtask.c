@@ -395,7 +395,11 @@ extern void fsTaskCode(void);
 void StartTasks()
 {
 	NewLowPriTask(dummyTask);
+//	Sleep(10);
   	NewKernelTask(kbTaskCode);
+//	Sleep(10);
   	NewKernelTask(consoleTaskCode);
+//	Sleep(10);
   	NewKernelTask(fsTaskCode);
+//	Sleep(10);
 }

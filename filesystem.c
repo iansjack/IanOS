@@ -454,8 +454,7 @@ WriteFile(struct FCB *fHandle, char *buffer, long noBytes)
    return (bytesWritten);
 }
 
-int
-DeleteFile(struct FCB *fHandle)
+/*int DeleteFile(struct FCB *fHandle)
 {
    fHandle->directory->name[0] = 0xE5;
    unsigned short int cluster = fHandle->directory->startingCluster;
@@ -469,6 +468,37 @@ DeleteFile(struct FCB *fHandle)
    SaveFAT();
    SaveDir();
    return (0);
+}*/
+
+//===================================
+// Delete a file.
+// Returns 0 on success
+//       1 if file does not exist
+//===================================
+int DeleteFile(char name[11])
+{
+   	struct DirEntry *entry = (struct DirEntry *) FindFile(name,
+         	currentTask->currentDir);
+
+   	if (entry != 0)
+   	{
+    	entry->name[0] = 0xE5;
+   		unsigned short int cluster = entry->startingCluster;
+   		unsigned short int nextCluster;
+   		while (cluster != 0xFFFF)
+   		{
+      		nextCluster = FAT[cluster];
+      		FAT[cluster] = 0;
+      		cluster = nextCluster;
+   		}
+   		SaveFAT();
+   		SaveDir();
+   		return (0);
+   }
+   else
+   {
+      return (1);
+   }
 }
 
 //=============================
@@ -553,8 +583,8 @@ fsTaskCode()
          break;
 
       case DELETEFILE:
-         result = DeleteFile((struct FCB *) FSMsg->quad);
-         DeallocMem((void *) FSMsg->quad);
+         result = DeleteFile((char *) FSMsg->quad);
+//         DeallocMem((void *) FSMsg->quad);
          tempPort = (struct MessagePort *) FSMsg->tempPort;
          SendMessage(tempPort, FSMsg);
          break;
