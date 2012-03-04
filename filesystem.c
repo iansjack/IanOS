@@ -263,20 +263,20 @@ SaveDir()
 
 //======================================
 // Create a new file.
-// Returns 0 on success
-//       1 if file cannot be created
+// Returns 1 on success
+//       0 if file cannot be created
 //======================================
 int
 CreateFile(char *name, struct FCB *fHandle, long directory)
 {
    if (FindFile(name, directory))
    {
-      return (1);
+      return (0);
    }
    struct DirEntry *entry;
    if ((entry = FindFreeDirEntry(directory)) == 0)
    {
-      return (1);
+      return (0);
    }
    int count;
 
@@ -289,7 +289,7 @@ CreateFile(char *name, struct FCB *fHandle, long directory)
    // Fill in a few details
    if (NameToDirName(name, entry->name))
    {
-      return (1);
+      return (0);
    }
    entry->startingCluster = FindFreeCluster();
    entry->attribute = 0x20;
@@ -307,7 +307,7 @@ CreateFile(char *name, struct FCB *fHandle, long directory)
    fHandle->length = entry->fileSize;
    fHandle->filebuf = (char *) AllocUMem(512);
    fHandle->sectorInCluster = 1;
-   return (0);
+   return (1);
 }
 
 //===================================
@@ -501,7 +501,7 @@ fsTaskCode()
          result = CreateFile((char *) FSMsg->quad, fcb,
                PidToTask(FSMsg->pid)->currentDir);
          tempPort = (struct MessagePort *) FSMsg->tempPort;
-         if (result)
+         if (result == 0)
          {
             FSMsg->quad = 0;
          }

@@ -1,6 +1,7 @@
 #include "kernel.h"
 #include "memory.h"
 #include "filesystem.h"
+#include "console.h"
 
 extern struct Task *currentTask;
 
@@ -38,7 +39,7 @@ ReadFromFile(struct FCB *fHandle, char *buffer, long noBytes)
 // A utility function to copy a memory range
 //===========================================
 void
-copyMem(unsigned char source[], unsigned char dest[], long size)
+copyMem(unsigned char *source, unsigned char *dest, long size)
 {
    int i;
 
@@ -53,6 +54,18 @@ copyMem(unsigned char source[], unsigned char dest[], long size)
    {
       dest[i] = source[i];
    }
+}
+
+//=======================================================
+// Copy null-terminates string s1 to s2
+//=======================================================
+void copyString(unsigned char *source, unsigned char * destination)
+{
+	while (*source)
+   	{
+      *destination++ = *source++;
+   	}
+   	*destination = 0;
 }
 
 //===========================================================================
@@ -124,20 +137,16 @@ strncmp(char * s1, char * s2, long length)
 
 //=========================================================
 //  Opens the file s.
-//  Returns a FCB for the file in RAX
+//  Returns a FD for the file in RAX
 //=========================================================
-unsigned char KOpenFile(char *s)
+FD KOpenFile(char *s)
 {
    char *S = AllocKMem(12);
    char *str = S;
 	struct FCB * fcb = 0;
 
-   while (*s != 0)
-   {
-      *S++ = *s++;
-   }
-   *S = 0;
-   struct Message *msg =
+   copyString(s, S);
+	struct Message *msg =
          (struct Message *) AllocKMem(sizeof(struct Message));
    msg->nextMessage = 0;
    msg->byte = OPENFILE;
@@ -160,13 +169,13 @@ unsigned char KOpenFile(char *s)
 		temp->nextFCB = fcb;
 		return tempID;
 	}
-   return 0;
+   return -1;
 }
 
 //=========================================================
 // 
 //=========================================================
-unsigned char KCloseFile(unsigned char fileDescriptor)
+int KCloseFile(FD fileDescriptor)
 {
 	struct FCB * temp = currentTask->fcbList;
 	struct FCB * temp2;
@@ -190,15 +199,14 @@ unsigned char KCloseFile(unsigned char fileDescriptor)
    		msg->byte = CLOSEFILE;
    		msg->quad = (long) temp /*fHandle*/;
    		SendReceiveMessage((struct MessagePort *)FSPort, msg);
-//   		return ((struct FCB *) msg->quad);
 		return 0;
 	}
-	return 1;
+	return -1;
 }
 
-long DoStat(unsigned char fileDescriptor, struct FileInfo *info)
+int DoStat(FD fileDescriptor, struct FileInfo *info)
 {
-	long retval = 0;
+	int retval = -1;
 	
 	struct FCB * temp = currentTask->fcbList;
 	while (temp->nextFCB)
@@ -220,13 +228,13 @@ long DoStat(unsigned char fileDescriptor, struct FileInfo *info)
    		SendReceiveMessage((struct MessagePort *)FSPort, msg);
 		copyMem(buff, (char *)info, sizeof(struct FileInfo));
    		DeallocMem(buff);
-   		long retval = msg->quad;
+   		retval = 0; //msg->quad;
    		DeallocMem(msg);
 	}
    	return (retval);
 }
 
-long DoRead(unsigned char fileDescriptor, char *buffer, long noBytes)
+long DoRead(FD fileDescriptor, char *buffer, long noBytes)
 {
 	long retval = 0;
 	
@@ -259,7 +267,7 @@ long DoRead(unsigned char fileDescriptor, char *buffer, long noBytes)
    return (retval);
 }
 
-long DoWrite(unsigned char fileDescriptor, char *buffer, long noBytes)
+long DoWrite(FD fileDescriptor, char *buffer, long noBytes)
 {
    long retval = 0;
 
@@ -270,48 +278,65 @@ long DoWrite(unsigned char fileDescriptor, char *buffer, long noBytes)
 			break;
 		temp = temp->nextFCB;
 	}
-	Debug();
 	if (temp)
 	{
-  		struct Message *FSMsg;
+		if (temp->deviceType == CONS)
+		{
+  			struct Message *FSMsg;
 
-   		FSMsg = (struct Message *) AllocKMem(sizeof(struct Message));
-   		char *buff = AllocKMem(noBytes);
-   		int i;
-		copyMem(buffer, buff, noBytes);
+   			FSMsg = (struct Message *) AllocKMem(sizeof(struct Message));
+   			char *buff = AllocKMem(noBytes + 1);
+ 			copyMem(buffer, buff, noBytes);
+			Debug();
+			buff[noBytes] = 0;
 
-   		FSMsg->nextMessage = 0;
-   		FSMsg->byte = WRITEFILE;
-   		FSMsg->quad = (long) temp;
-   		FSMsg->quad2 = (long) buff;
-   		FSMsg->quad3 = noBytes;
-   		SendReceiveMessage((struct MessagePort *)FSPort, FSMsg);
-   		DeallocMem(buff);
-   		retval = FSMsg->quad;
-   		DeallocMem(FSMsg);
+   			struct Message *msg = (struct Message *)AllocKMem(sizeof(struct Message));
+   			msg->nextMessage = 0;
+   			msg->byte        = WRITESTR;
+   			msg->quad        = (long) buff;
+			msg->quad2       = 0; // sys_GetCurrentConsole();
+   			SendMessage(ConsolePort, msg);
+   			//DeallocMem(buff);
+   			DeallocMem(msg);
+			retval = noBytes;
+		}
+		else
+		{
+  			struct Message *FSMsg;
+
+   			FSMsg = (struct Message *) AllocKMem(sizeof(struct Message));
+   			char *buff = AllocKMem(noBytes);
+ 			copyMem(buffer, buff, noBytes);
+
+   			FSMsg->nextMessage = 0;
+   			FSMsg->byte = WRITEFILE;
+   			FSMsg->quad = (long) temp;
+   			FSMsg->quad2 = (long) buff;
+   			FSMsg->quad3 = noBytes;
+   			SendReceiveMessage((struct MessagePort *)FSPort, FSMsg);
+   			DeallocMem(buff);
+   			retval = FSMsg->quad;
+   			DeallocMem(FSMsg);
+		}
 	}
    return (retval);
 }
 
-unsigned char DoCreate(char * s)
+FD DoCreate(char * s)
 {
-   char *S = AllocKMem(12);
-   char *str = S;
+   	char *S = AllocKMem(12);
+   	char *str = S;
 
-   while (*s != 0)
-   {
-      *S++ = *s++;
-   }
-   *S = 0;
-   struct Message *msg =
+   	copyString(s, S);
+   	struct Message *msg =
          (struct Message *) AllocKMem(sizeof(struct Message));
-   msg->nextMessage = 0;
-   msg->byte = CREATEFILE;
-   msg->quad = (long) str;
-   SendReceiveMessage((struct MessagePort *)FSPort, msg);
-   DeallocMem(S);
-   long retval = msg->quad;
-   DeallocMem(msg);
+   	msg->nextMessage = 0;
+   	msg->byte = CREATEFILE;
+   	msg->quad = (long) str;
+   	SendReceiveMessage((struct MessagePort *)FSPort, msg);
+   	DeallocMem(S);
+   	long retval = msg->quad;
+   	DeallocMem(msg);
 	struct FCB *fcb = (struct FCB *)retval;
 	if (fcb)
 	{
@@ -328,5 +353,5 @@ unsigned char DoCreate(char * s)
 		temp->nextFCB = fcb;
 		return tempID;
 	}
-	return 0;
+	return -1;
 }

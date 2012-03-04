@@ -65,14 +65,27 @@ long DoFork()
 	task->cr3 = (long) VCreatePageDir(pid, currentTask->pid);
 	task->forking = 1;
 
-	// Create FCB for descriptor 1 *** We'll need to expand this!!! ***
-	struct FCB * fcb = (struct FCB *)AllocKMem(sizeof (struct FCB));
-	fcb->nextFCB = 0;
+	// Create FCB for STDI, STDOUT, and STDERR
+
+	// STDIN
+	struct FCB * fcbin = (struct FCB *)AllocKMem(sizeof (struct FCB));
+	fcbin->fileDescriptor = STDIN;
+	fcbin->deviceType = KBD;
+	task->fcbList = fcbin;
+
 	// STDOUT
-	fcb->fileDescriptor = 1;
-	fcb->deviceType = CONS;
-	task->fcbList = fcb;
-		
+	struct FCB * fcbout = (struct FCB *)AllocKMem(sizeof (struct FCB));
+	fcbout->fileDescriptor = STDOUT;
+	fcbout->deviceType = CONS;
+	fcbin->nextFCB = fcbout;;
+
+	//STDERR
+	struct FCB * fcberr = (struct FCB *)AllocKMem(sizeof (struct FCB));
+	fcberr->fileDescriptor = STDERR;
+	fcberr->deviceType = CONS;
+	fcbout->nextFCB = fcberr;
+	fcberr->nextFCB = 0;
+
 	// Run the forked process
 	asm ("cli");
 	LinkTask(task);

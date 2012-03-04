@@ -1,9 +1,16 @@
 #ifndef KSTRUCTS_H
 #define KSTRUCTS_H
 
+//#define FD	unsigned char
+typedef int	FD;
+
 #define	CONS	1
 #define	KBD		2
 #define FILE	3
+
+#define STDIN	1
+#define STDOUT	2
+#define STDERR	3
 
 struct Task
 {
@@ -89,7 +96,7 @@ struct FCB
     unsigned char   bufIsDirty;          // 0 = clean, 1 = dirty
 	unsigned char	deviceType;
     unsigned char   *filebuf;
-	unsigned char	fileDescriptor;
+	FD				fileDescriptor;
     long            pid;
 	struct FCB *	nextFCB;
 };

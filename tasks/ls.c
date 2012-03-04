@@ -7,7 +7,7 @@ int main(void)
 {
    struct DirEntry entry;
    int count1, count2;
-   char buffer[9];
+   char buffer[12];
 
    buffer[8] = 0;
    for (count1 = 0; count1 < 200; count1++)
@@ -16,14 +16,18 @@ int main(void)
       if (entry.name[0] == 0) break;
       if (entry.name[0] != 0xE5)
       {
-         for (count2 = 0; count2 < 11; count2++) WriteConsoleChar(entry.name[count2]);
+         for (count2 = 0; count2 < 11; count2++) 
+			  buffer[count2] = entry.name[count2];
+		  buffer[12] = 0;
+		  printf(buffer);
          if (entry.attribute & 0x10)
-            WriteConsoleString(" <DIR> ");
+            printf(" <DIR> ");
          else
-            WriteConsoleString("       ");
+            printf("       ");
+		  buffer[8] = 0;
          intToAsc(entry.fileSize, buffer, 8);
-         WriteConsoleString(buffer);
-         WriteConsoleChar('\n');
+         printf(buffer);
+         printf("\n");
       }
    }
    sys_Exit();

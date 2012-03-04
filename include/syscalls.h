@@ -15,13 +15,13 @@ void sys_Sleep(int interval);
 long sys_GetTicks();
 long sys_GetCurrentConsole();
 long sys_SetCurrentDirectory(long directory);
-/*struct FCB * */ unsigned char Sys_Open(char * filename);
-/* struct FCB * */unsigned char Sys_close(unsigned char fileDescriptor);
+FD Sys_Open(char * filename);
+int Sys_close(FD fileDescriptor);
 long Sys_Execve(char * name, char * environment);
 void Sys_Wait(unsigned short pid);
-long Sys_Stat(unsigned char fileDescriptor, struct FileInfo *info);
-long Sys_Read(unsigned char fileDescriptor, char *buffer, long noBytes);
-long Sys_Write(unsigned char fileDescriptor, char *buffer, long noBytes);
-unsigned char Sys_Create(char *name);
+int Sys_Stat(FD fileDescriptor, struct FileInfo *info);
+long Sys_Read(FD fileDescriptor, char *buffer, long noBytes);
+long Sys_Write(FD fileDescriptor, char *buffer, long noBytes);
+FD Sys_Create(char *name);
 
 #endif

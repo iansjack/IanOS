@@ -5,19 +5,19 @@
 int
 main(int argc, char **argv)
 {
-	/*struct FCB * */ unsigned char InFile = Sys_Open(argv[1]);
-   if (InFile)
-   {
-      struct FileInfo inf;
-      Sys_Stat(InFile, &inf);
+	FD InFile = Sys_Open(argv[1]);
+   	if (InFile != -1)
+   	{
+      	struct FileInfo inf;
+      	Sys_Stat(InFile, &inf);
 
-      char * buffer = (char *) sys_AllocMem(inf.Length + 1);
-	   Sys_Read(InFile, buffer, inf.Length);
-      buffer[inf.Length] = 0;
-      WriteConsoleString(buffer);
-	   Sys_Close(InFile);  // The problem is here, but only after doing a Sys_Stat!!!
-      sys_DeallocMem(buffer);
-   }
-   sys_Exit();
-   return (0);
+      	char * buffer = (char *) sys_AllocMem(inf.Length + 1);
+	   	Sys_Read(InFile, buffer, inf.Length);
+      	buffer[inf.Length] = 0;
+	   	Sys_Write(STDOUT, buffer, inf.Length + 1);
+	   	Sys_Close(InFile);
+      	sys_DeallocMem(buffer);
+   	}
+   	sys_Exit();
+   	return (0);
 }
