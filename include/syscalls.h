@@ -16,7 +16,7 @@ long sys_GetTicks();
 long sys_GetCurrentConsole();
 long sys_SetCurrentDirectory(long directory);
 FD Sys_Open(char * filename);
-int Sys_close(FD fileDescriptor);
+int Sys_Close(FD fileDescriptor);
 long Sys_Execve(char * name, char * environment);
 void Sys_Wait(unsigned short pid);
 int Sys_Stat(FD fileDescriptor, struct FileInfo *info);

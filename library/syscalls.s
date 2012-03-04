@@ -1,13 +1,5 @@
 	.include "../include/syscalls.inc"
 	
-	.macro SYS name, syscall
-			.global \name
-		\name:
-		mov \syscall, %r9
-		syscall
-		ret
-	.endm
-
 	.global sys_ReceiveMessage
 	.global sys_SendMessage
 	.global sys_SendReceive
@@ -30,7 +22,6 @@ sys_ReceiveMessage:
 	mov $RECEIVEMESSAGE, %r9
 	syscall
 	ret
-#SYS sys_ReceiveMessage, RECEIVEMESSAGE
 
 sys_SendMessage:
 	mov $SENDMESSAGE, %r9

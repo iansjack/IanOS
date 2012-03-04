@@ -69,6 +69,25 @@ printchar(unsigned char c)
    case 0:
       break;
 
+	case CLRSCR:
+			  ;
+   short int row;
+   short int column;
+         for (row = 0; row < 25; row++)
+         {
+            for (column = 0; column < 80; column++)
+            {
+               currCons->ConsoleBuffer[160 * row + 2 * column] = ' ';
+               currCons->ConsoleBuffer[160 * row + 2 * column + 1] = 7;
+               if (currentBuffer == console)
+               {
+                  VideoBuffer[160 * row + 2 * column] = ' ';
+                  VideoBuffer[160 * row + 2 * column + 1] = 7;
+               }
+            }
+         }
+			  
+
    case BACKSPACE:
       if (currCons->column > 0)
       {
@@ -162,23 +181,6 @@ consoleTaskCode()
       case SETCURSOR:
          currCons->row = ConsoleMsg.quad;
          currCons->column = ConsoleMsg.quad3;
-         break;
-
-      case CLRSCR:
-         for (row = 0; row < 25; row++)
-         {
-            for (column = 0; column < 80; column++)
-            {
-               ConsoleBuffer[160 * row + 2 * column] = ' ';
-               ConsoleBuffer[160 * row + 2 * column + 1] = 7;
-               if (currentBuffer == console)
-               {
-                  VideoBuffer[160 * row + 2 * column] = ' ';
-                  VideoBuffer[160 * row + 2 * column + 1] = 7;
-               }
-            }
-         }
-         currCons->column = currCons->row = 0;
          break;
 
       case CLREOL:

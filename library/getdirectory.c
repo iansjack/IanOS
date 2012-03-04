@@ -1,7 +1,5 @@
 #include "memory.h"
 #include "kstructs.h"
-//#include "lib.h"
-//#include "library/syscalls.h"
 #include "filesystem.h"
 #include "syscalls.h"
 #include "fat.h"

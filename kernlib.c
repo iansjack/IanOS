@@ -247,22 +247,40 @@ long DoRead(FD fileDescriptor, char *buffer, long noBytes)
 	}
 	if (temp)
 	{
+		if (temp->deviceType == KBD)
+		{
+   			struct Message *kbdMsg;
+			Debug();
 
-   		struct Message *FSMsg;
+   			kbdMsg = (struct Message *)AllocKMem(sizeof(struct Message));
+   			kbdMsg->nextMessage = 0;
+   			kbdMsg->byte        = 1;
+   			kbdMsg->quad        = currentTask->console;
+   			SendReceiveMessage(KbdPort, kbdMsg);
+   			char c = kbdMsg->byte;
+			buffer[0] = c;
+			buffer[1] = 0;
+   			DeallocMem(kbdMsg);
+   			return(1);
+		}
+		else
+		{
+ 	  		struct Message *FSMsg;
 
-   		FSMsg = (struct Message *)AllocKMem(sizeof(struct Message));
-   		char *buff = AllocKMem(noBytes);
+   			FSMsg = (struct Message *)AllocKMem(sizeof(struct Message));
+   			char *buff = AllocKMem(noBytes);
  
-   		FSMsg->nextMessage = 0;
-   		FSMsg->byte = READFILE;
-   		FSMsg->quad = (long) temp;
-   		FSMsg->quad2 = (long) buff;
-   		FSMsg->quad3 = noBytes;
-   		SendReceiveMessage((struct MessagePort *)FSPort, FSMsg);
-		copyMem(buff, buffer, noBytes);
-		DeallocMem(buff);
-   		retval = FSMsg->quad;
-   		DeallocMem(FSMsg);
+   			FSMsg->nextMessage = 0;
+   			FSMsg->byte = READFILE;
+   			FSMsg->quad = (long) temp;
+   			FSMsg->quad2 = (long) buff;
+   			FSMsg->quad3 = noBytes;
+   			SendReceiveMessage((struct MessagePort *)FSPort, FSMsg);
+			copyMem(buff, buffer, noBytes);
+			DeallocMem(buff);
+   			retval = FSMsg->quad;
+   			DeallocMem(FSMsg);
+		}
 	}
    return (retval);
 }
@@ -287,16 +305,14 @@ long DoWrite(FD fileDescriptor, char *buffer, long noBytes)
    			FSMsg = (struct Message *) AllocKMem(sizeof(struct Message));
    			char *buff = AllocKMem(noBytes + 1);
  			copyMem(buffer, buff, noBytes);
-			Debug();
 			buff[noBytes] = 0;
 
    			struct Message *msg = (struct Message *)AllocKMem(sizeof(struct Message));
    			msg->nextMessage = 0;
    			msg->byte        = WRITESTR;
    			msg->quad        = (long) buff;
-			msg->quad2       = 0; // sys_GetCurrentConsole();
-   			SendMessage(ConsolePort, msg);
-   			//DeallocMem(buff);
+			msg->quad2       = currentTask->console;
+   			SendMessage((struct MessagePort *)ConsolePort, msg);
    			DeallocMem(msg);
 			retval = noBytes;
 		}
