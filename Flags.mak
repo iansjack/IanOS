@@ -1,2 +1,2 @@
 INC = /home/ian/IanOS/include
-CFLAGS = -fpack-struct -fno-stack-protector -ffixed-r15 -g -I $(INC)
+CFLAGS = -fpack-struct -fno-stack-protector -fno-builtin -ffixed-r15 -g -I $(INC)

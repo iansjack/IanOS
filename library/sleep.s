@@ -5,6 +5,6 @@
 	.text
 
 sys_Sleep:
-	mov $SLEEP, %r9
+	mov $SYS_NANOSLEEP, %r9
 	syscall
 	ret

@@ -8,8 +8,7 @@ extern struct Task *currentTask;
 //================================================
 // Read noBytes into buffer from the file fHandle
 //================================================
-long
-ReadFromFile(struct FCB *fHandle, char *buffer, long noBytes)
+long ReadFromFile(struct FCB *fHandle, char *buffer, long noBytes)
 {
    long retval;
 
@@ -38,8 +37,7 @@ ReadFromFile(struct FCB *fHandle, char *buffer, long noBytes)
 //===========================================
 // A utility function to copy a memory range
 //===========================================
-void
-copyMem(unsigned char *source, unsigned char *dest, long size)
+void copyMem(unsigned char *source, unsigned char *dest, long size)
 {
    int i;
 
@@ -56,6 +54,7 @@ copyMem(unsigned char *source, unsigned char *dest, long size)
    }
 }
 
+/*
 //=======================================================
 // Copy null-terminates string s1 to s2
 //=======================================================
@@ -67,12 +66,12 @@ void copyString(unsigned char *source, unsigned char * destination)
    	}
    	*destination = 0;
 }
+*/
 
 //===========================================================================
 // A kernel library function to write a null-terminated string to the screen.
 //===========================================================================
-void
-KWriteString(char *str, int row, int col)
+void KWriteString(char *str, int row, int col)
 {
    char *VideoBuffer = (char *) 0xB8000;
 
@@ -88,8 +87,7 @@ KWriteString(char *str, int row, int col)
 //==========================================================================
 // A kernel library function to write a quad character to the screen.
 //==========================================================================
-void
-KWriteHex(long c, int row) //, int col)
+void KWriteHex(long c, int row) //, int col)
 {
    char *VideoBuffer = (char *) 0xB8000;
 
@@ -114,46 +112,24 @@ KWriteHex(long c, int row) //, int col)
    }
 }
 
-/*long
-strncmp(char * s1, char * s2, long length)
-{
-   long count;
-   short done = 0;
-
-   for (count = 1; count < length; count++)
-   {
-      if (s1[count] != s2[count])
-      {
-         done = 1;
-         break;
-      }
-   }
-   if (done)
-      return (1);
-   else
-      return (0);
-}
-*/
-
 //=========================================================
 //  Opens the file s.
 //  Returns a FD for the file in RAX
 //=========================================================
 FD KOpenFile(char *s)
 {
-   char *S = AllocKMem(12);
-   char *str = S;
+   	char *S = AllocKMem(strlen(s) + 1);
+   	char *str = S;
 	struct FCB * fcb = 0;
 
-   copyString(s, S);
-	struct Message *msg =
-         (struct Message *) AllocKMem(sizeof(struct Message));
-   msg->nextMessage = 0;
-   msg->byte = OPENFILE;
-   msg->quad = (long) str;
-   SendReceiveMessage((struct MessagePort *)FSPort, msg);
+   	strcpy(S, s);
+	struct Message *msg = (struct Message *) AllocKMem(sizeof(struct Message));
+   	msg->nextMessage = 0;
+   	msg->byte = OPENFILE;
+   	msg->quad = (long) str;
+   	SendReceiveMessage((struct MessagePort *)FSPort, msg);
 	fcb = (struct FCB *) msg->quad;
-   DeallocMem(S);
+   	DeallocMem(S);
 	if (fcb)
 	{
 		struct FCB * temp = currentTask->fcbList;
@@ -165,11 +141,10 @@ FD KOpenFile(char *s)
 		}
 		fcb->nextFCB = temp->nextFCB;
 		fcb->fileDescriptor = tempID;
-		fcb->deviceType = FILE;
 		temp->nextFCB = fcb;
 		return tempID;
 	}
-   return -1;
+   	return -1;
 }
 
 //=========================================================
@@ -250,7 +225,6 @@ long DoRead(FD fileDescriptor, char *buffer, long noBytes)
 		if (temp->deviceType == KBD)
 		{
    			struct Message *kbdMsg;
-			Debug();
 
    			kbdMsg = (struct Message *)AllocKMem(sizeof(struct Message));
    			kbdMsg->nextMessage = 0;
@@ -340,10 +314,9 @@ long DoWrite(FD fileDescriptor, char *buffer, long noBytes)
 
 FD DoCreate(char * s)
 {
-   	char *S = AllocKMem(12);
-//   	char *str = S;
+   	char *S = AllocKMem(strlen(s) + 1);
 
-   	copyString(s, S);
+   	strcpy(S, s);
    	struct Message *msg =
          (struct Message *) AllocKMem(sizeof(struct Message));
    	msg->nextMessage = 0;
@@ -375,8 +348,8 @@ FD DoCreate(char * s)
 long DoDelete(char *name)
 {
 	int retval = 0;
-	char *S = AllocKMem(12);
-	copyString(name, S); 
+	char *S = AllocKMem(strlen(name) + 1);
+	strcpy(S, name); 
    	struct Message *msg =
          (struct Message *) AllocKMem(sizeof(struct Message));
 
@@ -387,4 +360,49 @@ long DoDelete(char *name)
 	DeallocMem(S);
 	DeallocMem(msg);
    	return retval;
+}
+
+long DoChDir(unsigned char *dirName)
+{
+	// *** Need to add code to check that the directory exists ***
+	int retval = -1;
+	char *S = AllocKMem(strlen(dirName) + 3);
+	strcpy(S, "");
+	if (!strcmp(dirName, "/"))
+		strcpy(S, "/");
+	else
+	{
+		if (dirName[0] == '/')
+			strcpy(S, dirName);
+		else
+		{
+			if (strcmp(currentTask->currentDirName, "/"))
+				strcpy(S, currentTask->currentDirName);
+	    	strcat(S, "/");
+			strcat(S, dirName);
+		}
+	}
+   	struct Message *msg = (struct Message *) AllocKMem(sizeof(struct Message));
+
+   	msg->nextMessage = 0;
+   	msg->byte = TESTFILE;
+   	msg->quad = (long)S;
+   	SendReceiveMessage((struct MessagePort *)FSPort, msg);
+	if (msg->quad)
+	{
+		DeallocMem(currentTask->currentDirName);
+		currentTask->currentDirName = AllocKMem(strlen(S) + 1);
+		strcpy(currentTask->currentDirName, S);
+		retval = 0;
+	}
+	DeallocMem(S);
+	DeallocMem(msg);
+	return retval;
+}
+
+unsigned char *DoGetcwd(void)
+{
+	unsigned char *name = AllocUMem(strlen(currentTask->currentDirName) + 1);
+	strcpy(name, currentTask->currentDirName);
+	return name;
 }

@@ -5,6 +5,8 @@
 int
 main(int argc, char **argv)
 {
+	int ret;
+	
 	FD InFile = Sys_Open(argv[1]);
    	if (InFile != -1)
    	{
@@ -12,7 +14,7 @@ main(int argc, char **argv)
       	Sys_Stat(InFile, &inf);
 
       	char * buffer = (char *) sys_AllocMem(inf.Length + 1);
-	   	Sys_Read(InFile, buffer, inf.Length);
+	   	ret = Sys_Read(InFile, buffer, inf.Length);
       	buffer[inf.Length] = 0;
 	   	Sys_Write(STDOUT, buffer, inf.Length + 1);
 	   	Sys_Close(InFile);

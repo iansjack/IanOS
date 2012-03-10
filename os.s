@@ -57,7 +57,8 @@ start64:
 	movb $0, TS.waiting(%r15)		# We don't want task1 to be waiting when it starts
 	movq $UserData, TS.firstfreemem(%r15)
 	movq $2, TS.pid(%r15)
-	movq $0, TS.currentDir(%r15)
+	movq $cd, TS.currentDirName(%r15)
+	movq $RootDirBuffer, TS.currentDir(%r15)
 	mov  %cr3, %rax
 	mov  %rax, TS.cr3(%r15)
 	mov	%r15, currentTask
@@ -102,6 +103,8 @@ start64:
 	sysretq				  			# Start Task1 and multitasking
 
 	.data
+	
+cd:	.byte '/', 0
 
 	.global tempstack
 

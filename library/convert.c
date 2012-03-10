@@ -22,4 +22,24 @@ int intToAsc(int i, char *buffer, int len)
 	while (i > 0);
 	return 0;
 }
-			
+
+int intToHAsc(int i, char *buffer, int len)
+{
+	int count;
+
+	for (count = 0; count < len; count++)
+		buffer[count] = '0';
+	count = len - 1;
+	do
+	{
+		int mod;
+		if (i % 16 < 10)
+			buffer[count] = '0' + i % 16;
+		else
+			buffer[count] = '0' + 7 + i % 16;
+		i = i / 16;
+		count--;
+	}
+	while (i > 0);
+	return 0;
+}

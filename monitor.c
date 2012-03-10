@@ -42,7 +42,7 @@ void mscrollscreen()
 
 void mprintString(char *s)
 {
-   char *S   = (char *)AllocSharedMem(256);
+   char *S   = (char *)AllocKMem(256);
    char *str = S;
 
    while (*s != 0)

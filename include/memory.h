@@ -18,7 +18,6 @@
 #define TempKStack      0x0000000000097000L
 #define TempUStack      0x0000000000098000L
 #define PageMap         0x0000000000100000L
-// Shared Memory        0x00000000001F0000 - 0x0000000000200000
 #define UserCode        0x0000000000300000L
 #define UserData        0x0000000000310000L
 #define KernelStack     0x00000000003FC000L

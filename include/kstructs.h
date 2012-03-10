@@ -7,6 +7,7 @@ typedef int	FD;
 #define	CONS	1
 #define	KBD		2
 #define FILE	3
+#define DIR		4
 
 #define STDIN	1
 #define STDOUT	2
@@ -46,10 +47,11 @@ struct Task
     long          timer;
     char * 		  environment;
     struct MessagePort * parentPort;
-    long          currentDir;
-    long          console;
-	unsigned char forking;
-	struct FCB *  fcbList;
+    unsigned char	*currentDirName;
+	struct DirEntry *currentDir;
+    long          	console;
+	unsigned char 	forking;
+	struct FCB *  	fcbList;
 };
 
 struct Message

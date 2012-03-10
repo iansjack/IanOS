@@ -60,6 +60,9 @@ long DoFork()
 	struct Task * task = nextfreetss();
 	copyMem((unsigned char *)currentTask, (unsigned char *)task, sizeof(struct Task));
 	int pid = task->pid = nextpid++;
+	task->currentDirName = AllocKMem(strlen(currentTask->currentDirName) + 1);
+	strcpy(task->currentDirName, currentTask->currentDirName);
+	task->currentDir = currentTask->currentDir;
 
 	// Copy Page Table and pages
 	task->cr3 = (long) VCreatePageDir(pid, currentTask->pid);
@@ -114,11 +117,11 @@ long DoExec(char * name, char * environment)
 	long argv;
 
 	char * kname = AllocKMem(81);
-	
-	copyMem(name, kname, 81);
-	struct Message *FSMsg;
 
-	FSMsg = (struct Message *) AllocKMem(sizeof(struct Message));
+	strcpy(kname, "/BIN/");
+	strcat(kname, name);
+	
+	struct Message *FSMsg = (struct Message *) AllocKMem(sizeof(struct Message));
 
 	// Open file
 	FSMsg->nextMessage = 0;
@@ -225,6 +228,7 @@ struct Task * NewKernelTask(void *TaskCode)
 	task->firstfreemem = UserData;
 	task->environment = (void *) 0;
 	task->parentPort = (void *) 0;
+	task->currentDirName = currentTask->currentDirName;
 	task->currentDir = currentTask->currentDir;
 	task->console = 0;
 	asm ("sti");

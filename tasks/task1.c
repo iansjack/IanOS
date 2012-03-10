@@ -13,7 +13,6 @@ main(void)
    char buffer[512];
    char name[81];
    char environment[81];
-	char s[2];
    int i;
 
    ConsoleClrScr();
@@ -75,11 +74,9 @@ main(void)
                else
                   break;
             directory[i] = 0;
-            int dir = GetDirectory(directory);
+            int dir = Sys_Chdir(directory);
             if (dir == -1)
-               printf("Directory not found!");
-            else
-               sys_SetCurrentDirectory(dir);
+               printf("Directory not found!\n");
          }
          else
          {
@@ -101,10 +98,7 @@ main(void)
 
       default:
 		commandline[column++] = c;
-		s[0] = c;
-		s[1] = 0;
-		printf(s);
-        printf("_\b");
+        printf("%c_\b", c);
         break;
         }
    }

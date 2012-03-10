@@ -17,7 +17,6 @@ long nPages;
 struct MemStruct *firstFreeKMem;
 /*static*/
 long nextKPage;
-struct MemStruct *firstFreeSharedMem;
 unsigned short int *PMap;
 long NoOfAllocations;
 long memorySemaphore;
@@ -29,9 +28,6 @@ InitMem64(void)
    firstFreeKMem = (struct MemStruct *) 0x11000;
    firstFreeKMem->next = 0;
    firstFreeKMem->size = 0xFE0;
-   firstFreeSharedMem = (struct MemStruct *) 0x1F0000;
-   firstFreeSharedMem->next = 0;
-   firstFreeSharedMem->size = 0xFE0;
    nextKPage = 0x12;
    currentTask = (struct Task *) TaskStruct;
    runnableTasks = (struct TaskList*)AllocKMem(sizeof(struct TaskList));
@@ -57,7 +53,7 @@ void *
 AllocMem(long sizeRequested, struct MemStruct *list)
 {
    unsigned char kernel = 0;
-   if (list == firstFreeKMem || list == firstFreeSharedMem)
+   if (list == firstFreeKMem)
       kernel = 1;
    // We want the memory allocation to be atomic, so set a semaphore before proceeding
    SetSem(&memorySemaphore);
@@ -144,38 +140,6 @@ void *
 AllocUMem(long sizeRequested)
 {
    return (AllocMem(sizeRequested, (void *) currentTask->firstfreemem));
-}
-
-//===============================================================================
-// Allocate some shared memory from the heap. sizeRequested = amount to allocate
-// Returns in RAX address of allocated memory.
-//===============================================================================
-void *
-AllocSharedMem(long sizeRequested)
-{
-   return (AllocMem(sizeRequested, firstFreeSharedMem));
-}
-
-//============================================================
-// Deallocate shared memory belonging to a particular process.
-//============================================================
-void
-DeallocSharedMem(long pid)
-{
-   struct MemStruct *l = firstFreeSharedMem;
-
-   // We want the memory deallocation to be atomic, so set a semaphore before proceeding
-   SetSem(&memorySemaphore);
-   while (l->next != 0)
-   {
-      if (l->pid == pid)
-      {
-         l->size = (long) l->next - (long) l - sizeof(struct MemStruct);
-         NoOfAllocations--;
-      }
-      l = l->next;
-   }
-   ClearSem(&memorySemaphore);
 }
 
 //============================================================

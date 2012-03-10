@@ -29,15 +29,14 @@ CallNo:
 	.quad	Sys_LChOwn
 	.quad	Sys_Stat			
 	.quad	GetTicks				# GETTICKS
-	.quad	Sleep					# SLEEP - this will become Sys_Nanosleep
+	.quad	Sys_Nanosleep
 	.quad	Alloc_Mem				# ALLOCMEM
 	.quad	Send_Message			# SENDMESSAGE
 	.quad	Receive_Message 		# RECEIVEMESSAGE
 	.quad	Dealloc_Mem				# DEALLOCMEM
 	.quad	Send_Receive			# SENDRECEIVE
-	.quad	Alloc_Shared_Mem		# ALLOCSHAREDMEM
 	.quad	GetCurrentConsole		# GETCURRENTCONSOLE
-	.quad 	GetCurrentDirectory		# GETCURRENTDIR
+	.quad 	Sys_Getcwd
 	.quad 	SetCurrentDirectory		# SETCURRENTDIR
 
 SysCalls:
@@ -150,6 +149,9 @@ notLoaded:
 # 
 #=========================================================
 Sys_ChDir:
+	push %rcx
+	call DoChDir
+	pop %rcx
 	sysretq				
 
 Sys_Time:
@@ -170,7 +172,7 @@ Sys_Stat:
 	pop %rcx
 	sysretq			
 
-/*
+
 #========================================================
 # Print [EDX] as string at position row BH col BL
 # Affects RAX, RBX, RDX
@@ -232,7 +234,7 @@ PrintChar:
 	pop  %ax
 	mov  %ah, 0xB8000(%ebx)
 	sysretq
-*/
+
 
 #=============================================================================
 # Return in RAX the number of (10ms) clock ticks since the system was started
@@ -244,7 +246,8 @@ GetTicks:
 #=====================================================
 # Suspend the current task for for RDI 1ms intervals
 #=====================================================
-Sleep:	push %rcx
+Sys_Nanosleep:	
+	push %rcx
 	mov currentTask, %r15
 	movb $SLEEPINT, TS.waiting(%r15)
 	mov %rdi, TS.timer(%r15)
@@ -309,16 +312,6 @@ Send_Receive:
 	pop %rcx
 	sysretq
 
-#==============================================================
-# Allocate some shared memory. RDI = amount to allocate
-# Returns in RAX address of allocated memory.
-#==============================================================
-Alloc_Shared_Mem:
-	push %rcx
-	call AllocSharedMem
-	pop  %rcx
-	sysretq
-
 #=================================================
 # Returns the console (0 - 3) of the current task
 #=================================================
@@ -330,17 +323,19 @@ GetCurrentConsole:
 #===================================================
 # Returns the current directory of the current task
 #===================================================
-GetCurrentDirectory:
-	mov currentTask, %r15
-	mov TS.currentDir(%r15), %rax
+Sys_Getcwd:
+	push %rcx
+	call DoGetcwd
+	pop %rcx
 	sysretq
 
 #===================================================
 # Sets the current directory of the current task
 #===================================================
 SetCurrentDirectory:
-	mov currentTask, %r15
-	mov %rdi, TS.currentDir(%r15)
+#	push %rcx
+#	call SetDir
+#	pop %rcx
 	sysretq
 
 

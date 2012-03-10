@@ -8,9 +8,8 @@
 #define WRITEFILE    5
 #define DELETEFILE   6
 #define GETPID       7
-#define GETDIRENTRY  8
-#define GETDIRECTORY 9
-#define GETFILEINFO  10
+#define TESTFILE  	 8
+#define GETFILEINFO  9
 
 struct DirectoryBuffer
 {

@@ -76,14 +76,6 @@ InitMemManagement()
       PMap[count] = 1;
       nPagesFree--;
    }
-
-   // Shared Memory
-   for (count = 0x1F0; count < 0x200; count++)
-   {
-      PMap[count] = 1;
-      nPagesFree--;
-   }
-
 }
 
 //============================================

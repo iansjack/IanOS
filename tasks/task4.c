@@ -1,21 +1,22 @@
-#include "memory.h"
-#include "kstructs.h"
 #include "syscalls.h"
-#include "lib.h"
 
 int main(void)
 {
-   sys_WriteString("Task 4 is now running.", 14, 50);
-   struct FCB *fHandle = Sys_Open("TEST.TXT");
-   sys_WriteDouble((long)fHandle, 24, 40);
-   if (fHandle)
-   {
-      DeleteFile(fHandle);
-   }
-   while (1)
-   {
-      sys_WriteDouble(sys_GetTicks(), 23, 60);
-      sys_Sleep(100);
-   }
-   return(0);
+	unsigned char string[256]; // = "Hello World!!!"; 
+	printf("%x\n", string);
+	strcpy(string, "Hello World!!!");
+	printf("%s\n", string);
+	printf("%x\n", string);
+	printf("%d\n", strlen(string));
+	unsigned char *s1 = strcat(string, "W");
+	printf("%x\n", s1);
+	printf("%s\n", s1);
+	printf("%d\n", strlen(string));
+	sys_Exit();
+   	return(0);
+}
+
+debug()
+{
+	while (1);
 }

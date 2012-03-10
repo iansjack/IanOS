@@ -2,11 +2,10 @@ include ../Flags.mak
 
 CFLAGS:=$(CFLAGS) -O -I ..
 LIBS = $(INC)/library/liblib.a $(INC)/library/libsyscalls.a 
-LIBOBJS = printf.o consoleclrscr.o \
-	getchar.o \
-	getfspid.o getdirectoryentry.o getdirectory.o convert.o
+LIBOBJS = printf.o consoleclrscr.o string.o \
+	getchar.o convert.o
 SYSCALLSOBJS = syscalls.o allocmem.o allocsharedmem.o deallocmem.o \
-	killtask.o getticks.o sleep.o
+	killtask.o getticks.o
 
 all: liblib.a libsyscalls.a
 
@@ -23,13 +22,9 @@ printf.o: printf.c $(INC)/console.h $(INC)/kstructs.h $(INC)/memory.h $(INC)/sys
 
 consoleclrscr.o: consoleclrscr.c $(INC)/console.h $(INC)/kstructs.h $(INC)/memory.h $(INC)/syscalls.h
 
-getfspid.o: getfspid.c $(INC)/kstructs.h $(INC)/memory.h $(INC)/filesystem.h $(INC)/syscalls.h
-
-getdirectoryentry.o: getdirectoryentry.c $(INC)/kstructs.h $(INC)/memory.h $(INC)/filesystem.h $(INC)/syscalls.h
-
-getdirectory.o: getdirectory.c $(INC)/kstructs.h $(INC)/memory.h $(INC)/filesystem.h $(INC)/syscalls.h
-
 syscalls.o: syscalls.s $(INC)/syscalls.inc
+
+string.o: string.c 
 
 allocmem.o: allocmem.s $(INC)/syscalls.inc
 
@@ -43,6 +38,6 @@ getcommandline.o: getcommandline.s $(INC)/syscalls.inc
 
 getticks.o: getticks.s $(INC)/syscalls.inc
 
-sleep.o: sleep.s $(INC)/syscalls.inc
+#sleep.o: sleep.s $(INC)/syscalls.inc
 
 convert.o: convert.c

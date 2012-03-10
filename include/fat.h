@@ -47,6 +47,15 @@ struct MBR
    struct  PartTable PT[4];
 };
 
+struct vDirNode
+{
+	unsigned char *name;
+	unsigned long startSector;
+	struct vDirNode *parent;
+	struct vDirNode *nextSibling;
+	struct vDirNode *firstChild;
+};
+
 unsigned long   FirstFAT;
 unsigned long   RootDir;
 unsigned long   DataStart;

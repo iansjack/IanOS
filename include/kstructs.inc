@@ -30,11 +30,12 @@ TS.pid				= 187		# dw 0
 TS.timer				= 189		# dq 0
 TS.environment		= 197		# dq 0
 TS.parentPort		= 205		# dq 0
-TS.currentDir 		= 213		# dq 0
-TS.console			= 221		# dq 0
-TS.forking			= 229		# db 0
-TS.fcbList			= 230		# dq 0
-TS.size				= 238
+TS.currentDirName 	= 213		# dq 0
+TS.currentDir		= 221
+TS.console			= 229		# dq 0
+TS.forking			= 237		# db 0
+TS.fcbList			= 238		# dq 0
+TS.size				= 246
 
 Msg.nextMessage	= 0
 Msg.byte				= 8

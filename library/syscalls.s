@@ -4,8 +4,8 @@
 	.global sys_SendMessage
 	.global sys_SendReceive
 	.global sys_GetCurrentConsole
-	.global sys_GetCurrentDirectory
-	.global sys_SetCurrentDirectory
+	.global Sys_Getcwd
+	.global Sys_Chdir
 	.global Sys_Open
 	.global Sys_Close
 	.global Sys_Fork
@@ -16,6 +16,7 @@
 	.global Sys_Write
 	.global Sys_Creat
 	.global Sys_Unlink
+	.global Sys_Nanosleep
 
 	.text
 
@@ -35,17 +36,17 @@ sys_SendReceive:
 	ret
 
 sys_GetCurrentConsole:
-	mov $GETCURRENTCONSOLE, %r9
+	mov $SYS_GETCWD, %r9
 	syscall
 	ret
 
-sys_GetCurrentDirectory:
-	mov $GETCURRENTDIR, %r9
+Sys_Getcwd:
+	mov $SYS_GETCWD, %r9
 	syscall
 	ret
 
-sys_SetCurrentDirectory:
-	mov $SETCURRENTDIR, %r9
+Sys_Chdir:
+	mov $SYS_CHDIR, %r9
 	syscall
 	ret
 	
@@ -53,8 +54,6 @@ Sys_Open:
 	mov $SYS_OPEN, %r9
 	syscall
 	ret
-
-#SYS Sys_Open, SYS_OPEN
 
 Sys_Close:
 	mov $SYS_CLOSE, %r9
@@ -100,5 +99,11 @@ Sys_Unlink:
 	mov $SYS_UNLINK, %r9
 	syscall 
 	ret
+
+Sys_Nanosleep:
+	mov $SYS_NANOSLEEP, %r9
+	syscall
+	ret
+	
 
 	

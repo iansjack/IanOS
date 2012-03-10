@@ -5,16 +5,20 @@
 #include "filesystem.h"
 
 extern struct Task *currentTask;
+struct DirEntry * FindFreeDirEntry(struct DirEntry *);
+struct DirEntry * FindFile(unsigned char *name, unsigned short pid);
+void CreateVDirectory(void);
+unsigned char *DirNameToName(unsigned char dirname[11]);
 
-struct DirEntry *
-FindFreeDirEntry();
-struct DirectoryBuffer DirectoryBuffers[10];
+unsigned char *RootDirBuffer;
+struct vDirNode * vDirectory;
+
+//struct DirectoryBuffer DirectoryBuffers[10];
 
 //===============================
 // Convert a cluster to a sector
 //===============================
-unsigned int
-ClusterToSector(int cluster)
+unsigned int ClusterToSector(int cluster)
 {
    return ((cluster - 2) * SectorsPerCluster + DataStart);
 }
@@ -22,14 +26,12 @@ ClusterToSector(int cluster)
 //=====================================
 // Read in some parameters from the HD
 //=====================================
-void
-InitializeHD()
+void InitializeHD(void)
 {
    struct MBR *mbr;
    struct BootSector *bs;
    unsigned int bootSector = 0;
    unsigned char *FATbuffer;
-   unsigned char *RootDirBuffer;
 
    DiskBuffer = (unsigned char *) AllocUMem(512);
 
@@ -61,63 +63,68 @@ InitializeHD()
    {
       ReadSector(RootDirBuffer + (count * BytesPerSector), RootDir + count);
    }
-
-   for (count = 0; count < 10; count++)
-   {
-      DirectoryBuffers[count].Directory = -1;
-      DirectoryBuffers[count].Buffer = 0;
-   }
-   DirectoryBuffers[0].Directory = 0;
-   DirectoryBuffers[0].Buffer = (struct DirEntry *) RootDirBuffer;
+	CreateVDirectory();
 }
 
-//====================================================
-// Allocates a buffer and reads the directory into it
-//====================================================
-long
-ReadDirectoryBuffer(long directory)
+//============================================================
+// Scan the hard disk and create the vDirectory tree
+//============================================================
+void CreateVDirectory(void)
 {
-   DiskBuffer = (unsigned char *) AllocUMem(512);
-   ReadSector(DiskBuffer, ClusterToSector(directory));
-   return (long) DiskBuffer;
+	struct vDirNode *currentDir;
+	
+	vDirectory = AllocUMem(sizeof (struct vDirNode));
+	vDirectory->name = AllocUMem(2);
+	strcpy(vDirectory->name, "/");
+	vDirectory->startSector = RootDir;
+	vDirectory->parent = 0;
+	vDirectory->nextSibling = 0;
+	vDirectory->firstChild = 0;
+	currentDir = vDirectory;
+	GetVDirEntries(currentDir);
 }
-//=================================================================
-// Finds the directory buffer corresponding to directory.
-// If that buffer doesn't exist, cretes it and reads in directory.
-// Returns the number of the buffer.
-//=================================================================
-long
-FindDirectoryBuffer(long directory)
-{
-   short int bufferno = -1;
 
-   short int count;
-   for (count = 0; count < 10; count++)
-   {
-      if (DirectoryBuffers[count].Directory == directory)
-      {
-         bufferno = count;
-         break;
-      }
-   }
-   if (bufferno == -1)
-   {
-      for (count = 0; count < 10; count++)
-         if (DirectoryBuffers[count].Directory == -1)
-            break;
-      DirectoryBuffers[count].Directory = directory;
-      DirectoryBuffers[count].Buffer = (void *) ReadDirectoryBuffer(directory);
-   }
-   bufferno = count;
-   return (bufferno);
+int GetVDirEntries(struct vDirNode *currentDir)
+{
+	int i;
+	
+	struct DirEntry *dirBuffer = AllocUMem(sizeof (struct DirEntry[16]));
+	ReadSector((unsigned char *)dirBuffer, currentDir->startSector);
+	for (i = 0; i<16; i++)
+	{
+		if (dirBuffer[i].attribute & 0x10)
+		{
+			// It's a directory!!!
+			struct vDirNode *temp = AllocUMem(sizeof (struct vDirNode));
+			temp->name = DirNameToName(dirBuffer[i].name);
+			temp->startSector = ClusterToSector(dirBuffer[i].startingCluster);
+			temp->parent = currentDir;
+			temp->nextSibling = 0;
+			temp->firstChild = 0;
+			// If the currentDirectory has no children, make this firstChild
+			if (!currentDir->firstChild)
+				currentDir->firstChild = temp;
+			else
+			{
+				// Make it a sibling of a child
+				struct vDirNode *temp2 = currentDir->firstChild;
+				while (temp2->nextSibling)
+					temp2 = temp2->nextSibling;
+				temp2->nextSibling = temp;				
+			}
+			// If it's not . or .. recurse
+			if (strcmp(temp->name, ".") && strcmp(temp->name, ".."))
+				GetVDirEntries(temp);			
+		}
+	}
 }
+
 //==========================================================
 // Convert filename as a string to the Directory Entry form
 //	Returns 0 on success
 //              1 on failure
 //==========================================================
-int
-NameToDirName(char *name, char *dirname)
+int NameToDirName(char *name, char *dirname)
 {
    short int i = 0;
    short int j = 0;
@@ -151,49 +158,109 @@ NameToDirName(char *name, char *dirname)
    return (0);
 }
 
+//==========================================================
+// Convert filename as Directory Entry form to a string
+//	Returns a pointer to the string
+//==========================================================
+unsigned char *DirNameToName(unsigned char dirname[11])
+{
+	char name[12];
+   	short int i = 0;
+   	short int j = 0;
+
+	for (i = 0; i < 11; i++)
+	{
+		if (dirname[i] && dirname[i] != ' ')
+		{
+			if (i == 8)
+				name[j++] = '.';
+			name[j++] = dirname[i];
+		}
+	}
+	name[j] = 0;
+	unsigned char *retval = AllocUMem(strlen(name) + 1);
+	strcpy(retval, name);
+	return retval;
+}
+
+//============================================================================
+// Find the array of DirEntrys for directory. If a relative path is specified,
+// start looking in the cwd of task with pid pid. If not found return 0.
+// If necessary, allocate a buffer for the directory.
+//============================================================================
+struct DirEntry *FindDirectory(unsigned char *directory, unsigned short pid)
+{
+	struct DirEntry *retVal = AllocUMem(512);
+	unsigned char *fullpath = AllocUMem(256);
+	
+	if (directory[0] == '/') // Absolute path
+		strcpy(fullpath, directory);
+	else // Relative path
+	{
+		strcpy(fullpath, PidToTask(pid)->currentDirName);
+		if (strcmp(fullpath, "/"))
+			strcat(fullpath, "/");
+		strcat(fullpath, directory);
+	}
+	// Now we have the full path of the file, so we search VDirectory for the directory
+	if (fullpath[0] == '/') fullpath++;
+	struct vDirNode *temp = vDirectory;
+	unsigned char *restOfString;
+	while (1)
+	{
+		restOfString = strchr(fullpath, '/');
+		if (!restOfString) // Found it
+		{
+			DeallocMem(fullpath);
+			ReadSector((unsigned char *)retVal, temp->startSector);
+			return retVal;
+		}
+		restOfString[0] = 0;
+		restOfString++;
+		temp = temp->firstChild;
+		while (strcmp(temp->name, fullpath))
+			temp = temp->nextSibling;
+	}
+	DeallocMem(retVal);
+	DeallocMem(fullpath);
+	return 0;
+}
+
 //===========================================================================
 // Find the directory entry for the file whose name is pointed to by "name".
-// Return the address of the directory entry, or 0 on failure.
+// Return the address of the directory entry, or 0 on failure. If a relative
+// path is specified start looking in the cwd of task with pid pid
 //===========================================================================
-long
-FindFile(char name[13], long directory)
+struct DirEntry *FindFile(unsigned char *name, unsigned short pid)
 {
-   short int done = 1;
-   struct DirEntry *entries;
-   char dirname[11];
+   	struct DirEntry *entries;
+	struct DirEntry *retval = 0;
 
-   entries = DirectoryBuffers[FindDirectoryBuffer(directory)].Buffer;
-   if (NameToDirName(name, dirname))
-   {
-      return (0);
-   }
-
-   short int n;
-   for (n = 0; n < RootDirectoryEntries; n++)
-   {
-      done = 0;
-      short int i;
-      for (i = 0; i < 11; i++)
-      {
-         if (entries[n].name[i] != dirname[i])
-         {
-            done = 1;
-            break;
-         }
-      }
-      if (done == 0)
-      {
-         return ((long) &(entries[n]));
-      }
-   }
-   return (0);
+   	entries = FindDirectory(name, pid);
+	if (entries)
+	{
+		unsigned char *tempname;
+		while (tempname = strchr(name, '/')) name = tempname + 1;
+   		short int n;
+   		for (n = 0; n < RootDirectoryEntries; n++)
+   		{
+			if (entries[n].name[0] == 0) break;
+	   		if (!strcmp(name, DirNameToName(entries[n].name)))
+	   		{
+				retval = AllocUMem(sizeof (struct DirEntry));
+		   		copyMem((unsigned char *)&entries[n], (unsigned char *)retval, sizeof (struct DirEntry));
+				break;
+	   		}
+		}
+		DeallocMem(entries);
+	}
+   	return (retval);
 }
 
 //=================================
 // Finds next free cluster on disk
 //=================================
-int
-FindFreeCluster()
+int FindFreeCluster(void)
 {
    int count = 0;
 
@@ -204,18 +271,17 @@ FindFreeCluster()
    return (count);
 }
 
-//=========================================
-// Find a free directory entry
+//==========================================
+// Find a free directory entry in directory
 // Return a pointer to the directory entry
 //        or 0 on failure
-//=========================================
-struct DirEntry *
-FindFreeDirEntry(long directory)
+//==========================================
+struct DirEntry * FindFreeDirEntry(struct DirEntry *directory)
 {
    int count = 0;
    struct DirEntry *entries;
 
-   entries = DirectoryBuffers[FindDirectoryBuffer(directory)].Buffer;
+   entries = directory;
    while (entries[count].name[0] != 0xE5)
    {
       if (entries[count].name[0] == 0)
@@ -234,8 +300,7 @@ FindFreeDirEntry(long directory)
 //==================================
 // Save the FAT buffer back to disk
 //==================================
-void
-SaveFAT()
+void SaveFAT(void)
 {
    char *FATbuffer = (char *) FAT;
    int count;
@@ -249,11 +314,10 @@ SaveFAT()
 //========================================
 // Save the Directory buffer back to disk
 //========================================
-void
-SaveDir()
+void SaveDir(void)
 {
    int count;
-   char *RootDirBuffer = (char *) DirectoryBuffers[0].Buffer;
+   // char *RootDirBuffer = (char *) DirectoryBuffers[0].Buffer;
 
    for (count = 0; count < (RootDirectoryEntries * 0x20) / BytesPerSector; count++)
    {
@@ -266,18 +330,20 @@ SaveDir()
 // Returns 1 on success
 //       0 if file cannot be created
 //======================================
-int
-CreateFile(char *name, struct FCB *fHandle, long directory)
+struct FCB * CreateFile(char *name, unsigned short pid)
 {
-   if (FindFile(name, directory))
+   	struct FCB *fHandle = (struct FCB *) AllocKMem(sizeof(struct FCB));
+
+	if (FindFile(name, pid))
    {
       return (0);
    }
    struct DirEntry *entry;
-   if ((entry = FindFreeDirEntry(directory)) == 0)
-   {
-      return (0);
-   }
+	entry = (struct DirEntry *)RootDirBuffer;
+//   if ((entry = FindFreeDirEntry(pid)) == 0)
+//   {
+//      return (0);
+//   }
    int count;
 
    // Zero directory entry
@@ -307,48 +373,74 @@ CreateFile(char *name, struct FCB *fHandle, long directory)
    fHandle->length = entry->fileSize;
    fHandle->filebuf = (char *) AllocUMem(512);
    fHandle->sectorInCluster = 1;
-   return (1);
+   return (fHandle);
 }
 
-//===================================
+//===================================================================
 // Open a file.
-// Returns 0 on success
-//       1 if file does not exist
-//===================================
-int
-OpenFile(char name[11], struct FCB *fHandle)
+// Returns fHandle on success.
+//       0 if file does not exist
+//===================================================================
+struct FCB * OpenFile(char name[11], unsigned short pid)
 {
-   struct DirEntry *entry = (struct DirEntry *) FindFile(name,
-         currentTask->currentDir);
+	struct FCB * fHandle = AllocKMem(sizeof(struct FCB));
+	
+	// This is a kludge, but bear with it for the time being!
+	if (!strcmp(name, "/"))
+	{
+		fHandle->deviceType = DIR;
+		fHandle->directory = 0;
+		fHandle->currentCluster = 0;
+      	fHandle->startSector = RootDir;
+      	fHandle->startCluster = 0;
+      	fHandle->fileCursor = fHandle->bufCursor = fHandle->bufIsDirty = 0;
+		fHandle->length = 512;
+      	fHandle->filebuf = (char *) AllocUMem(512);
+      	ReadSector(fHandle->filebuf, fHandle->startSector);
+      	fHandle->nextSector = fHandle->startSector + 1;
+      	fHandle->sectorInCluster = 1;
+      	return (fHandle);		
+	}
+	else
+	{ 
+		struct DirEntry *entry = (struct DirEntry *) FindFile(name, pid);
 
-   if (entry != 0)
-   {
-      fHandle->directory = entry;
-      fHandle->currentCluster = entry->startingCluster;
-      fHandle->startSector = ClusterToSector(entry->startingCluster);
-      fHandle->startCluster = entry->startingCluster;
-      fHandle->fileCursor = fHandle->bufCursor = fHandle->bufIsDirty = 0;
-      fHandle->length = entry->fileSize;
-      fHandle->filebuf = (char *) AllocUMem(512);
-      ReadSector(fHandle->filebuf, fHandle->startSector);
-      fHandle->nextSector = fHandle->startSector + 1;
-      fHandle->sectorInCluster = 1;
-      return (0);
-   }
-   else
-   {
-      return (1);
-   }
+   		if (entry != 0)
+   		{
+      		fHandle->directory = entry;
+      		fHandle->currentCluster = entry->startingCluster;
+      		fHandle->startSector = ClusterToSector(entry->startingCluster);
+      		fHandle->startCluster = entry->startingCluster;
+      		fHandle->fileCursor = fHandle->bufCursor = fHandle->bufIsDirty = 0;
+	   		if (entry->attribute & 0x10)
+	   		{
+		   		fHandle->deviceType = DIR;
+		   		fHandle->length = 512;
+	   		}
+	   		else
+	   		{
+      			fHandle->length = entry->fileSize;
+		   		fHandle->deviceType = FILE;
+	   		}
+      		fHandle->filebuf = (char *) AllocUMem(512);
+      		ReadSector(fHandle->filebuf, fHandle->startSector);
+      		fHandle->nextSector = fHandle->startSector + 1;
+      		fHandle->sectorInCluster = 1;
+      		return (fHandle);
+   		}
+   		else
+   		{
+			DeallocMem(fHandle);
+      		return (0);
+   		}
+	}
 }
 
 //============================================
 // Close a file and release all its resources
 //============================================
-void
-CloseFile(struct FCB * fHandle)
+void CloseFile(struct FCB * fHandle)
 {
-   struct clusterListEntry *clusters, *nextcluster;
-
    if (fHandle->bufIsDirty)
    {
       WriteSector(
@@ -356,9 +448,13 @@ CloseFile(struct FCB * fHandle)
             ClusterToSector(fHandle->currentCluster) + fHandle->sectorInCluster
                   - 1);
    }
-   fHandle->directory->fileSize = fHandle->length;
-   SaveDir();
-   DeallocMem((struct MemStruct *) fHandle->filebuf);
+	if (fHandle->deviceType == FILE)
+	{
+   		fHandle->directory->fileSize = fHandle->length;
+   		SaveDir();
+		DeallocMem(fHandle->directory);
+   		DeallocMem((struct MemStruct *) fHandle->filebuf);
+	}
    DeallocMem(fHandle);
 }
 
@@ -366,8 +462,7 @@ CloseFile(struct FCB * fHandle)
 // Read noBytes from the file represented by fHandle into buffer
 // Returns no of bytes read
 //===============================================================
-long
-ReadFile(struct FCB *fHandle, char *buffer, long noBytes)
+long ReadFile(struct FCB *fHandle, char *buffer, long noBytes)
 {
    if (noBytes > fHandle->length)
    {
@@ -414,8 +509,7 @@ ReadFile(struct FCB *fHandle, char *buffer, long noBytes)
 // Write noBytes from buffer into the file represented by fHandle
 // Returns no of bytes written
 //================================================================
-long
-WriteFile(struct FCB *fHandle, char *buffer, long noBytes)
+long WriteFile(struct FCB *fHandle, char *buffer, long noBytes)
 {
    long bytesWritten = 0;
 
@@ -454,31 +548,14 @@ WriteFile(struct FCB *fHandle, char *buffer, long noBytes)
    return (bytesWritten);
 }
 
-/*int DeleteFile(struct FCB *fHandle)
-{
-   fHandle->directory->name[0] = 0xE5;
-   unsigned short int cluster = fHandle->directory->startingCluster;
-   unsigned short int nextCluster;
-   while (cluster != 0xFFFF)
-   {
-      nextCluster = FAT[cluster];
-      FAT[cluster] = 0;
-      cluster = nextCluster;
-   }
-   SaveFAT();
-   SaveDir();
-   return (0);
-}*/
-
 //===================================
 // Delete a file.
 // Returns 0 on success
 //       1 if file does not exist
 //===================================
-int DeleteFile(char name[11])
+int DeleteFile(char name[11], unsigned short pid)
 {
-   	struct DirEntry *entry = (struct DirEntry *) FindFile(name,
-         	currentTask->currentDir);
+   	struct DirEntry *entry = (struct DirEntry *) FindFile(name, pid);
 
    	if (entry != 0)
    	{
@@ -504,8 +581,7 @@ int DeleteFile(char name[11])
 //=============================
 // The actual filesystem task
 //=============================
-void
-fsTaskCode()
+void fsTaskCode(void)
 {
    struct Message *FSMsg;
    struct MessagePort *tempPort;
@@ -527,11 +603,10 @@ fsTaskCode()
       switch (FSMsg->byte)
          {
       case CREATEFILE:
-         fcb = (struct FCB *) AllocKMem(sizeof(struct FCB));
-         result = CreateFile((char *) FSMsg->quad, fcb,
-               PidToTask(FSMsg->pid)->currentDir);
+				 ;
+         struct FCB *fcb = CreateFile((char *) FSMsg->quad, FSMsg->pid);
          tempPort = (struct MessagePort *) FSMsg->tempPort;
-         if (result == 0)
+         if (!fcb)
          {
             FSMsg->quad = 0;
          }
@@ -544,10 +619,9 @@ fsTaskCode()
          break;
 
       case OPENFILE:
-         fcb = (struct FCB *) AllocKMem(sizeof(struct FCB));
-         result = OpenFile((char *) FSMsg->quad, fcb);
+         fcb = OpenFile((char *) FSMsg->quad, FSMsg->pid);
          tempPort = (struct MessagePort *) FSMsg->tempPort;
-         if (result)
+         if (!fcb)
          {
             FSMsg->quad = 0;
          }
@@ -583,9 +657,18 @@ fsTaskCode()
          break;
 
       case DELETEFILE:
-         result = DeleteFile((char *) FSMsg->quad);
-//         DeallocMem((void *) FSMsg->quad);
+         result = DeleteFile((char *) FSMsg->quad, FSMsg->pid);
          tempPort = (struct MessagePort *) FSMsg->tempPort;
+         SendMessage(tempPort, FSMsg);
+         break;
+
+      case TESTFILE:
+		 if (!strcmp(FSMsg->quad, "/"))
+		 	result = 1;
+		 else
+         	result = (long) FindFile((char *) FSMsg->quad, FSMsg->pid);
+         tempPort = (struct MessagePort *) FSMsg->tempPort;
+		 FSMsg->quad = result;
          SendMessage(tempPort, FSMsg);
          break;
 
@@ -594,39 +677,12 @@ fsTaskCode()
          SendMessage(tempPort, FSMsg);
          break;
 
-      case GETDIRENTRY:
-         ;
-         short int bufferNo = FindDirectoryBuffer(
-               PidToTask(FSMsg->pid)->currentDir);
-         struct DirEntry
-               * temp =
-                     (struct DirEntry *) &((struct DirEntry *) DirectoryBuffers[bufferNo].Buffer)[FSMsg->quad];
-         int count;
-         for (count = 0; count < sizeof(struct DirEntry); count++)
-            ((char *) FSMsg->quad2)[count] = ((char *) temp)[count];
-         tempPort = (struct MessagePort *) FSMsg->tempPort;
-         SendMessage(tempPort, FSMsg);
-         break;
-
-      case GETDIRECTORY:
-         ;
-         struct DirEntry *entry;
-         entry = (struct DirEntry *) FindFile((char *) FSMsg->quad,
-               PidToTask(FSMsg->pid)->currentDir);
-         if (entry)
-            FSMsg->quad = entry->startingCluster;
-         else
-            FSMsg->quad = -1;
-         tempPort = (struct MessagePort *) FSMsg->tempPort;
-         SendMessage(tempPort, FSMsg);
-         break;
-
       case GETFILEINFO:
          ;
          struct FileInfo info;
-         struct FCB *fcb = (struct FCB *) FSMsg->quad;
+         fcb = (struct FCB *) FSMsg->quad;
          info.Length = fcb->length;
-         count;
+         int count;
          for (count = 0; count < sizeof(struct FileInfo); count++)
             ((char *) FSMsg->quad2)[count] = ((char *) (&info))[count];
          tempPort = (struct MessagePort *) FSMsg->tempPort;
