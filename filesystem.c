@@ -47,6 +47,7 @@ void InitializeHD(void)
    BytesPerSector = bs->bytesPerSector;
    FirstFAT = bootSector + SectorsPerCluster;
    FATLength = (RootDir - FirstFAT) / 2;
+	DeallocMem(DiskBuffer);
 
    // Read FAT from disk to FAT buffer
    FATbuffer = AllocUMem(FATLength * BytesPerSector);
@@ -117,6 +118,7 @@ int GetVDirEntries(struct vDirNode *currentDir)
 				GetVDirEntries(temp);			
 		}
 	}
+	DeallocMem(dirBuffer);
 }
 
 //==========================================================
@@ -188,20 +190,10 @@ unsigned char *DirNameToName(unsigned char dirname[11])
 // start looking in the cwd of task with pid pid. If not found return 0.
 // If necessary, allocate a buffer for the directory.
 //============================================================================
-struct DirEntry *FindDirectory(unsigned char *directory, unsigned short pid)
+struct DirEntry *FindDirectory(unsigned char *fullpath, unsigned short pid)
 {
 	struct DirEntry *retVal = AllocUMem(512);
-	unsigned char *fullpath = AllocUMem(256);
-	
-	if (directory[0] == '/') // Absolute path
-		strcpy(fullpath, directory);
-	else // Relative path
-	{
-		strcpy(fullpath, PidToTask(pid)->currentDirName);
-		if (strcmp(fullpath, "/"))
-			strcat(fullpath, "/");
-		strcat(fullpath, directory);
-	}
+
 	// Now we have the full path of the file, so we search VDirectory for the directory
 	if (fullpath[0] == '/') fullpath++;
 	struct vDirNode *temp = vDirectory;
@@ -219,7 +211,16 @@ struct DirEntry *FindDirectory(unsigned char *directory, unsigned short pid)
 		restOfString++;
 		temp = temp->firstChild;
 		while (strcmp(temp->name, fullpath))
+		{
 			temp = temp->nextSibling;
+			if (!temp)
+			{
+				DeallocMem(retVal);
+				DeallocMem(fullpath);
+				return 0;
+			}
+		}			
+		fullpath = restOfString;
 	}
 	DeallocMem(retVal);
 	DeallocMem(fullpath);
@@ -235,17 +236,22 @@ struct DirEntry *FindFile(unsigned char *name, unsigned short pid)
 {
    	struct DirEntry *entries;
 	struct DirEntry *retval = 0;
+	unsigned char *tempName = AllocKMem(strlen(name) + 1);
+	strcpy(tempName, name);
 
-   	entries = FindDirectory(name, pid);
+	int i = strlen(tempName);
+	while (name[i] != '/') i--;
+	unsigned char *filename = tempName + i + 1;
+	
+   	entries = FindDirectory(tempName, pid);
+	DeallocMem(tempName);
 	if (entries)
 	{
-		unsigned char *tempname;
-		while (tempname = strchr(name, '/')) name = tempname + 1;
    		short int n;
    		for (n = 0; n < RootDirectoryEntries; n++)
    		{
 			if (entries[n].name[0] == 0) break;
-	   		if (!strcmp(name, DirNameToName(entries[n].name)))
+	   		if (!strcmp(filename, DirNameToName(entries[n].name)))
 	   		{
 				retval = AllocUMem(sizeof (struct DirEntry));
 		   		copyMem((unsigned char *)&entries[n], (unsigned char *)retval, sizeof (struct DirEntry));
@@ -285,14 +291,10 @@ struct DirEntry * FindFreeDirEntry(struct DirEntry *directory)
    while (entries[count].name[0] != 0xE5)
    {
       if (entries[count].name[0] == 0)
-      {
          return (&entries[count]);
-      }
       count++;
       if (count == RootDirectoryEntries)
-      {
          return (0);
-      }
    }
    return (&entries[count]);
 }
@@ -306,9 +308,7 @@ void SaveFAT(void)
    int count;
 
    for (count = 0; count < FATLength; count++)
-   {
       WriteSector(FATbuffer + (count * BytesPerSector), FirstFAT + count);
-   }
 }
 
 //========================================
@@ -317,12 +317,9 @@ void SaveFAT(void)
 void SaveDir(void)
 {
    int count;
-   // char *RootDirBuffer = (char *) DirectoryBuffers[0].Buffer;
 
    for (count = 0; count < (RootDirectoryEntries * 0x20) / BytesPerSector; count++)
-   {
       WriteSector(RootDirBuffer + (count * BytesPerSector), RootDir + count);
-   }
 }
 
 //======================================
@@ -330,33 +327,25 @@ void SaveDir(void)
 // Returns 1 on success
 //       0 if file cannot be created
 //======================================
-struct FCB * CreateFile(char *name, unsigned short pid)
+struct FCB * CreateFile(unsigned char *name, unsigned short pid)
 {
    	struct FCB *fHandle = (struct FCB *) AllocKMem(sizeof(struct FCB));
 
+	// If the file already exist, exit
 	if (FindFile(name, pid))
-   {
       return (0);
-   }
-   struct DirEntry *entry;
-	entry = (struct DirEntry *)RootDirBuffer;
-//   if ((entry = FindFreeDirEntry(pid)) == 0)
-//   {
-//      return (0);
-//   }
+	
+   struct DirEntry *entry = (struct DirEntry *)RootDirBuffer; 
    int count;
 
    // Zero directory entry
    for (count = 0; count < sizeof(struct DirEntry); count++)
-   {
       ((unsigned char *) entry)[count] = (unsigned char) 0;
-   }
 
    // Fill in a few details
    if (NameToDirName(name, entry->name))
-   {
       return (0);
-   }
+
    entry->startingCluster = FindFreeCluster();
    entry->attribute = 0x20;
 
@@ -381,11 +370,11 @@ struct FCB * CreateFile(char *name, unsigned short pid)
 // Returns fHandle on success.
 //       0 if file does not exist
 //===================================================================
-struct FCB * OpenFile(char name[11], unsigned short pid)
+struct FCB * OpenFile(unsigned char *name, unsigned short pid)
 {
 	struct FCB * fHandle = AllocKMem(sizeof(struct FCB));
 	
-	// This is a kludge, but bear with it for the time being!
+	// Root directory isn't a normal file
 	if (!strcmp(name, "/"))
 	{
 		fHandle->deviceType = DIR;
@@ -465,9 +454,7 @@ void CloseFile(struct FCB * fHandle)
 long ReadFile(struct FCB *fHandle, char *buffer, long noBytes)
 {
    if (noBytes > fHandle->length)
-   {
       return (0);
-   }
 
    long bytesRead = 0;
 
@@ -588,8 +575,7 @@ void fsTaskCode(void)
 
    FSMsg = (struct Message *) AllocKMem(sizeof(struct Message));
 
-   DiskBuffer = AllocUMem(512);
-   int result;
+  int result;
    struct FCB *fcb;
 
    ((struct MessagePort *) FSPort)->waitingProc = (struct Task *) -1L;
@@ -607,9 +593,7 @@ void fsTaskCode(void)
          struct FCB *fcb = CreateFile((char *) FSMsg->quad, FSMsg->pid);
          tempPort = (struct MessagePort *) FSMsg->tempPort;
          if (!fcb)
-         {
             FSMsg->quad = 0;
-         }
          else
          {
             fcb->pid = FSMsg->pid;
@@ -619,12 +603,10 @@ void fsTaskCode(void)
          break;
 
       case OPENFILE:
-         fcb = OpenFile((char *) FSMsg->quad, FSMsg->pid);
+         fcb = OpenFile((unsigned char *) FSMsg->quad, FSMsg->pid);
          tempPort = (struct MessagePort *) FSMsg->tempPort;
          if (!fcb)
-         {
             FSMsg->quad = 0;
-         }
          else
          {
             fcb->pid = FSMsg->pid;

@@ -7,7 +7,6 @@
 int
 main(void)
 {
-   struct Message m;
    int column = 0;
    char commandline[81];
    char buffer[512];

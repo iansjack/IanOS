@@ -116,7 +116,7 @@ long DoExec(char * name, char * environment)
 	long argc;
 	long argv;
 
-	char * kname = AllocKMem(81);
+	char * kname = AllocKMem(strlen(name) + 6); // Enough space for "/BIN" + name
 
 	strcpy(kname, "/BIN/");
 	strcat(kname, name);

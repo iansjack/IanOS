@@ -116,17 +116,18 @@ void KWriteHex(long c, int row) //, int col)
 //  Opens the file s.
 //  Returns a FD for the file in RAX
 //=========================================================
-FD KOpenFile(char *s)
+FD KOpenFile(unsigned char *s)
 {
-   	char *S = AllocKMem(strlen(s) + 1);
-   	char *str = S;
+//   	char *S = AllocKMem(strlen(s) + 1);
+//   	char *str = S;
 	struct FCB * fcb = 0;
 
-   	strcpy(S, s);
+//   	strcpy(S, s);
+	unsigned char *S = NameToFullPath(s);
 	struct Message *msg = (struct Message *) AllocKMem(sizeof(struct Message));
    	msg->nextMessage = 0;
    	msg->byte = OPENFILE;
-   	msg->quad = (long) str;
+   	msg->quad = (long) S;
    	SendReceiveMessage((struct MessagePort *)FSPort, msg);
 	fcb = (struct FCB *) msg->quad;
    	DeallocMem(S);
@@ -312,11 +313,12 @@ long DoWrite(FD fileDescriptor, char *buffer, long noBytes)
    return (retval);
 }
 
-FD DoCreate(char * s)
+FD DoCreate(unsigned char * s)
 {
-   	char *S = AllocKMem(strlen(s) + 1);
+   	unsigned char *S = NameToFullPath(s);
+	//AllocKMem(strlen(s) + 1);
 
-   	strcpy(S, s);
+//   	strcpy(S, s);
    	struct Message *msg =
          (struct Message *) AllocKMem(sizeof(struct Message));
    	msg->nextMessage = 0;
@@ -345,11 +347,12 @@ FD DoCreate(char * s)
 	return -1;
 }
 
-long DoDelete(char *name)
+long DoDelete(unsigned char *name)
 {
 	int retval = 0;
-	char *S = AllocKMem(strlen(name) + 1);
-	strcpy(S, name); 
+	unsigned char *S = NameToFullPath(name);
+	//AllocKMem(strlen(name) + 1);
+	//strcpy(S, name); 
    	struct Message *msg =
          (struct Message *) AllocKMem(sizeof(struct Message));
 
@@ -364,24 +367,9 @@ long DoDelete(char *name)
 
 long DoChDir(unsigned char *dirName)
 {
-	// *** Need to add code to check that the directory exists ***
 	int retval = -1;
-	char *S = AllocKMem(strlen(dirName) + 3);
-	strcpy(S, "");
-	if (!strcmp(dirName, "/"))
-		strcpy(S, "/");
-	else
-	{
-		if (dirName[0] == '/')
-			strcpy(S, dirName);
-		else
-		{
-			if (strcmp(currentTask->currentDirName, "/"))
-				strcpy(S, currentTask->currentDirName);
-	    	strcat(S, "/");
-			strcat(S, dirName);
-		}
-	}
+
+	unsigned char *S = NameToFullPath(dirName);
    	struct Message *msg = (struct Message *) AllocKMem(sizeof(struct Message));
 
    	msg->nextMessage = 0;
@@ -405,4 +393,62 @@ unsigned char *DoGetcwd(void)
 	unsigned char *name = AllocUMem(strlen(currentTask->currentDirName) + 1);
 	strcpy(name, currentTask->currentDirName);
 	return name;
+}
+
+unsigned char *NameToFullPath(unsigned char *name)
+{
+	char *S = AllocKMem(strlen(name) + strlen(currentTask->currentDirName) + 3);
+
+	// "." is a very special case. It changes nothing.
+	if (!strcmp(name, "."))
+	{
+		strcpy(S, currentTask->currentDirName);
+		return S;
+	}
+	// The special case ".."
+	if (!strcmp(name, ".."))
+	{
+		if (!strcmp(currentTask->currentDirName, "/"))
+		{
+			strcpy(S, "/");
+			return S;
+		}
+		else
+		{
+			strcpy(S, currentTask->currentDirName);
+			while (S[strlen(S) - 1] != '/') S[strlen(S) - 1] = 0;
+		}
+	}
+	else
+	{
+		// The special case "./xxx"
+		if (name[0] == '.' && name[1] == '/') name += 2;
+		// The special case "../xxx"
+		if (name[0] == '.' && name[1] == '.' && name[2] == '/')
+		{
+			name += 3;
+			strcpy(S, currentTask->currentDirName);
+			while (S[strlen(S) - 1] != '/') S[strlen(S) - 1] = 0;
+			strcat(S, name);
+		}
+		else
+		{
+			strcpy(S, "");
+			if (!strcmp(name, "/"))
+				strcpy(S, "/");
+			else
+			{
+				if (name[0] == '/')
+					strcpy(S, name);
+				else
+				{
+					if (strcmp(currentTask->currentDirName, "/"))
+						strcpy(S, currentTask->currentDirName);
+			    	strcat(S, "/");
+					strcat(S, name);
+				}
+			}
+		}
+	}
+	return S;
 }

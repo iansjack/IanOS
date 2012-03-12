@@ -21,6 +21,6 @@ void ClearSem(long * semaphore);
 void KWriteString(char *str, int row, int col);
 struct Task * PidToTask(long pid);
 unsigned char *strchr(unsigned char*, char);
-
+unsigned char *NameToFullPath(unsigned char *name);
 
 #endif

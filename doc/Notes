@@ -1,0 +1,6 @@
+ReadFile exits if requested number of bytes is greater than file size. It should
+read as many bytes as it can.
+
+Should Delete file check all FCBs to see if anyone has that file open?
+
+CreateFile only works for root directory.

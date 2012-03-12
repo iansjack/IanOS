@@ -12,7 +12,7 @@ extern void monitorTaskCode(void);
 void tas1(void)
 {
 	// Give tasks time to set themselves up
-	Sys_Nanosleep(1);
+	Sys_Nanosleep(10);
 	
 	long pid = Sys_Fork();
 	if (!pid)
