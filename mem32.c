@@ -17,7 +17,7 @@ InitMemManagement()
    unsigned short int *PMap = (unsigned short int *) PageMap;
 
    memorySemaphore = 0;
-   NoOfAllocations = 0;
+//   NoOfAllocations = 0;
    nPagesFree = 256;
 
    // Find number of free pages by writing a pattern to memory and seeing if it reads back OK

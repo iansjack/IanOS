@@ -23,4 +23,6 @@ struct Task * PidToTask(long pid);
 unsigned char *strchr(unsigned char*, char);
 unsigned char *NameToFullPath(unsigned char *name);
 
+#define ALLOCMSG AllocKMem(sizeof(struct Message))
+
 #endif

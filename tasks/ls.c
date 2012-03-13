@@ -8,19 +8,24 @@ int main(int argc, char **argv)
 	struct DirEntry entry;
 	int ret;
 	int count1,count2;
-	char buffer[13];
+	unsigned char buffer[13];
+	unsigned char *cwd;
 
 	FD file;
 	if (argc == 2)
 		file = Sys_Open(argv[1]);
 	else 
-		file = Sys_Open(Sys_Getcwd());
+	{
+		cwd = Sys_Getcwd();
+		file = Sys_Open(cwd);
+		sys_DeallocMem(cwd);
+	}
 	if (file != -1)
 	{
 		for (count1 = 0; count1 < 40; count1++)
 		{
 			ret = Sys_Read(file, (char *)&entry, sizeof(struct DirEntry));
-			if (entry.name[0]) // && entry.name[0] != 0xE5)
+			if (entry.name[0])
 			{
 				if (entry.name[0] != 0xE5)
 				{

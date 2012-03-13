@@ -58,7 +58,7 @@ start64:
 	movq $UserData, TS.firstfreemem(%r15)
 	movq $2, TS.pid(%r15)
 	movq $cd, TS.currentDirName(%r15)
-	movq $RootDirBuffer, TS.currentDir(%r15)
+	movq $0, TS.argv(%r15)
 	mov  %cr3, %rax
 	mov  %rax, TS.cr3(%r15)
 	mov	%r15, currentTask

@@ -1,7 +1,6 @@
 #ifndef KSTRUCTS_H
 #define KSTRUCTS_H
 
-//#define FD	unsigned char
 typedef int	FD;
 
 #define	CONS	1
@@ -48,7 +47,7 @@ struct Task
     char * 		  environment;
     struct MessagePort * parentPort;
     unsigned char	*currentDirName;
-	struct DirEntry *currentDir;
+	char  			**argv;
     long          	console;
 	unsigned char 	forking;
 	struct FCB *  	fcbList;

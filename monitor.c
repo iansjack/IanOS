@@ -50,7 +50,7 @@ void mprintString(char *s)
       *S++ = *s++;
    }
    *S = 0;
-   struct Message *msg = (struct Message *)AllocKMem(sizeof(struct Message));
+   struct Message *msg = (struct Message *)ALLOCMSG;
    msg->nextMessage = 0;
    msg->byte        = WRITESTR;
    msg->quad        = (long)str;
@@ -63,7 +63,7 @@ void mprintString(char *s)
 
 void mclrscr()
 {
-   struct Message *msg = (struct Message *)AllocKMem(sizeof(struct Message));
+   struct Message *msg = (struct Message *)ALLOCMSG;
 
 	msg->nextMessage = 0;
    msg->byte        = CLRSCR;
@@ -75,7 +75,7 @@ void mclrscr()
 
 void mclreol()
 {
-   struct Message *msg = (struct Message *)AllocKMem(sizeof(struct Message));
+   struct Message *msg = (struct Message *)ALLOCMSG;
 
    msg->nextMessage = 0;
    msg->byte        = CLREOL;
@@ -87,7 +87,7 @@ void mclreol()
 
 void msetcursor(long row, long column)
 {
-   struct Message *msg = (struct Message *)AllocKMem(sizeof(struct Message));
+   struct Message *msg = (struct Message *)ALLOCMSG;
 
    msg->nextMessage = 0;
    msg->byte        = SETCURSOR;
@@ -100,7 +100,7 @@ void msetcursor(long row, long column)
 
 void mprintchar(char c)
 {
-   struct Message *msg = (struct Message *)AllocKMem(sizeof(struct Message));
+   struct Message *msg = (struct Message *)ALLOCMSG;
 
    msg->nextMessage = 0;
    msg->byte        = WRITECHAR;
@@ -127,7 +127,7 @@ void mprint64(unsigned long n)
 
 void mSetNormal()
 {
-   struct Message *msg = (struct Message *)AllocKMem(sizeof(struct Message));
+   struct Message *msg = (struct Message *)ALLOCMSG;
 
 	msg->nextMessage = 0;
    msg->byte        = NORMAL;
@@ -139,7 +139,7 @@ void mSetNormal()
 
 void mSetReverse()
 {
-	struct Message *msg = (struct Message *)AllocKMem(sizeof(struct Message));
+	struct Message *msg = (struct Message *)ALLOCMSG;
 
    msg->nextMessage = 0;
    msg->byte        = REVERSE;
@@ -153,7 +153,7 @@ unsigned char mgetkey()
 {
    struct Message *kbdMsg;
 
-   kbdMsg = (struct Message *)AllocKMem(sizeof(struct Message));
+   kbdMsg = (struct Message *)ALLOCMSG;
    kbdMsg->nextMessage = 0;
    kbdMsg->byte        = 3;
    kbdMsg->quad        = MonitorConsole;

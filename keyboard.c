@@ -74,7 +74,7 @@ char KbdTableS[] =
 //==========================================================
 void keyPressed()
 {
-   struct Message *kbdMsg = (struct Message *)AllocKMem(sizeof(struct Message));
+   struct Message *kbdMsg = (struct Message *)ALLOCMSG;
 
    kbdMsg->nextMessage = 0;
    kbdMsg->quad        = currentBuffer;
@@ -151,7 +151,7 @@ void kbTaskCode()
    ((struct MessagePort *)KbdPort)->msgQueue    = 0;
    while (1)
    {
-      KbdMsg = (struct Message *)AllocKMem(sizeof(struct Message));
+      KbdMsg = (struct Message *)ALLOCMSG;
       ReceiveMessage((struct MessagePort *)KbdPort, KbdMsg);
       switch (KbdMsg->byte)
       {
@@ -186,7 +186,7 @@ void kbTaskCode()
                tempMsg = tempMsg->nextMessage;
             tempMsg->nextMessage = KbdMsg;
          }
-         KbdMsg = (struct Message *)AllocKMem(sizeof(struct Message));
+         KbdMsg = (struct Message *)ALLOCMSG;
          ProcessMsgQueue(currentCons);
          break;
 

@@ -17,6 +17,7 @@
 	.global Sys_Creat
 	.global Sys_Unlink
 	.global Sys_Nanosleep
+	.global Sys_Debug
 
 	.text
 
@@ -105,5 +106,8 @@ Sys_Nanosleep:
 	syscall
 	ret
 	
-
+Sys_Debug:
+	mov $SYS_DEBUG, %r9
+	syscall
+	ret
 	

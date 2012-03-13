@@ -172,8 +172,8 @@ consoleTaskCode()
          s = (unsigned char *) ConsoleMsg.quad;
          while (*s != 0)
          {
-            printchar(*s);
-            s++;
+            printchar(*s++);
+            //s++;
          }
          DeallocMem((void *) ConsoleMsg.quad);
          break;

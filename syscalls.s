@@ -37,7 +37,7 @@ CallNo:
 	.quad	Send_Receive			# SENDRECEIVE
 	.quad	GetCurrentConsole		# GETCURRENTCONSOLE
 	.quad 	Sys_Getcwd
-	.quad 	SetCurrentDirectory		# SETCURRENTDIR
+	.quad	Sys_Debug
 
 SysCalls:
 	jmp *(CallNo - 8)(,%r9, 8)	
@@ -329,16 +329,10 @@ Sys_Getcwd:
 	pop %rcx
 	sysretq
 
-#===================================================
-# Sets the current directory of the current task
-#===================================================
-SetCurrentDirectory:
-#	push %rcx
-#	call SetDir
-#	pop %rcx
-	sysretq
-
-
+Sys_Debug:
+	mov %rdi, debugging
+	sysretq 
+	
 GoToSleep:
 	push %rdx
 	mov currentTask, %r15
@@ -349,3 +343,4 @@ GoToSleep:
 	pop %rdx
 	SWITCH_TASKS		       # The current task is no longer runnable
 	ret
+

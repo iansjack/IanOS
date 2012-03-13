@@ -2,6 +2,18 @@
 #include "kernel.h"
 #include "tasklist.h"
 
+//#define DEBUG
+
+#ifdef DEBUG
+struct MemoryAllocation
+{
+	void *memory;
+	long size;
+	void *allocated;
+	void *deallocated;
+};
+#endif
+
 extern struct Task * currentTask;
 extern struct TaskList * runnableTasks;
 extern struct TaskList * blockedTasks;
@@ -18,8 +30,14 @@ struct MemStruct *firstFreeKMem;
 /*static*/
 long nextKPage;
 unsigned short int *PMap;
-long NoOfAllocations;
 long memorySemaphore;
+
+#ifdef DEBUG
+long NoOfAllocations;
+struct MemoryAllocation allocations[32];
+int count;
+#endif
+long debugging;
 
 void
 InitMem64(void)
@@ -39,7 +57,18 @@ InitMem64(void)
    deadTasks = 0;
    lowPriTask = 0L;
    blockedTasks = 0L;
-   NoOfAllocations = 0;
+#ifdef DEBUG
+   	NoOfAllocations = 0;
+	for (count = 0; count <32; count++)
+	{
+		allocations[count].memory =
+			allocations[count].size =
+			allocations[count].allocated =
+			allocations[count].deallocated = 0;
+	}
+	count = 0;
+	debugging = 0;
+#endif
    memorySemaphore = 0;
    canSwitch = 0;
    pass = 0;
@@ -49,8 +78,7 @@ InitMem64(void)
 // Searches the linked list pointed to by list for a block of memory of size sizeRequested
 // Allocates the memory and returns its address in RAX
 //=========================================================================================
-void *
-AllocMem(long sizeRequested, struct MemStruct *list)
+void *AllocMem(long sizeRequested, struct MemStruct *list)
 {
    unsigned char kernel = 0;
    if (list == firstFreeKMem)
@@ -98,7 +126,18 @@ AllocMem(long sizeRequested, struct MemStruct *list)
       list->pid = currentTask->pid;
    }
    ClearSem(&memorySemaphore);
-   NoOfAllocations++;
+#ifdef DEBUG
+   	NoOfAllocations++;
+	KWriteHex(NoOfAllocations, 24);
+	if (debugging == 1)
+	{
+		allocations[count].size = sizeRequested;
+		allocations[count].memory = list + 1;
+		allocations[count].allocated = 1;
+		count++;
+		if (count == 32) debugging = 0;
+	}
+#endif
    return (list + 1);
 }
 
@@ -106,20 +145,36 @@ AllocMem(long sizeRequested, struct MemStruct *list)
 // Deallocate the memory at location list.
 // This will deallocate both user and kernel memory
 //==================================================
-void
-DeallocMem(void *list)
+void DeallocMem(void *list)
 {
-   struct MemStruct *l = (struct MemStruct *) list;
+	if (list)
+	{
+   		struct MemStruct *l = (struct MemStruct *) list;
 
-   // We want the memory deallocation to be atomic, so set a semaphore before proceeding
-   SetSem(&memorySemaphore);
-   l--;
-   if (l->size == 0)
-   {
-      l->size = (long) l->next - (long) l - sizeof(struct MemStruct);
-      NoOfAllocations--;
-   }
-   ClearSem(&memorySemaphore);
+   		// We want the memory deallocation to be atomic, so set a semaphore before proceeding
+   		SetSem(&memorySemaphore);
+   		l--;
+   		if (!l->size)
+   		{
+      		l->size = (long) l->next - (long) l - sizeof(struct MemStruct);
+#ifdef DEBUG
+      		NoOfAllocations--;
+			KWriteHex(NoOfAllocations, 24);
+			if (debugging == 1)
+			{
+				int i;
+				for (i = 0; i < 32; i++)
+					if (allocations[i].memory == list &&
+					    allocations[i].deallocated == 0)
+					{
+						allocations[i].deallocated = 1;
+						break;
+					}
+			}
+#endif
+   		}
+   		ClearSem(&memorySemaphore);
+	}
 }
 
 //===============================================================================
@@ -142,6 +197,7 @@ AllocUMem(long sizeRequested)
    return (AllocMem(sizeRequested, (void *) currentTask->firstfreemem));
 }
 
+/*
 //============================================================
 // Deallocate kernel memory belonging to a particular process.
 //============================================================
@@ -157,9 +213,13 @@ DeallocKMem(long pid)
       if (l->pid == pid)
       {
          l->size = (long) l->next - (long) l - sizeof(struct MemStruct);
+#ifdef DEBUG		  
          NoOfAllocations--;
-      }
+ 		KWriteHex(NoOfAllocations, 24);
+#endif
+	  }
       l = l->next;
    }
    ClearSem(&memorySemaphore);
 }
+*/

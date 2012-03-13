@@ -14,7 +14,7 @@ long ReadFromFile(struct FCB *fHandle, char *buffer, long noBytes)
 
    struct Message *FSMsg;
 
-   FSMsg = (struct Message *) AllocKMem(sizeof(struct Message));
+   FSMsg = (struct Message *) ALLOCMSG;
    char *buff = AllocKMem(noBytes);
    int i;
 
@@ -53,20 +53,6 @@ void copyMem(unsigned char *source, unsigned char *dest, long size)
       dest[i] = source[i];
    }
 }
-
-/*
-//=======================================================
-// Copy null-terminates string s1 to s2
-//=======================================================
-void copyString(unsigned char *source, unsigned char * destination)
-{
-	while (*source)
-   	{
-      *destination++ = *source++;
-   	}
-   	*destination = 0;
-}
-*/
 
 //===========================================================================
 // A kernel library function to write a null-terminated string to the screen.
@@ -118,19 +104,17 @@ void KWriteHex(long c, int row) //, int col)
 //=========================================================
 FD KOpenFile(unsigned char *s)
 {
-//   	char *S = AllocKMem(strlen(s) + 1);
-//   	char *str = S;
 	struct FCB * fcb = 0;
 
-//   	strcpy(S, s);
 	unsigned char *S = NameToFullPath(s);
-	struct Message *msg = (struct Message *) AllocKMem(sizeof(struct Message));
+	struct Message *msg = (struct Message *) ALLOCMSG;
    	msg->nextMessage = 0;
    	msg->byte = OPENFILE;
    	msg->quad = (long) S;
    	SendReceiveMessage((struct MessagePort *)FSPort, msg);
 	fcb = (struct FCB *) msg->quad;
    	DeallocMem(S);
+	DeallocMem(msg);
 	if (fcb)
 	{
 		struct FCB * temp = currentTask->fcbList;
@@ -169,12 +153,13 @@ int KCloseFile(FD fileDescriptor)
 	if (temp)
 	{
    		struct Message *msg =
-    	     (struct Message *) AllocKMem(sizeof(struct Message));
+    	     (struct Message *) ALLOCMSG;
 
    		msg->nextMessage = 0;
    		msg->byte = CLOSEFILE;
    		msg->quad = (long) temp /*fHandle*/;
    		SendReceiveMessage((struct MessagePort *)FSPort, msg);
+		DeallocMem(msg);
 		return 0;
 	}
 	return -1;
@@ -194,7 +179,7 @@ int DoStat(FD fileDescriptor, struct FileInfo *info)
 	if (temp)
 	{
    		struct Message *msg =
-        	 (struct Message *) AllocKMem(sizeof(struct Message));
+        	 (struct Message *) ALLOCMSG;
    		char *buff = (char *) AllocKMem(sizeof(struct FileInfo));
  
    		msg->nextMessage = 0;
@@ -227,7 +212,7 @@ long DoRead(FD fileDescriptor, char *buffer, long noBytes)
 		{
    			struct Message *kbdMsg;
 
-   			kbdMsg = (struct Message *)AllocKMem(sizeof(struct Message));
+   			kbdMsg = (struct Message *)ALLOCMSG;
    			kbdMsg->nextMessage = 0;
    			kbdMsg->byte        = 1;
    			kbdMsg->quad        = currentTask->console;
@@ -242,7 +227,7 @@ long DoRead(FD fileDescriptor, char *buffer, long noBytes)
 		{
  	  		struct Message *FSMsg;
 
-   			FSMsg = (struct Message *)AllocKMem(sizeof(struct Message));
+   			FSMsg = (struct Message *)ALLOCMSG;
    			char *buff = AllocKMem(noBytes);
  
    			FSMsg->nextMessage = 0;
@@ -275,14 +260,11 @@ long DoWrite(FD fileDescriptor, char *buffer, long noBytes)
 	{
 		if (temp->deviceType == CONS)
 		{
-  			struct Message *FSMsg;
-
-   			FSMsg = (struct Message *) AllocKMem(sizeof(struct Message));
    			char *buff = AllocKMem(noBytes + 1);
  			copyMem(buffer, buff, noBytes);
 			buff[noBytes] = 0;
 
-   			struct Message *msg = (struct Message *)AllocKMem(sizeof(struct Message));
+   			struct Message *msg = (struct Message *)ALLOCMSG;
    			msg->nextMessage = 0;
    			msg->byte        = WRITESTR;
    			msg->quad        = (long) buff;
@@ -295,7 +277,7 @@ long DoWrite(FD fileDescriptor, char *buffer, long noBytes)
 		{
   			struct Message *FSMsg;
 
-   			FSMsg = (struct Message *) AllocKMem(sizeof(struct Message));
+   			FSMsg = (struct Message *) ALLOCMSG;
    			char *buff = AllocKMem(noBytes);
  			copyMem(buffer, buff, noBytes);
 
@@ -316,11 +298,7 @@ long DoWrite(FD fileDescriptor, char *buffer, long noBytes)
 FD DoCreate(unsigned char * s)
 {
    	unsigned char *S = NameToFullPath(s);
-	//AllocKMem(strlen(s) + 1);
-
-//   	strcpy(S, s);
-   	struct Message *msg =
-         (struct Message *) AllocKMem(sizeof(struct Message));
+   	struct Message *msg = (struct Message *) ALLOCMSG;
    	msg->nextMessage = 0;
    	msg->byte = CREATEFILE;
    	msg->quad = (long) S; //str;
@@ -354,7 +332,7 @@ long DoDelete(unsigned char *name)
 	//AllocKMem(strlen(name) + 1);
 	//strcpy(S, name); 
    	struct Message *msg =
-         (struct Message *) AllocKMem(sizeof(struct Message));
+         (struct Message *) ALLOCMSG;
 
    	msg->nextMessage = 0;
    	msg->byte = DELETEFILE;
@@ -370,7 +348,7 @@ long DoChDir(unsigned char *dirName)
 	int retval = -1;
 
 	unsigned char *S = NameToFullPath(dirName);
-   	struct Message *msg = (struct Message *) AllocKMem(sizeof(struct Message));
+   	struct Message *msg = ALLOCMSG;
 
    	msg->nextMessage = 0;
    	msg->byte = TESTFILE;
@@ -398,7 +376,7 @@ unsigned char *DoGetcwd(void)
 unsigned char *NameToFullPath(unsigned char *name)
 {
 	char *S = AllocKMem(strlen(name) + strlen(currentTask->currentDirName) + 3);
-
+Debug();
 	// "." is a very special case. It changes nothing.
 	if (!strcmp(name, "."))
 	{
@@ -417,6 +395,8 @@ unsigned char *NameToFullPath(unsigned char *name)
 		{
 			strcpy(S, currentTask->currentDirName);
 			while (S[strlen(S) - 1] != '/') S[strlen(S) - 1] = 0;
+			S[strlen(S) - 1] = 0;
+			if (strlen(S) == 0) S[0] = '/';
 		}
 	}
 	else

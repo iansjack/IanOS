@@ -236,6 +236,7 @@ struct DirEntry *FindFile(unsigned char *name, unsigned short pid)
 {
    	struct DirEntry *entries;
 	struct DirEntry *retval = 0;
+	unsigned char *dirName = 0;
 	unsigned char *tempName = AllocKMem(strlen(name) + 1);
 	strcpy(tempName, name);
 
@@ -251,12 +252,15 @@ struct DirEntry *FindFile(unsigned char *name, unsigned short pid)
    		for (n = 0; n < RootDirectoryEntries; n++)
    		{
 			if (entries[n].name[0] == 0) break;
-	   		if (!strcmp(filename, DirNameToName(entries[n].name)))
+			dirName = DirNameToName(entries[n].name);
+	   		if (!strcmp(filename, dirName))
 	   		{
 				retval = AllocUMem(sizeof (struct DirEntry));
 		   		copyMem((unsigned char *)&entries[n], (unsigned char *)retval, sizeof (struct DirEntry));
+				DeallocMem(dirName);
 				break;
 	   		}
+			DeallocMem(dirName);
 		}
 		DeallocMem(entries);
 	}
@@ -430,21 +434,21 @@ struct FCB * OpenFile(unsigned char *name, unsigned short pid)
 //============================================
 void CloseFile(struct FCB * fHandle)
 {
-   if (fHandle->bufIsDirty)
-   {
-      WriteSector(
-            fHandle->filebuf,
-            ClusterToSector(fHandle->currentCluster) + fHandle->sectorInCluster
-                  - 1);
-   }
-	if (fHandle->deviceType == FILE)
+   	if (fHandle->bufIsDirty)
+   	{
+      	WriteSector(
+			fHandle->filebuf,
+            ClusterToSector(fHandle->currentCluster) + fHandle->sectorInCluster - 1);
+	}
+	if (fHandle->deviceType == FILE || fHandle->deviceType == DIR)
 	{
-   		fHandle->directory->fileSize = fHandle->length;
+		if (fHandle->deviceType == FILE)
+   			fHandle->directory->fileSize = fHandle->length;
    		SaveDir();
-		DeallocMem(fHandle->directory);
+		if (fHandle->directory) DeallocMem(fHandle->directory);
    		DeallocMem((struct MemStruct *) fHandle->filebuf);
 	}
-   DeallocMem(fHandle);
+   	DeallocMem(fHandle);
 }
 
 //===============================================================
@@ -573,7 +577,7 @@ void fsTaskCode(void)
    struct Message *FSMsg;
    struct MessagePort *tempPort;
 
-   FSMsg = (struct Message *) AllocKMem(sizeof(struct Message));
+   FSMsg = (struct Message *) ALLOCMSG;
 
   int result;
    struct FCB *fcb;
@@ -648,7 +652,15 @@ void fsTaskCode(void)
 		 if (!strcmp(FSMsg->quad, "/"))
 		 	result = 1;
 		 else
-         	result = (long) FindFile((char *) FSMsg->quad, FSMsg->pid);
+			{
+         		result = (long) FindFile((char *) FSMsg->quad, FSMsg->pid);
+		 		if (result)
+		 		{
+			 		DeallocMem(result);
+			 		result = 1;
+		 		}
+			}
+				 
          tempPort = (struct MessagePort *) FSMsg->tempPort;
 		 FSMsg->quad = result;
          SendMessage(tempPort, FSMsg);

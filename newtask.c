@@ -33,9 +33,7 @@ struct Task * nextfreetss()
 	struct Task *temp = (struct Task *) TaskStruct;
 
 	while (temp->pid != 0)
-	{
 		temp++;
-	}
 	return (temp);
 }
 
@@ -62,7 +60,7 @@ long DoFork()
 	int pid = task->pid = nextpid++;
 	task->currentDirName = AllocKMem(strlen(currentTask->currentDirName) + 1);
 	strcpy(task->currentDirName, currentTask->currentDirName);
-	task->currentDir = currentTask->currentDir;
+	task->parentPort = 0;
 
 	// Copy Page Table and pages
 	task->cr3 = (long) VCreatePageDir(pid, currentTask->pid);
@@ -121,7 +119,7 @@ long DoExec(char * name, char * environment)
 	strcpy(kname, "/BIN/");
 	strcat(kname, name);
 	
-	struct Message *FSMsg = (struct Message *) AllocKMem(sizeof(struct Message));
+	struct Message *FSMsg = (struct Message *) ALLOCMSG;
 
 	// Open file
 	FSMsg->nextMessage = 0;
@@ -164,11 +162,11 @@ long DoExec(char * name, char * environment)
 		SendReceiveMessage((struct MessagePort *) FSPort, FSMsg);
 		DeallocMem(kname);
 		DeallocMem(FSMsg);
-		char * newenv = AllocMem(81,
-				(struct MemStruct *) currentTask->firstfreemem);
+		char * newenv = AllocMem(81, (struct MemStruct *) currentTask->firstfreemem);
 		copyMem(environment, newenv, 81);
 		currentTask->environment = newenv;
 		argc = ParseEnvironmentString(&argv);
+		currentTask->argv = argv;
 		asm ("mov %0,%%rdi;"
 				"mov %1,%%rsi"
 				:
@@ -192,7 +190,8 @@ void Do_Wait(unsigned short pid)
 {
 	struct Task * task = PidToTask(pid);
 	struct MessagePort * parentPort = AllocMessagePort();
-	struct Message * message = AllocKMem(sizeof (struct Message));
+	struct Message * message = ALLOCMSG;
+	
 	task->parentPort = parentPort;
 	ReceiveMessage(parentPort, message);
 	DeallocMem(message);
@@ -229,7 +228,7 @@ struct Task * NewKernelTask(void *TaskCode)
 	task->environment = (void *) 0;
 	task->parentPort = (void *) 0;
 	task->currentDirName = currentTask->currentDirName;
-	task->currentDir = currentTask->currentDir;
+	task->argv = 0;
 	task->console = 0;
 	asm ("sti");
 	return (task);
@@ -254,12 +253,14 @@ void KillTask(void)
 
 	if (task->parentPort)
 	{
-		struct Message *m =
-				(struct Message *) AllocKMem(sizeof(struct Message));
+		struct Message *m =	(struct Message *) ALLOCMSG;
 		m->quad = 0;
 		SendMessage(task->parentPort, m);
 		DeallocMem(m);
 	}
+
+	DeallocMem(task->environment);
+	DeallocMem(task->argv);
 
 	//Don't want to task switch whilst destroying task
 	asm ("cli");
@@ -278,6 +279,9 @@ void KillTask(void)
 			DeallocMem(task->fcbList);
 		task->fcbList = temp;
 	}
+
+	// Deallocate currentDirName - bit of a kludge here!!!
+	if (currentTask->pid != 2) DeallocMem(currentTask->currentDirName);
 
 	// Add the task to the Dead Tasks queue
 	deadTasks = AddToHeadOfTaskList(deadTasks, currentTask);

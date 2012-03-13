@@ -10,7 +10,7 @@ void *AllocKMem(long);
 //=================================
 void SendMessage(struct MessagePort *MP, struct Message *Msg)
 {
-   struct Message *temp = (struct Message *)AllocKMem(sizeof(struct Message));
+   struct Message *temp = (struct Message *)ALLOCMSG;
 
    copyMem((unsigned char *)Msg, (unsigned char *)temp, sizeof(struct Message));
    temp->pid = currentTask->pid;
@@ -36,7 +36,6 @@ void SendMessage(struct MessagePort *MP, struct Message *Msg)
       task->waiting   = 0;
       UnBlockTask(task);
       SWTASKS;
-      //SWTASKS15;
    }
 }
 

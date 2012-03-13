@@ -7,23 +7,21 @@
 int
 main(void)
 {
-   int column = 0;
-   char commandline[81];
-   char buffer[512];
-   char name[81];
-   char environment[81];
-   int i;
+   	int column = 0;
+   	char commandline[81];
+   	char buffer[512];
+   	char name[81];
+   	char environment[81];
+   	int i;
 
-   ConsoleClrScr();
+   	ConsoleClrScr();
 	printf("IanOS Version 0.1.3 - 2012\n#> _\b");
-   name[80] = environment[80] = 0;
-   for (i = 0; i < 80; i++)
-   {
-      commandline[i] = ' ';
-   }
+   	name[80] = environment[80] = 0;
+   	for (i = 0; i < 80; i++)
+      	commandline[i] = ' ';
 
-   while (1)
-   {
+   	while (1)
+   	{
       char c = getchar();
 
       switch (c)
@@ -56,10 +54,7 @@ main(void)
                name[i] = name[i] - 0x20;
          }
 
-         for (i = 0; i < 80; i++)
-         {
-            environment[i] = commandline[i];
-         }
+         for (i = 0; i < 80; i++) environment[i] = commandline[i];
 
          printf(" \n");
 
@@ -83,7 +78,7 @@ main(void)
 			if (!pid)
 				Sys_Execve(name, environment);
 			 else
-				 Sys_Wait(pid);
+				Sys_Wait(pid);
          }
 
          printf("#> _\b");

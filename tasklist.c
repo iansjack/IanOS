@@ -8,32 +8,26 @@ extern struct TaskList * blockedTasks;
 extern struct Task * lowPriTask;
 extern struct TaskList * allTasks;
 
-struct TaskList * AddToHeadOfTaskList(struct TaskList * list,
-		struct Task * task)
+struct TaskList * AddToHeadOfTaskList(struct TaskList *list, struct Task *task)
 {
 	canSwitch++;
-	struct TaskList * temp = (struct TaskList *) AllocKMem(
-			sizeof(struct TaskList));
+	struct TaskList * temp = (struct TaskList *) AllocKMem(sizeof(struct TaskList));
 	temp->task = task;
 	temp->next = list;
 	canSwitch--;
 	return temp;
 }
 
-struct TaskList * AddToTailOfTaskList(struct TaskList * list,
-		struct Task * task)
+struct TaskList * AddToTailOfTaskList(struct TaskList *list, struct Task *task)
 {
 	canSwitch++;
-	struct TaskList * temp = (struct TaskList *) AllocKMem(
-			sizeof(struct TaskList));
+	struct TaskList * temp = (struct TaskList *) AllocKMem(sizeof(struct TaskList));
 	struct TaskList * start = list;
 
 	temp->next = 0;
 	temp->task = task;
 	if (list == 0)
-	{
 		list = temp;
-	}
 	else
 	{
 		while (list->next)
@@ -45,7 +39,7 @@ struct TaskList * AddToTailOfTaskList(struct TaskList * list,
 	return temp;
 }
 
-struct TaskList * RemoveFromTaskList(struct TaskList * list, struct Task * task)
+struct TaskList * RemoveFromTaskList(struct TaskList *list, struct Task *task)
 {
 	canSwitch++;
 	if (list == 0)
@@ -75,10 +69,8 @@ struct TaskList * RemoveFromTaskList(struct TaskList * list, struct Task * task)
 			return start;
 			}
 
-		while (list->next->task != task)
-		{
+		while (list->next->task != task) 
 			list = list->next;
-		}
 		struct TaskList * temp = list->next;
 		list->next = list->next->next;
 		DeallocMem(temp);
