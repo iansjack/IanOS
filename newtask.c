@@ -166,7 +166,7 @@ long DoExec(char * name, char * environment)
 		copyMem(environment, newenv, 81);
 		currentTask->environment = newenv;
 		argc = ParseEnvironmentString(&argv);
-		currentTask->argv = argv;
+		currentTask->argv = (unsigned char **)argv;
 		asm ("mov %0,%%rdi;"
 				"mov %1,%%rsi"
 				:

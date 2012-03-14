@@ -2,7 +2,7 @@ include ../Flags.mak
 
 CFLAGS:=$(CFLAGS) -O -I ..
 LIBS = $(INC)/library/liblib.a $(INC)/library/libsyscalls.a 
-LIBOBJS = printf.o consoleclrscr.o string.o \
+LIBOBJS = printf.o string.o \
 	getchar.o convert.o
 SYSCALLSOBJS = syscalls.o allocmem.o allocsharedmem.o deallocmem.o \
 	killtask.o getticks.o
@@ -19,8 +19,6 @@ clean:
 	rm -f *.a *.o *~
 
 printf.o: printf.c $(INC)/console.h $(INC)/kstructs.h $(INC)/memory.h $(INC)/syscalls.h
-
-consoleclrscr.o: consoleclrscr.c $(INC)/console.h $(INC)/kstructs.h $(INC)/memory.h $(INC)/syscalls.h
 
 syscalls.o: syscalls.s $(INC)/syscalls.inc
 

@@ -5,7 +5,7 @@
 #include "console.h"
 
 int
-main(void)
+main(int argc, char **argv)
 {
    	int column = 0;
    	char commandline[81];
@@ -14,8 +14,14 @@ main(void)
    	char environment[81];
    	int i;
 
-   	ConsoleClrScr();
-	printf("IanOS Version 0.1.3 - 2012\n#> _\b");
+	if (argc == 2)
+		if (argv[1][0] >= '0' && argv[1][0] <= '3')
+		{
+			i = argv[1][0] - '0';
+			printf("%c#%d", ESC, i);
+		}
+	printf("%c[2J", ESC);
+	printf("IanOS Version 0.1.3 - 2012  Console %d\n#> _\b", i + 1);
    	name[80] = environment[80] = 0;
    	for (i = 0; i < 80; i++)
       	commandline[i] = ' ';

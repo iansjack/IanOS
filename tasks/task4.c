@@ -1,28 +1,18 @@
 #include "syscalls.h"
 #include "lib.h"
+#include "console.h"
 
 int main(void)
 {
-/*	unsigned char string[256]; // = "Hello World!!!"; 
-	printf("%x\n", string);
-	strcpy(string, "Hello World!!!");
-	printf("%s\n", string);
-	printf("%x\n", string);
-	printf("%d\n", strlen(string));
-	unsigned char *s1 = strcat(string, "W");
-	printf("%x\n", s1);
-	printf("%s\n", s1);
-	printf("%d\n", strlen(string)); */
-//	Sys_Fork();
-	Sys_Debug(1);
-	FD file = Sys_Open ("/TESTDIR/SUBDIR");
-	Sys_Close(file);
-	Sys_Debug(0);
+//	printf("First Line\n");
+//	printf("%c[?5hHello%c[?5l World\n", ESC, ESC);
+//	printf("Third Line\n");
+//	Sys_Nanosleep(100);
+//	printf("%cD", ESC);
+//	Sys_Nanosleep(200);
+//	printf("%cD", ESC);
+	printf("%c[0;0H", ESC);
+	printf("Moved%c[0K", ESC);
+	printf("%c[1;1HMoved again\n", ESC);
 	sys_Exit();
-   	return(0);
-}
-
-debug()
-{
-	while (1);
 }

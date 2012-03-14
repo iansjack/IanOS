@@ -47,7 +47,7 @@ struct Task
     char * 		  environment;
     struct MessagePort * parentPort;
     unsigned char	*currentDirName;
-	char  			**argv;
+	unsigned char  	**argv;
     long          	console;
 	unsigned char 	forking;
 	struct FCB *  	fcbList;

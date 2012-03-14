@@ -656,7 +656,7 @@ void fsTaskCode(void)
          		result = (long) FindFile((char *) FSMsg->quad, FSMsg->pid);
 		 		if (result)
 		 		{
-			 		DeallocMem(result);
+			 		DeallocMem((void *)result);
 			 		result = 1;
 		 		}
 			}
