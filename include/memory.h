@@ -15,16 +15,15 @@
 #define TaskStruct      0x0000000000080000L
 #define TempUserCode    0x0000000000095000L
 #define TempUserData    0x0000000000096000L
-#define TempKStack      0x0000000000097000L
 #define TempUStack      0x0000000000098000L
 #define PageMap         0x0000000000100000L
-#define UserCode        0x0000000000300000L
-#define UserData        0x0000000000310000L
-#define KernelStack     0x00000000003FC000L
-#define UserStack       0x00000000003FE000L
+#define UserCode        0x0000000000400000L
+#define UserData        0x0000000000600000L
+#define KernelStack     0x0000000000800000L
+#define UserStack       0x0000000000a00000L
+#define VAddr			0x0000008000000000L
 
-// Free			0x0000000000400000 - 0x0000003FFFFFFFFF
-// Virtual     0x0000003FFFFFFFFF - 0x000000FFFFFFFFFF   // Complete map of physical addresses
+// Free			0x0000000000C00000 - 0x0000007FFFFFFFFF
 
 #define PageSize       0x1000
 #define KbdPort        0x6F010L

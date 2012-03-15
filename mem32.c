@@ -17,7 +17,6 @@ InitMemManagement()
    unsigned short int *PMap = (unsigned short int *) PageMap;
 
    memorySemaphore = 0;
-//   NoOfAllocations = 0;
    nPagesFree = 256;
 
    // Find number of free pages by writing a pattern to memory and seeing if it reads back OK
@@ -29,8 +28,6 @@ InitMemManagement()
       *mempos = testpattern;
       if (*mempos != testpattern)
          break;
-      //      oMemMax = (unsigned char *)(mempos + 0x60003);
-      //      *(&oMemMax + 1) = 0;
       mempos += 0x100000 / (sizeof *mempos);
       nPagesFree += 256;
    }
@@ -81,8 +78,7 @@ InitMemManagement()
 //============================================
 // Allocate a page of memory and zero fill it
 //============================================
-void *
-AllocPage32(unsigned short int PID)
+void *AllocPage32(unsigned short int PID)
 {
    unsigned short int *PMap = (unsigned short int *) PageMap;
    int count = 0;

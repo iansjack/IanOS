@@ -138,7 +138,7 @@ long DoExec(char * name, char * environment)
 		size = codelen;
 		while (codelen > PageSize)
 		{
-			CreatePTE(AllocPage(currentTask->pid), ++currentPage);
+			AllocAndCreatePTE(++currentPage, currentTask->pid);
 			size -= PageSize;
 		}
 		ReadFromFile(fHandle, (char *) UserCode, codelen);
@@ -146,7 +146,7 @@ long DoExec(char * name, char * environment)
 		size = datalen;
 		while (datalen > PageSize)
 		{
-			CreatePTE(AllocPage(currentTask->pid), ++currentPage);
+			AllocAndCreatePTE(++currentPage, currentTask->pid);
 			size -= PageSize;
 		}
 		ReadFromFile(fHandle, (char *) UserData, datalen);
@@ -395,6 +395,7 @@ long ParseEnvironmentString(long * l)
 extern void kbTaskCode(void);
 extern void consoleTaskCode(void);
 extern void fsTaskCode(void);
+extern void monitorTaskCode(void);
 
 //===================================================================
 // This starts the dummy task and the services
@@ -410,4 +411,5 @@ void StartTasks()
 //	Sleep(10);
   	NewKernelTask(fsTaskCode);
 //	Sleep(10);
+//	NewKernelTask(monitorTaskCode);
 }

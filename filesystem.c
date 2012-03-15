@@ -574,13 +574,15 @@ int DeleteFile(char name[11], unsigned short pid)
 //=============================
 void fsTaskCode(void)
 {
-   struct Message *FSMsg;
-   struct MessagePort *tempPort;
+ 	KWriteString("Starting Filesystem Task", 3, 0);
+	
+  	struct Message *FSMsg;
+   	struct MessagePort *tempPort;
 
-   FSMsg = (struct Message *) ALLOCMSG;
+   	FSMsg = (struct Message *) ALLOCMSG;
 
-  int result;
-   struct FCB *fcb;
+  	int result;
+   	struct FCB *fcb;
 
    ((struct MessagePort *) FSPort)->waitingProc = (struct Task *) -1L;
    ((struct MessagePort *) FSPort)->msgQueue = 0;

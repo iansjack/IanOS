@@ -13,6 +13,9 @@ int main(void)
 //	printf("%cD", ESC);
 	printf("%c[0;0H", ESC);
 	printf("Moved%c[0K", ESC);
-	printf("%c[1;1HMoved again\n", ESC);
+	printf("%c[1;1HMoved again", ESC);
+	printf("%c[3D", ESC);
+	printf("Left");
+	printf("%c[10;0H", ESC);
 	sys_Exit();
 }

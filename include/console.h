@@ -3,15 +3,13 @@
 
 #define WRITECHAR	1
 #define WRITESTR	2
-#define SOL		   3
-#define SETCURSOR	4
-#define CLREOL    5
-#define NORMAL    6
-#define REVERSE   7
+#define SOL		   	3
+#define NORMAL    	4
+#define REVERSE   	5
 
 #define BACKSPACE	8
-#define LF        10
-#define CR		   13
+#define LF        	10
+#define CR		   	13
 #define ESC			27
 
 // Console Modes

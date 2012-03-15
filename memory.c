@@ -94,9 +94,9 @@ void *AllocMem(long sizeRequested, struct MemStruct *list)
          while (list->size < sizeRequested)
          {
             if (kernel)
-               CreatePTE(AllocPage(1), ++temp << 12);
+               AllocAndCreatePTE(++temp << 12, 1);
             else
-               CreatePTE(AllocPage(currentTask->pid), ++temp << 12);
+               AllocAndCreatePTE(++temp << 12, currentTask->pid);
             list->size += PageSize;
          }
       }

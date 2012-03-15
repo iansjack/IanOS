@@ -29,7 +29,6 @@ struct PML4 * CreatePageDir()
    pd->entries[0].Lo = (long)pt1 | P | RW | US;
    pd->entries[1].Lo = (long)pt2 | P | RW | US;
    CreatePT164(pt1);
-   CreatePT264(pt2, pml4);
    CreatePhysicalToVirtual(pml4, nPages);
    kernelPT = (long long)((long)pt1);
    return pml4;
@@ -59,33 +58,12 @@ void CreatePT164(struct PT * pt)
          pt->entries[count].Lo = (count << 12) | P | RW | US; // Are these permissions right for all entries?
       }
 }
-//==========================================
-// Create the Page Table for the Page Tables
-//==========================================
-void CreatePT264(struct PT * pt, struct PML4 * pml4)
-{
-   pt->entries[0].Hi = 0;
-   pt->entries[0].Lo = (long)pml4 | P | RW | US;
-   pt->entries[1].Hi = 0;
-   struct PDP * pdp = (struct PDP *)(pml4->entries[0].Lo & 0xFFFFF000);
-   pt->entries[1].Lo = (long)pdp | P | RW | US;
-   struct PD * pd = (struct PD *)(pdp->entries[0].Lo & 0xFFFFF000);
-   pt->entries[2].Hi = 0;
-   pt->entries[2].Lo = (long)pd | P | RW | US;
-   struct PT * pt1 = (struct PT *)(pd->entries[0].Lo & 0xFFFFF000);
-   pt->entries[3].Hi = 0;
-   pt->entries[3].Lo = (long)pt1 | P | RW | US;
-   pt1 = (struct PT *)(pd->entries[1].Lo & 0xFFFFF000);
-   pt->entries[4].Hi = 0;
-   pt->entries[4].Lo = (long)pt1 | P | RW | US;
-}
 
 //==========================================================
 // Create Page Table entries mapping all physical addresses
-// to PAddr + 0x4000000000
+// to PAddr + 0x8000000000
 //==========================================================
-void
-CreatePhysicalToVirtual(struct PML4 * pml4, int noOfPages)
+void CreatePhysicalToVirtual(struct PML4 * pml4, int noOfPages)
 {
    int PTsNeeded = (noOfPages / 512);
    int PDsNeeded = (PTsNeeded  / 512) + 1;

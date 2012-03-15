@@ -1,10 +1,12 @@
 #include "memory.h"
 #include "kernel.h"
 #include "console.h"
+#include "kstructs.h"
+#include "tasklist.h"
 
-#define MAIN         1
-#define PROCESS      2
-#define PROCDETAILS  3
+#define MAIN         	1
+#define PROCESS      	2
+#define PROCDETAILS  	3
 #define MEMORY			4
 
 //====================================================
@@ -30,17 +32,11 @@ long MonitorConsole = 3;
 
 void mscrollscreen()
 {
-   short int row;
-   short int column;
-
-   for (row = 1; row < 25; row++)
-      for (column = 0; column < 80; column++)
-         mVideoBuffer[160 * (row - 1) + 2 * column] = mVideoBuffer[160 * row + 2 * column];
-	for (column = 0; column < 80; column++)
-		mVideoBuffer[160 * 24 + 2 * column] = ' ';
+	mPrintChar(ESC);
+   	mPrintString("%c[2J");
 }
 
-void mprintString(char *s)
+void mPrintString(char *s)
 {
    char *S   = (char *)AllocKMem(256);
    char *str = S;
@@ -63,42 +59,39 @@ void mprintString(char *s)
 
 void mclrscr()
 {
-   struct Message *msg = (struct Message *)ALLOCMSG;
-
-	msg->nextMessage = 0;
-   msg->byte        = CLRSCR;
-   msg->quad        = 0;
-   msg->quad2       = MonitorConsole;
-   SendMessage((struct MessagePort *)ConsolePort, msg);
-   DeallocMem(msg);
+	mPrintChar(ESC);
+   	mPrintString("%cD");
 }
 
 void mclreol()
 {
-   struct Message *msg = (struct Message *)ALLOCMSG;
-
-   msg->nextMessage = 0;
-   msg->byte        = CLREOL;
-   msg->quad        = 0;
-   msg->quad2       = MonitorConsole;
-   SendMessage((struct MessagePort *)ConsolePort, msg);
-   DeallocMem(msg);
+	mPrintChar(ESC);
+   	mPrintString("%c[0K");
 }
 
 void msetcursor(long row, long column)
 {
-   struct Message *msg = (struct Message *)ALLOCMSG;
-
-   msg->nextMessage = 0;
-   msg->byte        = SETCURSOR;
-   msg->quad        = row;
-   msg->quad2       = MonitorConsole;
-   msg->quad3       = column;
-   SendMessage((struct MessagePort *)ConsolePort, msg);
-   DeallocMem(msg);
+	mPrintChar(ESC);
+	mPrintChar('[');
+	if (row > 10)
+	{
+		mPrintChar(row / 10 + '0');
+		mPrintChar(row % 10 + '0');
+	}
+	else
+		mPrintChar(row + '0');
+	mPrintChar(';');
+	if (column > 10)
+	{
+		mPrintChar(column / 10 + '0');
+		mPrintChar(column % 10 + '0');
+	}
+	else
+		mPrintChar(column + '0');
+   	mPrintChar('H');
 }
 
-void mprintchar(char c)
+void mPrintChar(char c)
 {
    struct Message *msg = (struct Message *)ALLOCMSG;
 
@@ -122,31 +115,19 @@ void mprint64(unsigned long n)
       nBuff[15 - i] = c;
       n /= 16;
    }
-   for (i = 0; i < 16; i++) mprintchar(nBuff[i]);
+   for (i = 0; i < 16; i++) mPrintChar(nBuff[i]);
 }
 
 void mSetNormal()
 {
-   struct Message *msg = (struct Message *)ALLOCMSG;
-
-	msg->nextMessage = 0;
-   msg->byte        = NORMAL;
-   msg->quad        = 0;
-   msg->quad2       = MonitorConsole;
-   SendMessage((struct MessagePort *)ConsolePort, msg);
-   DeallocMem(msg);
+	mPrintChar(ESC);
+   mPrintString("%c[?5l");
 }
 
 void mSetReverse()
 {
-	struct Message *msg = (struct Message *)ALLOCMSG;
-
-   msg->nextMessage = 0;
-   msg->byte        = REVERSE;
-   msg->quad        = 0;
-   msg->quad2       = MonitorConsole;
-   SendMessage((struct MessagePort *)ConsolePort, msg);
-   DeallocMem(msg);
+	mPrintChar(ESC);
+   mPrintString("%c[?5h");
 }
 
 unsigned char mgetkey()
@@ -166,20 +147,23 @@ unsigned char mgetkey()
 void MainDisplay()
 {
    struct Task *t;
+	mPrintChar(ESC);
+   	mPrintString("#3");
+
 
    if (printTemplate)
    {
       mclrscr();
-      mprintString("Monitor\n");
-      mprintString("=======\n");
-      mprintString("\nTicks:");
-      mprintString("\ncurrentTask:");
-      mprintString("\nrunnableTasks:");
-      mprintString("\nblockedTasks:");
-      mprintString("\n\nlowPriTask:");
-      mprintString("\nTotalPages");
-      mprintString("\nFree Pages");
-      mprintString("\nAllocations:");
+      mPrintString("Monitor\n");
+      mPrintString("=======\n");
+      mPrintString("\nTicks:");
+      mPrintString("\ncurrentTask:");
+      mPrintString("\nrunnableTasks:");
+      mPrintString("\nblockedTasks:");
+      mPrintString("\n\nlowPriTask:");
+      mPrintString("\nTotalPages");
+      mPrintString("\nFree Pages");
+      mPrintString("\nAllocations:");
    }
 
    msetcursor(3, 18);
@@ -192,7 +176,7 @@ void MainDisplay()
    {
       mprint64((long)t);
       t = t->nexttask;
-      mprintchar (' ');
+      mPrintChar (' ');
    }
    mclreol();
    msetcursor(6, 18);
@@ -201,7 +185,7 @@ void MainDisplay()
    {
       mprint64((long)t);
       t = t->nexttask;
-      mprintchar (' ');
+      mPrintChar (' ');
 	}
    mclreol();
    msetcursor(8, 18);
@@ -211,7 +195,7 @@ void MainDisplay()
    msetcursor(10, 18);
    mprint64(nPagesFree);
    msetcursor(11, 18);
-   mprint64(NoOfAllocations);
+//   mprint64(NoOfAllocations);
 }
 
 void ProcessDisplay(int n)
@@ -223,15 +207,15 @@ void ProcessDisplay(int n)
    if (printTemplate)
    {
       mclrscr();
-      mprintString("Processes\n");
-      mprintString("=========\n");
+      mPrintString("Processes\n");
+      mPrintString("=========\n");
    }
    msetcursor(3, 0);
    while (tl->next)
    {
       t = tl->task;
       mprint64(t->pid);
-      mprintString("    ");
+      mPrintString("    ");
       if (count++ == n)
       {
          mSetReverse();
@@ -241,11 +225,11 @@ void ProcessDisplay(int n)
       }
       else mprint64((long)t);
       tl = tl->next;
-      mprintchar ('\n');
+      mPrintChar ('\n');
    }
    t = tl->task;
    mprint64(t->pid);
-   mprintString("    ");
+   mPrintString("    ");
    if (count++ == n)
    {
       mSetReverse();
@@ -254,7 +238,7 @@ void ProcessDisplay(int n)
       dispTask = t;
    }
    else mprint64((long)t);
-   mprintchar('\n');
+   mPrintChar('\n');
    mclreol();
 }
 
@@ -263,43 +247,43 @@ void ProcessDetails()
 	if (printTemplate)
    {
 		mclrscr();
-	   mprintString("\nProcess:");
-      mprintString("\nPID:");
-      mprintString("\nNext Task:");
-		mprintString("\nFirstFreeMem:");
-		mprintString("\nCurrentDir:");
+	   mPrintString("\nProcess:");
+      mPrintString("\nPID:");
+      mPrintString("\nNext Task:");
+		mPrintString("\nFirstFreeMem:");
+		mPrintString("\nCurrentDir:");
       msetcursor(1, 40);
-      mprintString("RAX:");
+      mPrintString("RAX:");
       msetcursor(2, 40);
-      mprintString("RBX:");
+      mPrintString("RBX:");
       msetcursor(3, 40);
-      mprintString("RCX:");
+      mPrintString("RCX:");
       msetcursor(4, 40);
-      mprintString("RDX:");
+      mPrintString("RDX:");
       msetcursor(5, 40);
-      mprintString("RSI:");
+      mPrintString("RSI:");
       msetcursor(6, 40);
-      mprintString("RDI:");
+      mPrintString("RDI:");
       msetcursor(7, 40);
-      mprintString("RBP:");
+      mPrintString("RBP:");
       msetcursor(8, 40);
-      mprintString("RSP:");
+      mPrintString("RSP:");
       msetcursor(9, 40);
-      mprintString("R8 :");
+      mPrintString("R8 :");
       msetcursor(10, 40);
-      mprintString("R9 :");
+      mPrintString("R9 :");
       msetcursor(11, 40);
-      mprintString("R10:");
+      mPrintString("R10:");
       msetcursor(12, 40);
-      mprintString("R11:");
+      mPrintString("R11:");
       msetcursor(13, 40);
-      mprintString("R12:");
+      mPrintString("R12:");
       msetcursor(14, 40);
-      mprintString("R13:");
+      mPrintString("R13:");
       msetcursor(15, 40);
-      mprintString("R14:");
+      mPrintString("R14:");
       msetcursor(16, 40);
-      mprintString("R15:");
+      mPrintString("R15:");
 	}
    msetcursor(1, 14);
    mprint64((long)dispTask);
@@ -310,7 +294,7 @@ void ProcessDetails()
 	msetcursor(4, 14);
 	mprint64((long)dispTask->firstfreemem);
 	msetcursor(5, 14);
-	mprint64(dispTask->currentDir);
+	mPrintString(dispTask->currentDirName);
    msetcursor(1, 48);
    mprint64(dispTask->rax);
    msetcursor(2, 48);
@@ -379,7 +363,7 @@ void printCharData(long data)
 		  :"%rax","%rdi"
 	     );
 	if (value < ' ') value = '.';
-	mprintchar(value);
+	mPrintChar(value);
 }
 
 void ProcessMemory()
@@ -390,24 +374,24 @@ void ProcessMemory()
 	if (printTemplate)
    {
 		mclrscr();
-      mprintString("Process Memory\n");
-		mprintString("==============\n");
+      mPrintString("Process Memory\n");
+		mPrintString("==============\n");
  	}
 
 	for (i = 0; i < 8; i++)
 	{
 		msetcursor(3 + i, 1);
 		mprint64((unsigned long)data);
-		mprintchar(':');
-		mprintchar(' ');
+		mPrintChar(':');
+		mPrintChar(' ');
 		for (j = 0; j < 2; j++)
 		{
 			printLongData((long)(data + j));
-			mprintchar(' ');
+			mPrintChar(' ');
 		}
 		for (j = 0; j < 2; j++)
 		{
-			mprintchar(' ');
+			mPrintChar(' ');
 			for (k = 0; k < 8; k++)
 				printCharData((long)((unsigned char *)data + k));
 			data++;

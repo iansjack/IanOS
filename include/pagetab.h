@@ -77,11 +77,11 @@ struct PT
    struct PTE entries[64];
 };
 
-void *
-AllocPage(unsigned short int pid);
-long
-CreatePTE(void *pAddress, long lAddress);
-void *
-VCreatePageDir(unsigned short pid, unsigned short parentPid);
+void *AllocPage(unsigned short int pid);
+long CreatePTE(void *pAddress, long lAddress, unsigned short pid);
+long AllocAndCreatePTE(long lAddress, unsigned short pid);
+long CreatePTEWithPT(struct PML4 *pml4, void *pAddress, long lAddress, unsigned short pid);
+void *VCreatePageDir(unsigned short pid, unsigned short parentPid);
+//void *GetPT(struct PML4 *pml4, long lAddress, unsigned short pid);
 
 #endif

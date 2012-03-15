@@ -69,7 +69,7 @@ start64:
 	mov $KernelStack, %rsi
 	call CreatePTE
 	mov $KernelStack + 0x1000, %eax
-	mov %eax, TSS64 + 4			# Kernel stack pointer in TSS
+	mov %eax, TSS64 + 4				# Kernel stack pointer in TSS
 	mov $0xFF, %al
 	call AllocPage					# Page for user stack
 	mov %rax, %rdi
@@ -82,12 +82,12 @@ start64:
 	mov $UserCode, %rsi
 	call CreatePTE
 	mov $0xFF, %al
-	call AllocPage		  		# Page for task data
+	call AllocPage		  			# Page for task data
 	mov %rax, %rdi
 	mov $UserData, %rsi
 	call CreatePTE
 
-	mov $tas1, %rsi				# Move the task code
+	mov $tas1, %rsi					# Move the task code
 	mov $UserCode, %rdi
 	mov $0x1000, %rcx				# How do we find the length of tas1? It's so small
 	cld								# that we just assume it's under 0x1000 bytes
@@ -95,10 +95,10 @@ start64:
 
 	call StartTasks
 
-	mov $UserCode, %rcx		  	# Task 1
+	mov $UserCode, %rcx		  		# Task 1
 	pushfq
 	pop %r11
-	or $0x200, %r11		  		# This will enable interrupts when we sysret
+	or $0x200, %r11		  			# This will enable interrupts when we sysret
 
 	sysretq				  			# Start Task1 and multitasking
 
@@ -111,7 +111,7 @@ cd:	.byte '/', 0
 gdt_48: .word	0x800				# Allow up to 512 entries in GDT
 	.long	GDT
 
-idt_64: .word 0x800				# Allow up to 512 entries in IDT
+idt_64: .word 0x800					# Allow up to 512 entries in IDT
 	.quad IDT
 
 # A minimal stack whilst the system is being initialized

@@ -149,7 +149,28 @@ void ProcessChar(unsigned char c)
 			else if (c == ';')
 			{
 				Mode = ESCBRNUMSEMI_MODE;
+				n2 = 0;
 				break;
+			}
+			else if (c == 'A')
+			{
+				currCons->row -= n1;
+				if (currCons->row < 0) currCons->row = 0;
+			}
+			else if (c == 'B')
+			{	
+				currCons->row += n1;
+				if (currCons->row >24) currCons->row = 24;
+			}
+			else if (c == 'C')
+			{
+				currCons->column += n1;
+				if (currCons->column > 79) currCons->column = 79;
+			}
+			else if (c == 'D')
+			{
+				currCons->column -= n1;
+				if (currCons->column < 0) currCons->column = 0;
 			}
 			else if (n1 == 2 && c == 'J')
 				ClrScr(console);
