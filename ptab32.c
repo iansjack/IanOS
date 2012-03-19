@@ -27,7 +27,7 @@ struct PML4 * CreatePageDir()
    pml4->entries[0].Lo = (long)pdp | P | RW | US;
    pdp->entries[0].Lo = (long)pd | P | RW | US;
 	pd->entries[0].Lo = (long)pt1 | P | RW;
-   pd->entries[1].Lo = (long)pt2 | P | RW | US;
+   pd->entries[1].Lo = (long)pt2 | P | RW;
    CreatePT164(pt1);
    CreatePhysicalToVirtual(pml4, nPages);
    kernelPT = (long long)((long)pt1);
@@ -45,17 +45,17 @@ void CreatePT164(struct PT * pt)
    int count;
 
    pt->entries[0].Hi = 0;
-   pt->entries[0].Lo = P | RW | US;
+   pt->entries[0].Lo = P | RW;
    for (count = 1; count < 0x10; count++)
    {
       pt->entries[count].Hi = 0;
-      pt->entries[count].Lo = (count << 12) | P | RW | US;
+      pt->entries[count].Lo = (count << 12) | P | RW;
    }
    for (count = 0x10; count < 0x200; count++)
       if (PMap[count] == 1)
       {
          pt->entries[count].Hi = 0;
-         pt->entries[count].Lo = (count << 12) | P | RW | US;
+         pt->entries[count].Lo = (count << 12) | P | RW;
       }
 }
 
@@ -75,20 +75,20 @@ void CreatePhysicalToVirtual(struct PML4 * pml4, int noOfPages)
    struct PT * pt;
 
    virtualPDP = (long long)((long) pdp);
-   pml4->entries[1].Lo = (long)pdp | P | RW | US;
+   pml4->entries[1].Lo = (long)pdp | P | RW;
 
    for (count3 = 0; count3 < PDsNeeded; count3++)
    {
       pd = (struct PD *) AllocPage32(1);
-      pdp->entries[count3].Lo = (long)pd | P | RW | US;
+      pdp->entries[count3].Lo = (long)pd | P | RW;
 
       for (count2 = 0; count2 < PTsNeeded; count2++)
       {
          pt = (struct PT *) AllocPage32(1);
-         pd->entries[count2].Lo = (long)pt | P | RW | US;
+         pd->entries[count2].Lo = (long)pt | P | RW;
 
          for (count1 = 0; count1 < 0x200; count1++)
-            pt->entries[count1].Lo = (count3 << 30) + (count2 << 21) + (count1 << 12) | P | RW ;
+            pt->entries[count1].Lo = (count3 << 30) + (count2 << 21) + (count1 << 12) | P | RW;
       }
    }
 }
