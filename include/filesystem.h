@@ -11,18 +11,16 @@
 #define TESTFILE  	 8
 #define GETFILEINFO  9
 
-struct DirectoryBuffer
-{
-   long Directory;   // The cluster number of the directory
-   void * Buffer;    // A buffer containing the directory
+struct DirectoryBuffer {
+	long Directory;		// The cluster number of the directory
+	void *Buffer;		// A buffer containing the directory
 };
 
-struct FileInfo
-{
-   long Length;
+struct FileInfo {
+	long Length;
 };
 
-unsigned char   *DiskBuffer;
-unsigned short  *FAT;
+unsigned char *DiskBuffer;
+unsigned short *FAT;
 
 #endif

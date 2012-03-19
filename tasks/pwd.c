@@ -6,5 +6,5 @@ int main(void)
 	printf("%s\n", cwd);
 	sys_DeallocMem(cwd);
 	sys_Exit();
-   	return(0);
+	return (0);
 }

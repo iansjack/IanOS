@@ -6,9 +6,9 @@
 void SendMessage(struct MessagePort *MP, struct Message *Msg);
 void ReceiveMessage(struct MessagePort *MP, struct Message *Msg);
 void SendReceiveMessage(struct MessagePort *MP, struct Message *Msg);
-struct MessagePort * AllocMessagePort();
-void ReadSector(unsigned char * Buffer, unsigned int SectorNo);
-void WriteSector(unsigned char * Buffer, unsigned int SectorNo);
+struct MessagePort *AllocMessagePort();
+void ReadSector(unsigned char *Buffer, unsigned int SectorNo);
+void WriteSector(unsigned char *Buffer, unsigned int SectorNo);
 void WaitForInt(long interrupt);
 long ReadFromFile(struct FCB *fHandle, char *buffer, long noBytes);
 void copyMem(unsigned char *source, unsigned char *dest, long size);
@@ -16,11 +16,11 @@ void copyString(unsigned char *source, unsigned char *destination);
 void BlockTask(struct Task *task);
 void UnBlockTask(struct Task *task);
 void moveTaskToEndOfQueue();
-void SetSem(long * semaphore);
-void ClearSem(long * semaphore);
+void SetSem(long *semaphore);
+void ClearSem(long *semaphore);
 void KWriteString(char *str, int row, int col);
-struct Task * PidToTask(long pid);
-unsigned char *strchr(unsigned char*, char);
+struct Task *PidToTask(long pid);
+unsigned char *strchr(unsigned char *, char);
 unsigned char *NameToFullPath(unsigned char *name);
 
 #define ALLOCMSG AllocKMem(sizeof(struct Message))

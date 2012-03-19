@@ -9,12 +9,11 @@
 int intToAsc(int i, char *buffer, int len)
 {
 	int count;
-	
+
 	for (count = 0; count < len; count++)
 		buffer[count] = ' ';
 	count = len - 1;
-	do
-	{
+	do {
 		buffer[count] = '0' + i % 10;
 		i = i / 10;
 		count--;
@@ -30,8 +29,7 @@ int intToHAsc(int i, char *buffer, int len)
 	for (count = 0; count < len; count++)
 		buffer[count] = '0';
 	count = len - 1;
-	do
-	{
+	do {
 		int mod;
 		if (i % 16 < 10)
 			buffer[count] = '0' + i % 16;

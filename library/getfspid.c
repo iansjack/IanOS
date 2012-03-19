@@ -5,14 +5,13 @@
 #include "syscalls.h"
 #include "fat.h"
 
-long
-GetFSPID()
+long GetFSPID()
 {
-   struct Message *msg =
-         (struct Message *) sys_AllocMem(sizeof(struct Message));
+	struct Message *msg =
+	    (struct Message *)sys_AllocMem(sizeof(struct Message));
 
-   msg->nextMessage = 0;
-   msg->byte = GETPID;
-   sys_SendReceive(FSPort, msg);
-   return (msg->quad);
+	msg->nextMessage = 0;
+	msg->byte = GETPID;
+	sys_SendReceive(FSPort, msg);
+	return (msg->quad);
 }
