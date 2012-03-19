@@ -26,7 +26,7 @@ struct PML4 * CreatePageDir()
    pd->entries[1].Hi = 0;
    pml4->entries[0].Lo = (long)pdp | P | RW | US;
    pdp->entries[0].Lo = (long)pd | P | RW | US;
-   pd->entries[0].Lo = (long)pt1 | P | RW | US;
+	pd->entries[0].Lo = (long)pt1 | P | RW;
    pd->entries[1].Lo = (long)pt2 | P | RW | US;
    CreatePT164(pt1);
    CreatePhysicalToVirtual(pml4, nPages);
@@ -45,17 +45,17 @@ void CreatePT164(struct PT * pt)
    int count;
 
    pt->entries[0].Hi = 0;
-   pt->entries[0].Lo = P | RW;
+   pt->entries[0].Lo = P | RW | US;
    for (count = 1; count < 0x10; count++)
    {
       pt->entries[count].Hi = 0;
-      pt->entries[count].Lo = (count << 12) | P;
+      pt->entries[count].Lo = (count << 12) | P | RW | US;
    }
    for (count = 0x10; count < 0x200; count++)
       if (PMap[count] == 1)
       {
          pt->entries[count].Hi = 0;
-         pt->entries[count].Lo = (count << 12) | P | RW | US; // Are these permissions right for all entries?
+         pt->entries[count].Lo = (count << 12) | P | RW | US;
       }
 }
 
@@ -88,9 +88,7 @@ void CreatePhysicalToVirtual(struct PML4 * pml4, int noOfPages)
          pd->entries[count2].Lo = (long)pt | P | RW | US;
 
          for (count1 = 0; count1 < 0x200; count1++)
-         {
-            pt->entries[count1].Lo = (count3 << 30) + (count2 << 21) + (count1 << 12) | P | RW | US; // Are these permissions right for all entries?
-         }
+            pt->entries[count1].Lo = (count3 << 30) + (count2 << 21) + (count1 << 12) | P | RW ;
       }
    }
 }

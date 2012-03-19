@@ -1,3 +1,4 @@
+.include "include/memory.inc"
 OsCodeSeg 	= 0x8
 OsDataSeg 	= 0x10
 code64	  	= 0x18
@@ -22,6 +23,32 @@ here:
 	mov %eax, %ss
 	mov $tempstack, %esp
 	call InitMemManagement
+# Zero unused pages
+	mov nPages, %edx
+	mov $0, %ebx
+	mov $PageMap, %eax
+again:
+	movw (%eax), %bx
+	cmpw $0, %bx
+	jne nextpage
+	mov %eax, %edi
+	sub $PageMap,%eax
+	sal $11,%eax 
+	mov $1000, %ecx
+again2:
+	movb $0, (%eax)
+	add $1, %eax
+	sub $1, %ecx
+	cmp $0, %ecx
+	jne again2
+	mov %edi, %eax
+nextpage:
+	sub $1, %edx
+	cmp $0, %edx
+	je  finished
+	add $2, %eax
+	jmp again
+finished:
 	call HwSetup
 
 	# create 64-bit page tables
@@ -44,5 +71,3 @@ here:
 	mov  %eax, %cr0
 
 	jmp  $code64, $start64
-	#mov $code64, %eax
-	#mov %eax, %cs

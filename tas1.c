@@ -13,7 +13,7 @@ void tas1(void)
 {
 	// Give tasks time to set themselves up
 	Sys_Nanosleep(10);
-	
+
 	long pid = Sys_Fork();
 	if (!pid)
 		Sys_Execve("TASK1", "TASK1 0");
@@ -26,5 +26,5 @@ void tas1(void)
 	pid = Sys_Fork();
 	if (!pid)
 		Sys_Execve("TASK1", "TASK1 3");
-*/   	sys_Exit();
+*/ sys_Exit();
 }

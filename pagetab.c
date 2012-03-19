@@ -126,7 +126,7 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 	VIRT(PD,GetPD(pml4, UserStack, pid))->entries[GetPDIndex(UserStack)].value = (long) AllocPage(pid) | P | RW | US;
 	// A Page for kernel memory entries
 	VIRT(PD,GetPD(pml4, KernelStack, pid))->entries[GetPDIndex(KernelStack)].value = (long) AllocPage(pid) | P | RW | US;
-	VIRT(PML4,pml4)->entries[GetPML4Index(VAddr)].value = virtualPDP | P | RW | US;	// Physical to virtual addresses
+	VIRT(PML4,pml4)->entries[GetPML4Index(VAddr)].value = virtualPDP | P | RW;	// Physical to virtual addresses
 	struct PD *pd = (struct PD *)GetPD(pml4, 0, pid);
 	VIRT(PD,pd)->entries[GetPDIndex(0)].value = kernelPT | P | RW | US;			// Kernel entries
 
@@ -142,8 +142,6 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 	}
 	else // Create PTEs and copy pages based on parent PT
 	{	
-		Debug();
-		
 		// Get physical address of current PT
 		struct PML4 *current_pml4 = (struct PML4 *)currentTask->cr3;
 		
@@ -267,8 +265,8 @@ long CreatePTE(void *pAddress, long lAddress, unsigned short pid)
 void * AllocPage(unsigned short int PID)
 {
 	long i = 0;
-	char *c;
-	int count;
+//	char *c;
+//	int count;
 
 	while (PMap[i] != 0) i++;
 	PMap[i] = PID;
@@ -276,10 +274,25 @@ void * AllocPage(unsigned short int PID)
 	nPagesFree--;
 
 	// Zero-fill the newly allocated page.
-	c = (char *)(i + VAddr);
-	for (count = 0; count < PageSize; count++)
-		c[count] = 0;		
+//	c = (char *)(i + VAddr);
+//	for (count = 0; count < PageSize; count++)
+//		c[count] = 0;		
 	
 	return ((void *) i);
 }
 
+//=========================================
+// Allocates one page of memory.
+// Returns a pointer to the allocated page.
+//=========================================
+void * AllocPageNoClear(unsigned short int PID)
+{
+	long i = 0;
+
+	while (PMap[i] != 0) i++;
+	PMap[i] = PID;
+	i = i << 12;
+	nPagesFree--;
+	
+	return ((void *) i);
+}
