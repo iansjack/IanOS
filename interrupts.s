@@ -28,7 +28,7 @@ HDINT 		= 3
 	.global i5
 	.global i6
 	.global i7
-	.global i8
+	.global df
 	.global i9
 	.global ia
 	.global ib
@@ -170,8 +170,23 @@ i6:	movb $'6, 0xB8000
 	jmp intr
 i7:	movb $'7, 0xB8000
 	jmp intr
-i8:	movb $'8, 0xB8000
-	jmp intr
+df:	KWRITE_DOUBLE %rax, $9, $60
+	KWRITE_DOUBLE %rbx, $10, $60
+	KWRITE_DOUBLE %rcx, $11, $60
+	KWRITE_DOUBLE %rdx, $12,$60
+	KWRITE_STRING $DFmessage, $0, $0
+	KWRITE_DOUBLE 0x20(%esp), $0, $60
+	KWRITE_DOUBLE 0x28(%esp), $1, $60
+	KWRITE_DOUBLE 0x30(%esp), $2, $60
+	KWRITE_DOUBLE 0x38(%esp), $3, $60
+	KWRITE_DOUBLE 0x40(%esp), $4, $60
+	KWRITE_DOUBLE 0x48(%esp), $5, $60
+	KWRITE_DOUBLE 0x50(%esp), $6, $60
+	KWRITE_DOUBLE 0x58(%esp), $7, $60
+	pop %rax
+	cli
+	hlt
+	iretq
 i9:	movb $'9, 0xB8000
 	jmp intr
 ia:	movb $'a, 0xB8000

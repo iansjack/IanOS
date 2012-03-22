@@ -1,7 +1,6 @@
 #include "memory.h"
 
 void CreatePT164(struct PT *);
-void CreatePT264(struct PT *, struct PML4 *);
 void CreatePhysicalToVirtual(struct PML4 *, int);
 
 extern long long virtualPDP;

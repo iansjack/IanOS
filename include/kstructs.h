@@ -79,7 +79,8 @@ struct clusterListEntry {
 };
 
 struct FCB {
-	struct DirEntry *directory;
+	struct DirEntry *dirEntry;		// A pointer to the directory entry for this file
+	struct vDirNode *dir;			// A pointer to the vDirNode of the directory this file is in
 	unsigned int length;
 	unsigned long startSector;
 	unsigned long nextSector;

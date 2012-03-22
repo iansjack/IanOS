@@ -38,8 +38,8 @@ start64:
 	lidt idt_64
 
 	mov  	%cr0, %rax
-	bts	$16, %rax					# enable write protection
-#	bts  	$31, %eax					# enable paging
+	bts	$16, %rax					# enable paging
+#	bts  	$31, %eax					# enable write protection
 	mov  %rax, %cr0
 
 # Final preparations before starting tasking
@@ -69,7 +69,7 @@ start64:
 	mov $KernelStack, %rsi
 	call CreatePTE
 	mov $KernelStack + 0x1000, %eax
-	mov %eax, TSS64 + 4			# Kernel stack pointer in TSS
+	mov %eax, TSS64 + 36			# Kernel stack pointer in TSS
 	mov $0xFF, %al
 	call AllocPage					# Page for user stack
 	mov %rax, %rdi

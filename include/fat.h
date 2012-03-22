@@ -51,6 +51,14 @@ struct vDirNode {
 	struct vDirNode *firstChild;
 };
 
+struct DirSects {
+	int cluster;
+	int sector;
+	int sectorNo;
+	int sectorInCluster;
+	struct vDirNode *directory;
+};
+
 unsigned long FirstFAT;
 unsigned long RootDir;
 unsigned long DataStart;

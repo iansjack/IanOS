@@ -135,10 +135,22 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 		                // We need these two entries so that NewKernelTask can
 						// access the data and stack pages of the new process.
 	{
+		long c;
 		struct PT *pt = (struct PT *)GetPT(pml4, UserData, pid);
 		VIRT(PT,pt)->entries[GetPTIndex(UserData)].value = AllocAndCreatePTE(TempUserData, pid);
+		c = TempUserData;
+		asm ("invlpg %0;"
+				:
+				:"m"(*(char *)TempUserData)
+			 	 );
+
 		pt = (struct PT *)GetPT(pml4, UserStack, pid);
 		VIRT(PT,pt)->entries[GetPTIndex(UserStack)].value = AllocAndCreatePTE(TempUStack, pid);
+		c = TempUStack;
+		asm ("invlpg %0;"
+				:
+				:"m"(*(char *)TempUStack)
+			 	 );
 	}
 	else // Create PTEs and copy pages based on parent PT
 	{	
@@ -152,6 +164,7 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 		struct PT *pt = (struct PT *)GetPT(pml4, UserCode, pid);
 		struct PT *currentPT = (struct PT *)GetPT(current_pml4, UserCode, parentPid);
 		int i = GetPTIndex(UserCode);
+		long c = TempUserCode;
 		while (VIRT(PT,currentPT)->entries[i].value)
 		{
 			// Create a page table entry in the new Page Table and also point TempUserCode to it.
@@ -234,16 +247,7 @@ long CreatePTEWithPT(struct PML4 *pml4, void *pAddress, long lAddress, unsigned 
 
 	// We don't want this function to be interrupted.
 	asm ("cli");
-
 	VIRT(PT,pt)->entries[ptIndex].value = ((long) pAddress & 0xFFFFF000) | RW | US | P;
-
-	// These lines update the page table cache.
-	// Without them results may be unpredictable.
-	asm ("push %rbx");
-	asm ("mov %cr3, %rbx");
-	asm ("mov %rbx, %cr3");
-	asm ("pop %rbx");
-
 	asm ("sti");
 
 	return ((long) pAddress | 7);
@@ -254,8 +258,14 @@ long CreatePTEWithPT(struct PML4 *pml4, void *pAddress, long lAddress, unsigned 
 //=====================================================
 long CreatePTE(void *pAddress, long lAddress, unsigned short pid)
 {
+	long retVal = 0;
 	struct PML4 *pml4 = (struct PML4 *)(currentTask->cr3 & 0xFFFFF000);
-	return CreatePTEWithPT(pml4, pAddress, lAddress, pid);
+	retVal = CreatePTEWithPT(pml4, pAddress, lAddress, pid);
+	asm ("invlpg %0;"
+		:
+		:""(lAddress)
+		);
+	return retVal;
 }
 
 //=========================================
@@ -265,19 +275,12 @@ long CreatePTE(void *pAddress, long lAddress, unsigned short pid)
 void * AllocPage(unsigned short int PID)
 {
 	long i = 0;
-//	char *c;
-//	int count;
 
 	while (PMap[i] != 0) i++;
 	PMap[i] = PID;
 	i = i << 12;
 	nPagesFree--;
 
-	// Zero-fill the newly allocated page.
-//	c = (char *)(i + VAddr);
-//	for (count = 0; count < PageSize; count++)
-//		c[count] = 0;		
-	
 	return ((void *) i);
 }
 

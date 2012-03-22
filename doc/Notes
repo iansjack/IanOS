@@ -1,5 +1,11 @@
-ReadFile exits if requested number of bytes is greater than file size. It should
-read as many bytes as it can.
+To run under the debuuger follow this procedure:
+
+1. run ./IanOSd
+2. In another terminal window run gdb
+3. Type "continue" at the gdb prompt
+4. Once the system has booted press <ctrl>-C
+5. type "file IanOS.o" at the gdb prompt
+6. Now set whatever breakpoints you want and type "continue"
 
 Should Delete file check all FCBs to see if anyone has that file open?
 

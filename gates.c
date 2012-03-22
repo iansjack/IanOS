@@ -16,7 +16,7 @@ extern i4;
 extern i5;
 extern i6;
 extern i7;
-extern i8;
+extern df;
 extern i9;
 extern ia;
 extern ib;
@@ -56,13 +56,13 @@ struct TSSDescriptor {
 	unsigned:32;
 };
 
-void CreateTrapGate(short selector, long offset, long intNo)
+void CreateTrapGate(short selector, long offset, long intNo, unsigned char ist)
 {
 	struct Gate *theGate = (struct Gate *)IDT + intNo;
 
 	theGate->offsetlo = (unsigned short)(offset & 0xFFFF);
 	theGate->segselect = selector;
-	theGate->ist = 0;
+	theGate->ist = ist;
 	theGate->type = 0xF;
 	theGate->p = 1;
 	theGate->offsetmid = (unsigned short)((offset >> 16) & 0xFFFF);
@@ -70,13 +70,13 @@ void CreateTrapGate(short selector, long offset, long intNo)
 	theGate->reserved = 0;
 }
 
-void CreateIntGate(short selector, long offset, long intNo)
+void CreateIntGate(short selector, long offset, long intNo, unsigned char ist)
 {
 	struct Gate *theGate = (struct Gate *)IDT + intNo;
 
 	theGate->offsetlo = (unsigned short)(offset & 0xFFFF);
 	theGate->segselect = selector;
-	theGate->ist = 0;
+	theGate->ist = ist;
 	theGate->type = 0xE;
 	theGate->p = 1;
 	theGate->offsetmid = (unsigned short)((offset >> 16) & 0xFFFF);
@@ -89,28 +89,28 @@ void InitIDT(void)
 	int i;
 
 	for (i = 0; i < 48; i++) {
-		CreateTrapGate(code64, (long)&intr, i);
+		CreateTrapGate(code64, (long)&intr, i, 0);
 	}
-	CreateTrapGate(code64, (long)&div0, 0);
-	CreateTrapGate(code64, (long)&i1, 1);
-	CreateTrapGate(code64, (long)&i2, 2);
-	CreateTrapGate(code64, (long)&i3, 3);
-	CreateTrapGate(code64, (long)&i4, 4);
-	CreateTrapGate(code64, (long)&i5, 5);
-	CreateTrapGate(code64, (long)&i6, 6);
-	CreateTrapGate(code64, (long)&i7, 7);
-	CreateTrapGate(code64, (long)&i8, 8);
-	CreateTrapGate(code64, (long)&i9, 9);
-	CreateTrapGate(code64, (long)&ia, 10);
-	CreateTrapGate(code64, (long)&ib, 11);
-	CreateTrapGate(code64, (long)&ic, 12);
-	CreateTrapGate(code64, (long)&gpf, 13);
-	CreateTrapGate(code64, (long)&pf, 14);
-	CreateTrapGate(code64, (long)&SwitchTasks, 20);
-	CreateTrapGate(code64, (long)&SpecificSwitchTasks, 22);
-	CreateTrapGate(code64, (long)&TimerInt, 32);
-	CreateIntGate(code64, (long)&KbInt, 33);
-	CreateIntGate(code64, (long)&HdInt, 46);
+	CreateTrapGate(code64, (long)&div0, 0, 0);
+	CreateTrapGate(code64, (long)&i1, 1, 0);
+	CreateTrapGate(code64, (long)&i2, 2, 0);
+	CreateTrapGate(code64, (long)&i3, 3, 0);
+	CreateTrapGate(code64, (long)&i4, 4, 0);
+	CreateTrapGate(code64, (long)&i5, 5, 0);
+	CreateTrapGate(code64, (long)&i6, 6, 0);
+	CreateTrapGate(code64, (long)&i7, 7, 0);
+	CreateTrapGate(code64, (long)&df, 8, 0);
+	CreateTrapGate(code64, (long)&i9, 9, 0);
+	CreateTrapGate(code64, (long)&ia, 10, 0);
+	CreateTrapGate(code64, (long)&ib, 11, 0);
+	CreateTrapGate(code64, (long)&ic, 12, 0);
+	CreateTrapGate(code64, (long)&gpf, 13, 1);
+	CreateTrapGate(code64, (long)&pf, 14, 1);
+	CreateTrapGate(code64, (long)&SwitchTasks, 20, 0);
+	CreateTrapGate(code64, (long)&SpecificSwitchTasks, 22, 0);
+	CreateTrapGate(code64, (long)&TimerInt, 32, 0);
+	CreateIntGate(code64, (long)&KbInt, 33, 0);
+	CreateIntGate(code64, (long)&HdInt, 46, 0);
 }
 
 void CreateTssDesc(long base, int selector)
