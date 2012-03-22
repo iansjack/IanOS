@@ -5,7 +5,8 @@
 //#define DEBUG
 
 #ifdef DEBUG
-struct MemoryAllocation {
+struct MemoryAllocation
+{
 	void *memory;
 	long size;
 	void *allocated;
@@ -40,16 +41,16 @@ long debugging;
 
 void InitMem64(void)
 {
-	PMap = (unsigned short int *)PageMap;
-	firstFreeKMem = (struct MemStruct *)0x11000;
+	PMap = (unsigned short int *) PageMap;
+	firstFreeKMem = (struct MemStruct *) 0x11000;
 	firstFreeKMem->next = 0;
 	firstFreeKMem->size = 0xFE0;
 	nextKPage = 0x12;
-	currentTask = (struct Task *)TaskStruct;
-	runnableTasks = (struct TaskList *)AllocKMem(sizeof(struct TaskList));
+	currentTask = (struct Task *) TaskStruct;
+	runnableTasks = (struct TaskList *) AllocKMem(sizeof(struct TaskList));
 	runnableTasks->next = 0L;
 	runnableTasks->task = currentTask;
-	allTasks = (struct TaskList *)AllocKMem(sizeof(struct TaskList));
+	allTasks = (struct TaskList *) AllocKMem(sizeof(struct TaskList));
 	allTasks->task = currentTask;
 	allTasks->next = 0;
 	deadTasks = 0;
@@ -58,11 +59,12 @@ void InitMem64(void)
 
 #ifdef DEBUG
 	NoOfAllocations = 0;
-	for (count = 0; count < 32; count++) {
+	for (count = 0; count < 32; count++)
+	{
 		allocations[count].memory =
-		    allocations[count].size =
-		    allocations[count].allocated =
-		    allocations[count].deallocated = 0;
+		allocations[count].size =
+		allocations[count].allocated =
+		allocations[count].deallocated = 0;
 	}
 	count = 0;
 	debugging = 0;
@@ -83,38 +85,44 @@ void *AllocMem(long sizeRequested, struct MemStruct *list)
 		kernel = 1;
 	// We want the memory allocation to be atomic, so set a semaphore before proceeding
 	SetSem(&memorySemaphore);
-	while (list->size < sizeRequested) {
+	while (list->size < sizeRequested)
+	{
 		if (list->next == 0)
-			// Not enough memory available. Allocate another page.
+		// Not enough memory available. Allocate another page.
 		{
-			long temp = (long)list >> 12;
-			while (list->size < sizeRequested) {
+			long temp = (long) list >> 12;
+			while (list->size < sizeRequested)
+			{
 				if (kernel)
-					AllocAndCreatePTE(++temp << 12, 1);
+					AllocAndCreatePTE(++temp << 12, 1, 1);
 				else
-					AllocAndCreatePTE(++temp << 12,
-							  currentTask->pid);
+					AllocAndCreatePTE(++temp << 12, currentTask->pid, 0);
 				list->size += PageSize;
 			}
-		} else {
+		}
+		else
+		{
 			list = list->next;
 		}
 	}
 
 	// We now have found a free memory block with enough (or more space)
 	// Is there enough space for another link?
-	if (list->size <= sizeRequested + sizeof(struct MemStruct)) {
+	if (list->size <= sizeRequested + sizeof(struct MemStruct))
+	{
 		// No. Just allocate the whole block
 		list->size = 0;
-	} else {
+	}
+	else
+	{
 		// Yes, so create the new link
-		void *temp = (void *)list;
+		void *temp = (void *) list;
 		temp += sizeRequested;
 		temp += sizeof(struct MemStruct);
-		((struct MemStruct *)temp)->next = list->next;
-		list->next = (struct MemStruct *)temp;
-		list->next->size =
-		    list->size - sizeRequested - sizeof(struct MemStruct);
+		((struct MemStruct *) temp)->next = list->next;
+		list->next = (struct MemStruct *) temp;
+		list->next->size = list->size - sizeRequested
+				- sizeof(struct MemStruct);
 		list->size = 0;
 		list->pid = currentTask->pid;
 	}
@@ -122,13 +130,14 @@ void *AllocMem(long sizeRequested, struct MemStruct *list)
 #ifdef DEBUG
 	NoOfAllocations++;
 	KWriteHex(NoOfAllocations, 24);
-	if (debugging == 1) {
+	if (debugging == 1)
+	{
 		allocations[count].size = sizeRequested;
 		allocations[count].memory = list + 1;
 		allocations[count].allocated = 1;
 		count++;
 		if (count == 32)
-			debugging = 0;
+		debugging = 0;
 	}
 #endif
 	return (list + 1);
@@ -140,26 +149,29 @@ void *AllocMem(long sizeRequested, struct MemStruct *list)
 //==================================================
 void DeallocMem(void *list)
 {
-	if (list) {
-		struct MemStruct *l = (struct MemStruct *)list;
+	if (list)
+	{
+		struct MemStruct *l = (struct MemStruct *) list;
 
 		// We want the memory deallocation to be atomic, so set a semaphore before proceeding
 		SetSem(&memorySemaphore);
 		l--;
-		if (!l->size) {
-			l->size =
-			    (long)l->next - (long)l - sizeof(struct MemStruct);
+		if (!l->size)
+		{
+			l->size = (long) l->next - (long) l - sizeof(struct MemStruct);
 #ifdef DEBUG
 			NoOfAllocations--;
 			KWriteHex(NoOfAllocations, 24);
-			if (debugging == 1) {
+			if (debugging == 1)
+			{
 				int i;
 				for (i = 0; i < 32; i++)
-					if (allocations[i].memory == list &&
-					    allocations[i].deallocated == 0) {
-						allocations[i].deallocated = 1;
-						break;
-					}
+				if (allocations[i].memory == list &&
+						allocations[i].deallocated == 0)
+				{
+					allocations[i].deallocated = 1;
+					break;
+				}
 			}
 #endif
 		}
@@ -182,32 +194,5 @@ void *AllocKMem(long sizeRequested)
 //===============================================================================
 void *AllocUMem(long sizeRequested)
 {
-	return (AllocMem(sizeRequested, (void *)currentTask->firstfreemem));
+	return (AllocMem(sizeRequested, (void *) currentTask->firstfreemem));
 }
-
-/*
-//============================================================
-// Deallocate kernel memory belonging to a particular process.
-//============================================================
-void
-DeallocKMem(long pid)
-{
-   struct MemStruct *l = firstFreeKMem;
-
-   // We want the memory deallocation to be atomic, so set a semaphore before proceeding
-   SetSem(&memorySemaphore);
-   while (l->next != 0)
-   {
-      if (l->pid == pid)
-      {
-         l->size = (long) l->next - (long) l - sizeof(struct MemStruct);
-#ifdef DEBUG		  
-         NoOfAllocations--;
- 		KWriteHex(NoOfAllocations, 24);
-#endif
-	  }
-      l = l->next;
-   }
-   ClearSem(&memorySemaphore);
-}
-*/

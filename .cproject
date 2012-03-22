@@ -49,7 +49,9 @@
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 		<project id="IanOS.null.1383551375" name="IanOS"/>
 	</storageModule>
-	<storageModule moduleId="refreshScope"/>
+	<storageModule moduleId="refreshScope" versionNumber="1">
+		<resource resourceType="PROJECT" workspacePath="/IanOS"/>
+	</storageModule>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.284882969;cdt.managedbuild.toolchain.gnu.base.284882969.1919157594;cdt.managedbuild.tool.gnu.c.compiler.base.1684977313;cdt.managedbuild.tool.gnu.c.compiler.input.1869188685">

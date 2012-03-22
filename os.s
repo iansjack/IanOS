@@ -37,10 +37,13 @@ start64:
 	ltr %ax
 	lidt idt_64
 
-	mov  	%cr0, %rax
-	bts	$16, %rax					# enable paging
-#	bts  	$31, %eax					# enable write protection
-	mov  %rax, %cr0
+	mov	%cr0, %rax
+	bts	$16, %rax					# Enable paging
+	bts	$31, %eax					# Enable write protection
+	mov %rax, %cr0
+	mov	%cr4, %rax
+	bts $7, %rax					# Enable global pages
+	mov %rax, %cr4
 
 # Final preparations before starting tasking
 	call InitMem64
