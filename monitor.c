@@ -13,13 +13,10 @@
 // This is the monitor task.
 //====================================================
 extern long Ticks;
-extern unsigned char currentBuffer;
 extern struct Task *currentTask;
 extern struct Task *runnableTasks[2];	// [0] = Head, [1] = Tail
 extern struct Task *blockedTasks[2];
 extern struct Task *lowPriTask;
-extern long NoOfAllocations;
-extern long nextKPage;
 extern long nPagesFree;
 extern long nPages;
 extern struct TaskList *allTasks;

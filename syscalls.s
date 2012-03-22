@@ -37,7 +37,7 @@ CallNo:
 	.quad	Send_Receive			# SENDRECEIVE
 	.quad	GetCurrentConsole		# GETCURRENTCONSOLE
 	.quad 	Sys_Getcwd
-#	.quad	Sys_Debug
+	.quad	Sys_MkDir
 
 SysCalls:
 	jmp *(CallNo - 8)(,%r9, 8)	
@@ -329,9 +329,15 @@ Sys_Getcwd:
 	pop %rcx
 	sysretq
 
-#Sys_Debug:
-#	mov %rdi, debugging
-#	sysretq 
+#========================================================
+# Creates a directory
+# RSI = name
+#========================================================
+Sys_MkDir:
+	push %rcx
+	call DoMkDir
+	pop %rcx
+	sysretq
 	
 GoToSleep:
 	push %rdx

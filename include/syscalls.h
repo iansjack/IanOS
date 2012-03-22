@@ -25,6 +25,6 @@ long Sys_Read(FD fileDescriptor, unsigned char *buffer, long noBytes);
 long Sys_Write(FD fileDescriptor, unsigned char *buffer, long noBytes);
 FD Sys_Create(unsigned char *name);
 int Sys_Unlink(unsigned char *name);
-//void Sys_Debugging(long status);
+long Sys_MkDir(unsigned char *name);
 
 #endif

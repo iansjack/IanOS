@@ -2,10 +2,8 @@
 #include "tasklist.h"
 
 extern long canSwitch;
-extern long pass;
 extern struct TaskList *runnableTasks;
 extern struct TaskList *blockedTasks;
-extern struct Task *lowPriTask;
 extern struct TaskList *allTasks;
 
 struct TaskList *AddToHeadOfTaskList(struct TaskList *list, struct Task *task)

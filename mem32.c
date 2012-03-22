@@ -1,10 +1,8 @@
 #include "memory.h"
 
 extern long long memorySemaphore;
-extern long long NoOfAllocations;
 extern long long nPagesFree;
 extern long long nPages;
-extern unsigned char *oMemMax;
 
 //========================================
 // Find out how much memory is present.

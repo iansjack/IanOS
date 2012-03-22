@@ -5,13 +5,13 @@
 #include "filesystem.h"
 
 extern struct Task *currentTask;
+
 struct DirEntry *FindFreeDirEntry(struct DirEntry *);
 struct DirEntry *FindFile(unsigned char *name);
-int FindFileDirectorySector(unsigned char *filename, struct vDirNode *directory, struct DirEntry *buffer, int *entryOffset);
+int FindFileDirectorySector(unsigned char *filename, struct vDirNode *directory,
+		struct DirEntry *buffer, int *entryOffset);
 void CreateVDirectory(void);
 unsigned char *DirNameToName(unsigned char dirname[11]);
-
-unsigned char *RootDirBuffer;
 struct vDirNode *vDirectory;
 
 //===============================
@@ -40,13 +40,13 @@ void InitializeHD(void)
 	unsigned int bootSector = 0;
 	unsigned char *FATbuffer;
 
-	DiskBuffer = (unsigned char *)AllocUMem(512);
+	DiskBuffer = (unsigned char *) AllocUMem(512);
 
 	ReadSector(DiskBuffer, 0L);
-	mbr = (struct MBR *)DiskBuffer;
+	mbr = (struct MBR *) DiskBuffer;
 	bootSector = (mbr->PT[0]).LBA;
-	ReadSector(DiskBuffer, (long)bootSector);
-	bs = (struct BootSector *)DiskBuffer;
+	ReadSector(DiskBuffer, (long) bootSector);
+	bs = (struct BootSector *) DiskBuffer;
 	RootDir = (bs->sectorsPerFat) * 2 + bs->reservedSectors + bootSector;
 	RootDirectoryEntries = bs->rootEntries;
 	DataStart = (RootDirectoryEntries) / 16 + RootDir;
@@ -59,20 +59,51 @@ void InitializeHD(void)
 	// Read FAT from disk to FAT buffer
 	FATbuffer = AllocUMem(FATLength * BytesPerSector);
 	int count;
-	for (count = 0; count < FATLength; count++) {
-		ReadSector(FATbuffer + (count * BytesPerSector),
-			   FirstFAT + count);
+	for (count = 0; count < FATLength; count++)
+	{
+		ReadSector(FATbuffer + (count * BytesPerSector), FirstFAT + count);
 	}
-	FAT = (unsigned short *)FATbuffer;
-
-	// Read root directory from disk to buffer
-	RootDirBuffer = AllocUMem(RootDirectoryEntries * 0x20);
-	for (count = 0; count < (RootDirectoryEntries * 0x20) / BytesPerSector;
-	     count++) {
-		ReadSector(RootDirBuffer + (count * BytesPerSector),
-			   RootDir + count);
-	}
+	FAT = (unsigned short *) FATbuffer;
 	CreateVDirectory();
+}
+
+//=======================================================
+// Create the subtree of vDirNodes for the current node
+//=======================================================
+void GetVDirEntries(struct vDirNode *currentDir)
+{
+	int i;
+
+	struct DirEntry *dirBuffer = AllocUMem(sizeof(struct DirEntry[16]));
+	ReadSector((unsigned char *) dirBuffer, currentDir->startSector);
+	for (i = 0; i < 16; i++)
+	{
+		if (dirBuffer[i].attribute & 0x10)
+		{
+			// It's a directory!!!
+			struct vDirNode *temp = AllocUMem(sizeof(struct vDirNode));
+			temp->name = DirNameToName(dirBuffer[i].name);
+			temp->startSector = ClusterToSector(dirBuffer[i].startingCluster);
+			temp->parent = currentDir;
+			temp->nextSibling = 0;
+			temp->firstChild = 0;
+			// If the currentDirectory has no children, make this firstChild
+			if (!currentDir->firstChild)
+				currentDir->firstChild = temp;
+			else
+			{
+				// Make it a sibling of a child
+				struct vDirNode *temp2 = currentDir->firstChild;
+				while (temp2->nextSibling)
+					temp2 = temp2->nextSibling;
+				temp2->nextSibling = temp;
+			}
+			// If it's not . or .. recurse
+			if (strcmp(temp->name, ".") && strcmp(temp->name, ".."))
+				GetVDirEntries(temp);
+		}
+	}
+	DeallocMem(dirBuffer);
 }
 
 //============================================================
@@ -93,44 +124,6 @@ void CreateVDirectory(void)
 	GetVDirEntries(currentDir);
 }
 
-//=======================================================
-// Create the subtree of vDirNodes for the current node
-//=======================================================
-int GetVDirEntries(struct vDirNode *currentDir)
-{
-	int i;
-
-	struct DirEntry *dirBuffer = AllocUMem(sizeof(struct DirEntry[16]));
-	ReadSector((unsigned char *)dirBuffer, currentDir->startSector);
-	for (i = 0; i < 16; i++) {
-		if (dirBuffer[i].attribute & 0x10) {
-			// It's a directory!!!
-			struct vDirNode *temp =
-			    AllocUMem(sizeof(struct vDirNode));
-			temp->name = DirNameToName(dirBuffer[i].name);
-			temp->startSector =
-			    ClusterToSector(dirBuffer[i].startingCluster);
-			temp->parent = currentDir;
-			temp->nextSibling = 0;
-			temp->firstChild = 0;
-			// If the currentDirectory has no children, make this firstChild
-			if (!currentDir->firstChild)
-				currentDir->firstChild = temp;
-			else {
-				// Make it a sibling of a child
-				struct vDirNode *temp2 = currentDir->firstChild;
-				while (temp2->nextSibling)
-					temp2 = temp2->nextSibling;
-				temp2->nextSibling = temp;
-			}
-			// If it's not . or .. recurse
-			if (strcmp(temp->name, ".") && strcmp(temp->name, ".."))
-				GetVDirEntries(temp);
-		}
-	}
-	DeallocMem(dirBuffer);
-}
-
 //==========================================================
 // Convert filename as a string to the Directory Entry form
 //      Returns 0 on success
@@ -141,26 +134,30 @@ int NameToDirName(char *name, char *dirname)
 	short int i = 0;
 	short int j = 0;
 
-	for (i = 0; i < 11; i++) {
+	for (i = 0; i < 11; i++)
+	{
 		dirname[i] = ' ';
 	}
-	if (name[0] == '.' && name[1] == '.'
-	    && (name[3] == 0 || name[3] == ' ')) {
+	if (name[0] == '.' && name[1] == '.' && (name[3] == 0 || name[3] == ' '))
+	{
 		dirname[0] = dirname[1] = '.';
 		return 0;
 	}
 	i = 0;
-	while (name[i] != '.' && i < 8 && name[i] != 0) {
+	while (name[i] != '.' && i < 8 && name[i] != 0)
+	{
 		dirname[j++] = name[i++];
 	}
 	if (name[i] == 0)
 		return (0);
-	if ((i == 8) && (name[i] != '.')) {
+	if ((i == 8) && (name[i] != '.'))
+	{
 		return (1);
 	}
 	j = 8;
 	i++;
-	while (name[i] != 0 && j < 11) {
+	while (name[i] != 0 && j < 11)
+	{
 		dirname[j++] = name[i++];
 	}
 	return (0);
@@ -176,8 +173,10 @@ unsigned char *DirNameToName(unsigned char dirname[11])
 	short int i = 0;
 	short int j = 0;
 
-	for (i = 0; i < 11; i++) {
-		if (dirname[i] && dirname[i] != ' ') {
+	for (i = 0; i < 11; i++)
+	{
+		if (dirname[i] && dirname[i] != ' ')
+		{
 			if (i == 8)
 				name[j++] = '.';
 			name[j++] = dirname[i];
@@ -194,20 +193,23 @@ unsigned char *DirNameToName(unsigned char dirname[11])
 //============================================================================
 struct vDirNode *FindDirectory(unsigned char *fullpath)
 {
-	if (fullpath[0] == '/') fullpath++;
+	if (fullpath[0] == '/')
+		fullpath++;
 
 	struct vDirNode *temp = vDirectory;
 	unsigned char *restOfString;
-	while (1) {
+	while (1)
+	{
 		restOfString = strchr(fullpath, '/');
-		if (!restOfString)	// Found it
+		if (!restOfString) // Found it
 			return temp;
 		restOfString[0] = 0;
 		restOfString++;
 		temp = temp->firstChild;
-		while (strcmp(temp->name, fullpath)) {
+		while (strcmp(temp->name, fullpath))
+		{
 			temp = temp->nextSibling;
-			if (!temp) 
+			if (!temp)
 				return 0;
 		}
 		fullpath = restOfString;
@@ -224,55 +226,58 @@ struct DirEntry *FindFile(unsigned char *name)
 	struct DirEntry *buffer = AllocUMem(512);
 	struct DirEntry *entry = AllocKMem(sizeof(struct DirEntry));
 	int entryOffset = 0;
-	
+
 	unsigned char *tempName = AllocKMem(strlen(name) + 1);
 	strcpy(tempName, name);
 
 	int i = strlen(tempName);
-	while (name[i] != '/') i--;
+	while (name[i] != '/')
+		i--;
 	unsigned char *filename = tempName + i + 1;
 
 	struct vDirNode *directory = FindDirectory(tempName);
 	DeallocMem(tempName);
-	
+
 	if (!FindFileDirectorySector(filename, directory, buffer, &entryOffset))
 	{
 		DeallocMem(entry);
 		DeallocMem(buffer);
 		return 0;
 	}
-	copyMem((unsigned char *)(buffer + entryOffset), (unsigned char *)entry, sizeof(struct DirEntry));
+	copyMem((unsigned char *) (buffer + entryOffset), (unsigned char *) entry,
+			sizeof(struct DirEntry));
 	DeallocMem(buffer);
 	return entry;
 }
 
 //======================================================================================================
 // Find the directory details of the file name.
-// Returns the sector on the disk conatianing its directory entry.
+// Returns the sector on the disk conataining its directory entry.
 // Sets buffer, containing that sector, to an array of DirEntries, one of which is that for the file.
 // Sets entry to a pointer to the actual directory entry within that sector
 //======================================================================================================
-int FindFileDirectorySector(unsigned char *filename, struct vDirNode *directory, struct DirEntry *buffer, int *entryOffset)
+int FindFileDirectorySector(unsigned char *filename, struct vDirNode *directory,
+		struct DirEntry *buffer, int *entryOffset)
 {
 	int sector = 0;
 	unsigned char *dirName = 0;
 
 	struct DirSects dirSector;
-	sector = FindFirstDirectorySector (directory, &dirSector);
+	sector = FindFirstDirectorySector(directory, &dirSector);
 	if (sector)
 	{
-		ReadSector((unsigned char *)buffer, sector);
+		ReadSector((unsigned char *) buffer, sector);
 		struct DirEntry *temp = buffer;
 
 		while (sector)
 		{
-			int entriesInSect = BytesPerSector / sizeof (struct DirEntry);
+			int entriesInSect = BytesPerSector / sizeof(struct DirEntry);
 			int entryno = 0;
 			while (entryno < entriesInSect)
 			{
 				dirName = DirNameToName(temp->name);
 				if (!strcmp(dirName, filename))
-				    break;
+					break;
 				entryno++;
 				temp++;
 			}
@@ -281,7 +286,7 @@ int FindFileDirectorySector(unsigned char *filename, struct vDirNode *directory,
 				*entryOffset = entryno;
 				break;
 			}
-			sector = FindNextDirectorySector (&dirSector);
+			sector = FindNextDirectorySector(&dirSector);
 			entryno = 0;
 		}
 	}
@@ -296,7 +301,8 @@ int FindFreeCluster(void)
 {
 	int count = 0;
 
-	while (FAT[count] != 0) {
+	while (FAT[count] != 0)
+	{
 		count++;
 	}
 	return (count);
@@ -313,7 +319,8 @@ struct DirEntry *FindFreeDirEntry(struct DirEntry *directory)
 	struct DirEntry *entries;
 
 	entries = directory;
-	while (entries[count].name[0] != 0xE5) {
+	while (entries[count].name[0] != 0xE5)
+	{
 		if (entries[count].name[0] == 0)
 			return (&entries[count]);
 		count++;
@@ -328,12 +335,11 @@ struct DirEntry *FindFreeDirEntry(struct DirEntry *directory)
 //==================================
 void SaveFAT(void)
 {
-	char *FATbuffer = (char *)FAT;
+	char *FATbuffer = (char *) FAT;
 	int count;
 
 	for (count = 0; count < FATLength; count++)
-		WriteSector(FATbuffer + (count * BytesPerSector),
-			    FirstFAT + count);
+		WriteSector(FATbuffer + (count * BytesPerSector), FirstFAT + count);
 }
 
 //========================================
@@ -344,8 +350,10 @@ void SaveDir(struct vDirNode *directory)
 	int count = 0;
 
 	for (count = 0; count < (RootDirectoryEntries * 0x20) / BytesPerSector;
-	     count++)
-		WriteSector((unsigned char *)directory->startSector + (count * BytesPerSector), RootDir + count);
+			count++)
+		WriteSector(
+				(unsigned char *) directory->startSector
+						+ (count * BytesPerSector), RootDir + count);
 }
 
 //======================================
@@ -356,9 +364,10 @@ void SaveDir(struct vDirNode *directory)
 struct FCB *CreateFile(unsigned char *name, unsigned short pid)
 {
 	// If the file already exist, exit
-	if (FindFile(name)) return (0);
+	if (FindFile(name))
+		return (0);
 
-	struct FCB *fHandle = (struct FCB *)AllocKMem(sizeof(struct FCB));
+	struct FCB *fHandle = (struct FCB *) AllocKMem(sizeof(struct FCB));
 	struct vDirNode *dir = FindDirectory(name);
 	struct DirEntry *directory = AllocUMem(512);
 
@@ -366,33 +375,36 @@ struct FCB *CreateFile(unsigned char *name, unsigned short pid)
 	strcpy(tempName, name);
 
 	int i = strlen(tempName);
-	while (name[i] != '/') i--;
+	while (name[i] != '/')
+		i--;
 	unsigned char * fileName = tempName + i + 1;
-	           
-	if (dir) {
+
+	if (dir)
+	{
 		struct DirSects dirSect;
-		int sector = FindFirstDirectorySector(directory, &dirSect);
-		ReadSector((unsigned char *)directory, sector);
+		int sector = FindFirstDirectorySector(dir, &dirSect);
+		ReadSector((unsigned char *) directory, sector);
 		struct DirEntry *entry = directory;
 		int count;
-		
+
 		// Find a free entry
-		while (!(entry->name[0] == 0xE5 || entry->name[0] == 0)) 
+		while (!(entry->name[0] == 0xE5 || entry->name[0] == 0))
 		{
 			entry++;
 			if (entry == directory + 512)
 			{
-				sector = FindNextDirectorySector(&dirSect);  // Need some code here to deal with the fact that there are no free entries
-				ReadSector((unsigned char *)directory, sector);
+				sector = FindNextDirectorySector(&dirSect); // Need some code here to deal with the fact that there are no free entries
+				ReadSector((unsigned char *) directory, sector);
 			}
 		}
-		
+
 		// Zero directory entry
 		for (count = 0; count < sizeof(struct DirEntry); count++)
-			((unsigned char *)entry)[count] = (unsigned char)0;
+			((unsigned char *) entry)[count] = (unsigned char) 0;
 
 		// Fill in a few details
-		if (NameToDirName(fileName, entry->name)) {
+		if (NameToDirName(fileName, entry->name))
+		{
 			DeallocMem(fHandle);
 			DeallocMem(directory);
 			DeallocMem(tempName);
@@ -407,7 +419,7 @@ struct FCB *CreateFile(unsigned char *name, unsigned short pid)
 
 		SaveFAT();
 		// SaveDir(directory);
-		WriteSector((unsigned char *)directory, dir->startSector);
+		WriteSector((unsigned char *) directory, dir->startSector);
 		fHandle->dirEntry = entry;
 		fHandle->dir = FindDirectory(name);
 		fHandle->currentCluster = entry->startingCluster;
@@ -415,13 +427,14 @@ struct FCB *CreateFile(unsigned char *name, unsigned short pid)
 		fHandle->startCluster = entry->startingCluster;
 		fHandle->fileCursor = fHandle->bufCursor = fHandle->bufIsDirty = 0;
 		fHandle->length = entry->fileSize;
-		fHandle->filebuf = (char *)AllocUMem(512);
+		fHandle->filebuf = (char *) AllocUMem(512);
 		fHandle->sectorInCluster = 1;
 		DeallocMem(directory);
 		DeallocMem(tempName);
 		return (fHandle);
 	}
-	else {
+	else
+	{
 		DeallocMem(fHandle);
 		DeallocMem(directory);
 		DeallocMem(tempName);
@@ -439,46 +452,52 @@ struct FCB *OpenFile(unsigned char *name, unsigned short pid)
 	struct FCB *fHandle = AllocKMem(sizeof(struct FCB));
 
 	// Root directory isn't a normal file
-	if (!strcmp(name, "/")) {
+	if (!strcmp(name, "/"))
+	{
 		fHandle->deviceType = DIR;
 		fHandle->dirEntry = 0;
 		fHandle->dir = 0;
 		fHandle->currentCluster = 0;
 		fHandle->startSector = RootDir;
 		fHandle->startCluster = 0;
-		fHandle->fileCursor = fHandle->bufCursor = fHandle->bufIsDirty =
-		    0;
+		fHandle->fileCursor = fHandle->bufCursor = fHandle->bufIsDirty = 0;
 		fHandle->length = 512;
-		fHandle->filebuf = (char *)AllocUMem(512);
+		fHandle->filebuf = (char *) AllocUMem(512);
 		ReadSector(fHandle->filebuf, fHandle->startSector);
 		fHandle->nextSector = fHandle->startSector + 1;
 		fHandle->sectorInCluster = 1;
 		return (fHandle);
-	} else {
-		struct DirEntry *entry = (struct DirEntry *)FindFile(name);
+	}
+	else
+	{
+		struct DirEntry *entry = (struct DirEntry *) FindFile(name);
 
-		if (entry != 0) {
+		if (entry != 0)
+		{
 			fHandle->dirEntry = entry;
 			fHandle->dir = FindDirectory(name);
 			fHandle->currentCluster = entry->startingCluster;
-			fHandle->startSector =
-			    ClusterToSector(entry->startingCluster);
+			fHandle->startSector = ClusterToSector(entry->startingCluster);
 			fHandle->startCluster = entry->startingCluster;
-			fHandle->fileCursor = fHandle->bufCursor =
-			    fHandle->bufIsDirty = 0;
-			if (entry->attribute & 0x10) {
+			fHandle->fileCursor = fHandle->bufCursor = fHandle->bufIsDirty = 0;
+			if (entry->attribute & 0x10)
+			{
 				fHandle->deviceType = DIR;
 				fHandle->length = 512;
-			} else {
+			}
+			else
+			{
 				fHandle->length = entry->fileSize;
 				fHandle->deviceType = FILE;
 			}
-			fHandle->filebuf = (char *)AllocUMem(512);
+			fHandle->filebuf = (char *) AllocUMem(512);
 			ReadSector(fHandle->filebuf, fHandle->startSector);
 			fHandle->nextSector = fHandle->startSector + 1;
 			fHandle->sectorInCluster = 1;
 			return (fHandle);
-		} else {
+		}
+		else
+		{
 			DeallocMem(fHandle);
 			return (0);
 		}
@@ -492,32 +511,36 @@ void CloseFile(struct FCB *fHandle)
 {
 	int offset;
 	unsigned char *filename = DirNameToName(fHandle->dirEntry->name);
- 
-	if (fHandle->bufIsDirty) {
-		WriteSector(fHandle->filebuf,
-			    ClusterToSector(fHandle->currentCluster) +
-			    fHandle->sectorInCluster - 1);
+
+	if (fHandle->bufIsDirty)
+	{
+		WriteSector(
+				fHandle->filebuf,
+				ClusterToSector(fHandle->currentCluster)
+						+ fHandle->sectorInCluster - 1);
 	}
-	if (fHandle->deviceType == FILE || fHandle->deviceType == DIR) {
-		if (!fHandle->dirEntry)	// No dirEntry so it must be the root directory
+	if (fHandle->deviceType == FILE || fHandle->deviceType == DIR)
+	{
+		if (!fHandle->dirEntry) // No dirEntry so it must be the root directory
 		{
 		}
 		else
 		{
 			struct DirEntry *buffer = AllocUMem(512);
-			int sector = FindFileDirectorySector(filename, fHandle->dir, buffer, &offset);
+			int sector = FindFileDirectorySector(filename, fHandle->dir, buffer,
+					&offset);
 			DeallocMem(filename);
 			struct DirEntry *temp = buffer + offset;
 			// SaveDir(); We need to write values to the directory
 			if (fHandle->deviceType == FILE)
 			{
 				temp->fileSize = fHandle->length;
-				WriteSector((unsigned char *)buffer, sector);
+				WriteSector((unsigned char *) buffer, sector);
 			}
 			DeallocMem(fHandle->dirEntry);
 			DeallocMem(buffer);
 		}
-		DeallocMem((struct MemStruct *)fHandle->filebuf);
+		DeallocMem((struct MemStruct *) fHandle->filebuf);
 	}
 	DeallocMem(fHandle);
 }
@@ -525,7 +548,8 @@ void CloseFile(struct FCB *fHandle)
 //=======================================================================
 // Find the first sector of a directory
 //=======================================================================
-int FindFirstDirectorySector(struct vDirNode *directory, struct DirSects *dirSect)
+int FindFirstDirectorySector(struct vDirNode *directory,
+		struct DirSects *dirSect)
 {
 	dirSect->sectorNo = 1;
 	dirSect->sectorInCluster = 1;
@@ -549,15 +573,17 @@ int FindNextDirectorySector(struct DirSects *dirSect)
 		if (dirSect->directory->parent == 0) // The root directory
 		{
 			dirSect->sector++;
-			if (dirSect->sector > RootDirectoryEntries * sizeof(struct DirEntry) / BytesPerSector)
+			if (dirSect->sector
+					> RootDirectoryEntries * sizeof(struct DirEntry)
+							/ BytesPerSector)
 				dirSect->sector = 0;
 		}
-		else	// it's a normal directory so get next cluster
+		else // it's a normal directory so get next cluster
 		{
 			dirSect->cluster = FAT[dirSect->cluster];
-			dirSect->sector =	ClusterToSector(dirSect->cluster);
+			dirSect->sector = ClusterToSector(dirSect->cluster);
 			dirSect->sectorInCluster = 1;
-		}	
+		}
 	}
 	return dirSect->sector;
 }
@@ -570,10 +596,12 @@ long ReadFile(struct FCB *fHandle, char *buffer, long noBytes)
 {
 	long bytesRead = 0;
 
-	while (bytesRead < noBytes && fHandle->bufCursor < fHandle->length) {
-		while (fHandle->bufCursor < 512 && bytesRead < noBytes && fHandle->bufCursor < fHandle->length) {
-			buffer[bytesRead] =
-			    fHandle->filebuf[fHandle->bufCursor];
+	while (bytesRead < noBytes && fHandle->bufCursor < fHandle->length)
+	{
+		while (fHandle->bufCursor < 512 && bytesRead < noBytes
+				&& fHandle->bufCursor < fHandle->length)
+		{
+			buffer[bytesRead] = fHandle->filebuf[fHandle->bufCursor];
 			bytesRead++;
 			fHandle->bufCursor++;
 		}
@@ -582,19 +610,20 @@ long ReadFile(struct FCB *fHandle, char *buffer, long noBytes)
 
 		// If we have read past the end of the buffer we need to load the
 		// next sector into the buffer.
-		if ((fHandle->bufCursor == 512) && (bytesRead < noBytes)) {
-			if (fHandle->bufIsDirty) {
-				WriteSector(fHandle->filebuf,
-					    ClusterToSector
-					    (fHandle->currentCluster)
-					    + fHandle->sectorInCluster - 1);
+		if ((fHandle->bufCursor == 512) && (bytesRead < noBytes))
+		{
+			if (fHandle->bufIsDirty)
+			{
+				WriteSector(
+						fHandle->filebuf,
+						ClusterToSector(fHandle->currentCluster)
+								+ fHandle->sectorInCluster - 1);
 			}
-			if (fHandle->sectorInCluster++ == SectorsPerCluster) {
+			if (fHandle->sectorInCluster++ == SectorsPerCluster)
+			{
 				Debug();
-				fHandle->currentCluster =
-				    FAT[fHandle->currentCluster];
-				fHandle->nextSector =
-				    ClusterToSector(fHandle->currentCluster);
+				fHandle->currentCluster = FAT[fHandle->currentCluster];
+				fHandle->nextSector = ClusterToSector(fHandle->currentCluster);
 				fHandle->sectorInCluster = 1;
 			}
 			ReadSector(fHandle->filebuf, fHandle->nextSector);
@@ -613,10 +642,11 @@ long WriteFile(struct FCB *fHandle, char *buffer, long noBytes)
 {
 	long bytesWritten = 0;
 
-	while (bytesWritten < noBytes) {
-		while (fHandle->bufCursor < 512 && bytesWritten < noBytes) {
-			fHandle->filebuf[fHandle->bufCursor] =
-			    buffer[bytesWritten];
+	while (bytesWritten < noBytes)
+	{
+		while (fHandle->bufCursor < 512 && bytesWritten < noBytes)
+		{
+			fHandle->filebuf[fHandle->bufCursor] = buffer[bytesWritten];
 			fHandle->bufIsDirty = 1;
 			bytesWritten++;
 			fHandle->length++;
@@ -624,18 +654,20 @@ long WriteFile(struct FCB *fHandle, char *buffer, long noBytes)
 		}
 
 		// If we have written past the end of the buffer we need to flush the sector to the disk
-		if ((fHandle->bufCursor == 512) && (bytesWritten < noBytes)) {
-			WriteSector(fHandle->filebuf,
-				    ClusterToSector(fHandle->currentCluster)
-				    + fHandle->sectorInCluster - 1);
-			if (fHandle->sectorInCluster++ > SectorsPerCluster) {
+		if ((fHandle->bufCursor == 512) && (bytesWritten < noBytes))
+		{
+			WriteSector(
+					fHandle->filebuf,
+					ClusterToSector(fHandle->currentCluster)
+							+ fHandle->sectorInCluster - 1);
+			if (fHandle->sectorInCluster++ > SectorsPerCluster)
+			{
 				// Allocate another cluster
 				int freeCluster = FindFreeCluster();
 				FAT[fHandle->currentCluster] = freeCluster;
 				FAT[freeCluster] = 0xFFFF;
 				fHandle->currentCluster = freeCluster;
-				fHandle->nextSector =
-				    ClusterToSector(fHandle->currentCluster);
+				fHandle->nextSector = ClusterToSector(fHandle->currentCluster);
 				fHandle->sectorInCluster = 1;
 			}
 			fHandle->bufCursor = 0;
@@ -652,13 +684,15 @@ long WriteFile(struct FCB *fHandle, char *buffer, long noBytes)
 //===================================
 int DeleteFile(char name[11], unsigned short pid)
 {
-	struct DirEntry *entry = (struct DirEntry *)FindFile(name);
+	struct DirEntry *entry = (struct DirEntry *) FindFile(name);
 
-	if (entry != 0) {
+	if (entry != 0)
+	{
 		entry->name[0] = 0xE5;
 		unsigned short int cluster = entry->startingCluster;
 		unsigned short int nextCluster;
-		while (cluster != 0xFFFF) {
+		while (cluster != 0xFFFF)
+		{
 			nextCluster = FAT[cluster];
 			FAT[cluster] = 0;
 			cluster = nextCluster;
@@ -670,37 +704,138 @@ int DeleteFile(char name[11], unsigned short pid)
 		int sector = FindFirstDirectorySector(fHandle->dir, &dirSector);
 		if (sector)
 		{
-			ReadSector((unsigned char *)directory, sector);
+			ReadSector((unsigned char *) directory, sector);
 			struct DirEntry *temp = directory;
 
 			while (sector)
 			{
-				int entriesInSect = BytesPerSector / sizeof (struct DirEntry);
+				int entriesInSect = BytesPerSector / sizeof(struct DirEntry);
 				int entryno = 0;
-				while (temp->startingCluster != fHandle->startCluster && entryno < entriesInSect)
+				while (temp->startingCluster != fHandle->startCluster
+						&& entryno < entriesInSect)
 				{
 					entryno++;
 					temp++;
 				}
 				if (entryno != entriesInSect)
 					break;
-				sector = FindNextDirectorySector (&dirSector);
+				sector = FindNextDirectorySector(&dirSector);
 				entryno = 0;
 			}
 			// SaveDir(); We need to write values to the directory
 			if (fHandle->deviceType == FILE)
 			{
 				temp->name[0] = 0xE5;
-				WriteSector((unsigned char *)directory, sector);
+				WriteSector((unsigned char *) directory, sector);
 			}
 			if (fHandle->dirEntry)
 				DeallocMem(fHandle->dirEntry);
-			DeallocMem((struct MemStruct *)fHandle->filebuf);
+			DeallocMem((struct MemStruct *) fHandle->filebuf);
 		}
 		DeallocMem(directory);
 		return (0);
-	} else {
+	}
+	else
+	{
 		return (1);
+	}
+}
+
+long CreateDir(unsigned char *name, unsigned short pid)
+{
+	// If the directory already exist, exit
+	if (FindFile(name))
+		return (-1);
+
+	struct vDirNode *dir = FindDirectory(name);
+	struct DirEntry *directory = AllocUMem(512);
+
+	unsigned char *tempName = AllocKMem(strlen(name) + 1);
+	strcpy(tempName, name);
+
+	int i = strlen(tempName);
+	while (name[i] != '/')
+		i--;
+	unsigned char * fileName = tempName + i + 1;
+
+	if (dir)
+	{
+		struct DirSects dirSect;
+		int sector = FindFirstDirectorySector(dir, &dirSect);
+		ReadSector((unsigned char *) directory, sector);
+		struct DirEntry *entry = directory;
+		int count;
+
+		// Find a free entry
+		while (!(entry->name[0] == 0xE5 || entry->name[0] == 0))
+		{
+			entry++;
+			if (entry == directory + 512)
+			{
+				sector = FindNextDirectorySector(&dirSect); // Need some code here to deal with the fact that there are no free entries
+				ReadSector((unsigned char *) directory, sector);
+			}
+		}
+
+		// Zero directory entry
+		for (count = 0; count < sizeof(struct DirEntry); count++)
+			((unsigned char *) entry)[count] = (unsigned char) 0;
+
+		// Fill in a few details
+		if (NameToDirName(fileName, entry->name))
+		{
+			DeallocMem(directory);
+			DeallocMem(tempName);
+			return (-1);
+		}
+
+		entry->startingCluster = FindFreeCluster();
+		entry->attribute = 0x10;
+
+		long startingCluster = entry->startingCluster;
+		// Mark the cluster as in use
+		FAT[entry->startingCluster] = 0xFFFF;
+
+		SaveFAT();
+		// SaveDir(directory);
+		WriteSector((unsigned char *) directory, dir->startSector);
+
+		// Create the . and .. entries and blank the new cluster
+		unsigned char *udirectory = (unsigned char *)directory;
+		sector = ClusterToSector(startingCluster);
+		ReadSector((unsigned char *)directory, sector);
+		for (count = 0; count < BytesPerSector; count++)
+			udirectory[count] = 0;
+		entry = directory;
+		for (count = 0; count < 11; count++) entry->name[count] = ' ';
+		entry->name[0] = '.';
+		entry->attribute = 0x10;
+		entry->startingCluster = SectorToCluster(dir->startSector);
+		entry++;
+		for (count = 0; count < 11; count++) entry->name[count] = ' ';
+		entry->name[0] = entry->name[1] = '.';
+		entry->attribute = 0x10;
+		entry->startingCluster = startingCluster;
+		WriteSector((unsigned char *)directory, sector);
+		for (count = 0; count < SectorsPerCluster - 1; count++)
+		{
+			sector++;
+			ReadSector((unsigned char *)directory, sector);
+			int count2;
+			for (count2 = 0; count2 < BytesPerSector; count2++)
+				udirectory[count2] = 0;
+			WriteSector((unsigned char *)directory, sector);
+		}
+
+		DeallocMem(directory);
+		DeallocMem(tempName);
+		return (0);
+	}
+	else
+	{
+		DeallocMem(directory);
+		DeallocMem(tempName);
+		return (-1);
 	}
 }
 
@@ -714,110 +849,111 @@ void fsTaskCode(void)
 	struct Message *FSMsg;
 	struct MessagePort *tempPort;
 
-	FSMsg = (struct Message *)ALLOCMSG;
+	FSMsg = (struct Message *) ALLOCMSG;
 
 	int result;
 	struct FCB *fcb;
 
-	((struct MessagePort *)FSPort)->waitingProc = (struct Task *)-1L;
-	((struct MessagePort *)FSPort)->msgQueue = 0;
+	((struct MessagePort *) FSPort)->waitingProc = (struct Task *) -1L;
+	((struct MessagePort *) FSPort)->msgQueue = 0;
 
 	InitializeHD();
 
-	while (1) {
-		ReceiveMessage((struct MessagePort *)FSPort, FSMsg);
-		switch (FSMsg->byte) {
+	while (1)
+	{
+		ReceiveMessage((struct MessagePort *) FSPort, FSMsg);
+		switch (FSMsg->byte)
+		{
 		case CREATEFILE:
 			;
-			struct FCB *fcb =
-			    CreateFile((char *)FSMsg->quad, FSMsg->pid);
-			tempPort = (struct MessagePort *)FSMsg->tempPort;
+			struct FCB *fcb = CreateFile((char *) FSMsg->quad, FSMsg->pid);
+			tempPort = (struct MessagePort *) FSMsg->tempPort;
 			if (!fcb)
 				FSMsg->quad = 0;
-			else {
+			else
+			{
 				fcb->pid = FSMsg->pid;
-				FSMsg->quad = (long)fcb;
+				FSMsg->quad = (long) fcb;
 			}
 			SendMessage(tempPort, FSMsg);
 			break;
 
 		case OPENFILE:
-			fcb =
-			    OpenFile((unsigned char *)FSMsg->quad, FSMsg->pid);
-			tempPort = (struct MessagePort *)FSMsg->tempPort;
+			fcb = OpenFile((unsigned char *) FSMsg->quad, FSMsg->pid);
+			tempPort = (struct MessagePort *) FSMsg->tempPort;
 			if (!fcb)
 				FSMsg->quad = 0;
-			else {
+			else
+			{
 				fcb->pid = FSMsg->pid;
-				FSMsg->quad = (long)fcb;
+				FSMsg->quad = (long) fcb;
 			}
 			SendMessage(tempPort, FSMsg);
 			break;
 
 		case CLOSEFILE:
-			CloseFile((struct FCB *)FSMsg->quad);
-			DeallocMem((void *)FSMsg->quad);
-			tempPort = (struct MessagePort *)FSMsg->tempPort;
+			CloseFile((struct FCB *) FSMsg->quad);
+			DeallocMem((void *) FSMsg->quad);
+			tempPort = (struct MessagePort *) FSMsg->tempPort;
 			SendMessage(tempPort, FSMsg);
 			break;
 
 		case READFILE:
-			result =
-			    ReadFile((struct FCB *)FSMsg->quad,
-				     (char *)FSMsg->quad2, FSMsg->quad3);
-			tempPort = (struct MessagePort *)FSMsg->tempPort;
+			result = ReadFile((struct FCB *) FSMsg->quad, (char *) FSMsg->quad2,
+					FSMsg->quad3);
+			tempPort = (struct MessagePort *) FSMsg->tempPort;
 			FSMsg->quad = result;
 			SendMessage(tempPort, FSMsg);
 			break;
 
 		case WRITEFILE:
-			result =
-			    WriteFile((struct FCB *)FSMsg->quad,
-				      (char *)FSMsg->quad2, FSMsg->quad3);
-			tempPort = (struct MessagePort *)FSMsg->tempPort;
+			result = WriteFile((struct FCB *) FSMsg->quad,
+					(char *) FSMsg->quad2, FSMsg->quad3);
+			tempPort = (struct MessagePort *) FSMsg->tempPort;
 			FSMsg->quad = result;
 			SendMessage(tempPort, FSMsg);
 			break;
 
 		case DELETEFILE:
-			result = DeleteFile((char *)FSMsg->quad, FSMsg->pid);
-			tempPort = (struct MessagePort *)FSMsg->tempPort;
+			result = DeleteFile((char *) FSMsg->quad, FSMsg->pid);
+			tempPort = (struct MessagePort *) FSMsg->tempPort;
 			SendMessage(tempPort, FSMsg);
 			break;
 
 		case TESTFILE:
 			if (!strcmp(FSMsg->quad, "/"))
 				result = 1;
-			else {
-				result =
-				    (long)FindFile((char *)FSMsg->quad);
-				if (result) {
-					DeallocMem((void *)((long)result));
+			else
+			{
+				result = (long) FindFile((char *) FSMsg->quad);
+				if (result)
+				{
+					DeallocMem((void *) ((long) result));
 					result = 1;
 				}
 			}
 
-			tempPort = (struct MessagePort *)FSMsg->tempPort;
+			tempPort = (struct MessagePort *) FSMsg->tempPort;
 			FSMsg->quad = result;
-			SendMessage(tempPort, FSMsg);
-			break;
-
-		case GETPID:
-			FSMsg->quad = currentTask->pid;
 			SendMessage(tempPort, FSMsg);
 			break;
 
 		case GETFILEINFO:
 			;
 			struct FileInfo info;
-			fcb = (struct FCB *)FSMsg->quad;
+			fcb = (struct FCB *) FSMsg->quad;
 			info.Length = fcb->length;
 			int count;
-			for (count = 0; count < sizeof(struct FileInfo);
-			     count++)
-				((char *)FSMsg->quad2)[count] =
-				    ((char *)(&info))[count];
-			tempPort = (struct MessagePort *)FSMsg->tempPort;
+			for (count = 0; count < sizeof(struct FileInfo); count++)
+				((char *) FSMsg->quad2)[count] = ((char *) (&info))[count];
+			tempPort = (struct MessagePort *) FSMsg->tempPort;
+			SendMessage(tempPort, FSMsg);
+			break;
+
+		case CREATEDIR:
+			;
+			int retVal = CreateDir((char *) FSMsg->quad, FSMsg->pid);
+			tempPort = (struct MessagePort *) FSMsg->tempPort;
 			SendMessage(tempPort, FSMsg);
 			break;
 

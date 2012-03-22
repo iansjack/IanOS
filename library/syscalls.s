@@ -17,7 +17,7 @@
 	.global Sys_Creat
 	.global Sys_Unlink
 	.global Sys_Nanosleep
-#	.global Sys_Debug
+	.global Sys_MkDir
 
 	.text
 
@@ -106,8 +106,8 @@ Sys_Nanosleep:
 	syscall
 	ret
 	
-#Sys_Debug:
-#	mov $SYS_DEBUG, %r9
-#	syscall
-#	ret
+Sys_MkDir:
+	mov $SYS_MKDIR, %r9
+	syscall
+	ret
 	

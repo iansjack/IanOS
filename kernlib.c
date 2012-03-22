@@ -73,7 +73,7 @@ void KWriteHex(long c, int row)	//, int col)
 	char *VideoBuffer = (char *)0xB8000;
 
 	int i;
-	for (i == 0; i < 8; i++) {
+	for (i = 0; i < 8; i++) {
 		char lo = c & 0xF;
 		lo += 0x30;
 		if (lo > 0x39) {
@@ -297,6 +297,19 @@ FD DoCreate(unsigned char *s)
 		return tempID;
 	}
 	return -1;
+}
+
+long DoMkDir(unsigned char *s)
+{
+	unsigned char *S = NameToFullPath(s);
+	struct Message *msg = (struct Message *)ALLOCMSG;
+	msg->nextMessage = 0;
+	msg->byte = CREATEDIR;
+	msg->quad = (long)S;
+	SendReceiveMessage((struct MessagePort *)FSPort, msg);
+	DeallocMem(S);
+	long retval = msg->quad;
+	DeallocMem(msg);
 }
 
 long DoDelete(unsigned char *name)
