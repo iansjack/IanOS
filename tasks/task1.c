@@ -74,7 +74,13 @@ int main(int argc, char **argv)
 			} else {
 				int pid = Sys_Fork();
 				if (!pid)
-					Sys_Execve(name, environment);
+				{
+					if (Sys_Execve(name, environment))
+					{
+						printf("Command not found\n");
+						sys_Exit();
+					}
+				}
 				else
 					Sys_Wait(pid);
 			}

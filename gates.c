@@ -91,19 +91,19 @@ void InitIDT(void)
 	for (i = 0; i < 48; i++) {
 		CreateTrapGate(code64, (long)&intr, i, 0);
 	}
-	CreateTrapGate(code64, (long)&div0, 0, 0);
-	CreateTrapGate(code64, (long)&i1, 1, 0);
-	CreateTrapGate(code64, (long)&i2, 2, 0);
-	CreateTrapGate(code64, (long)&i3, 3, 0);
-	CreateTrapGate(code64, (long)&i4, 4, 0);
-	CreateTrapGate(code64, (long)&i5, 5, 0);
-	CreateTrapGate(code64, (long)&i6, 6, 0);
-	CreateTrapGate(code64, (long)&i7, 7, 0);
-	CreateTrapGate(code64, (long)&df, 8, 0);
-	CreateTrapGate(code64, (long)&i9, 9, 0);
-	CreateTrapGate(code64, (long)&ia, 10, 0);
-	CreateTrapGate(code64, (long)&ib, 11, 0);
-	CreateTrapGate(code64, (long)&ic, 12, 0);
+	CreateTrapGate(code64, (long)&div0, 0, 1);
+	CreateTrapGate(code64, (long)&i1, 1, 1);
+	CreateTrapGate(code64, (long)&i2, 2, 1);
+	CreateTrapGate(code64, (long)&i3, 3, 1);
+	CreateTrapGate(code64, (long)&i4, 4, 1);
+	CreateTrapGate(code64, (long)&i5, 5, 1);
+	CreateTrapGate(code64, (long)&i6, 6, 1);
+	CreateTrapGate(code64, (long)&i7, 7, 1);
+	CreateTrapGate(code64, (long)&df, 8, 1);
+	CreateTrapGate(code64, (long)&i9, 9, 1);
+	CreateTrapGate(code64, (long)&ia, 10, 1);
+	CreateTrapGate(code64, (long)&ib, 11, 1);
+	CreateTrapGate(code64, (long)&ic, 12, 1);
 	CreateTrapGate(code64, (long)&gpf, 13, 1);
 	CreateTrapGate(code64, (long)&pf, 14, 1);
 	CreateTrapGate(code64, (long)&SwitchTasks, 20, 0);

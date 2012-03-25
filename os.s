@@ -66,31 +66,39 @@ start64:
 	mov  %rax, TS.cr3(%r15)
 	mov	%r15, currentTask
 
-	mov $0xFF, %al
+	mov $2, %rdi
 	call AllocPage					# Page for kernel stack
 	mov %rax, %rdi
 	mov $KernelStack, %rsi
+	mov $2, %rdx
+	mov $3, %rcx
 	call CreatePTE
 	mov $KernelStack + 0x1000, %eax
 	mov %eax, TSS64 + 36			# Kernel stack pointer in TSS
-	mov $0xFF, %al
+	mov $2, %rdi
 	call AllocPage					# Page for user stack
 	mov %rax, %rdi
 	mov $UserStack, %rsi
+	mov $2, %rdx
+	mov $7, %rcx
 	call CreatePTE
 	mov $UserStack + 0x1000, %rsp
-	mov $0xFF, %al
+	mov $2, %rdi
 	call AllocPage					# Page for task code
 	mov %rax, %rdi
 	mov $UserCode, %rsi
+	mov $2, %rdx
+	mov $7, %rcx
 	call CreatePTE
-	mov $0xFF, %al
+	mov $2, %rdi
 	call AllocPage		  			# Page for task data
 	mov %rax, %rdi
 	mov $UserData, %rsi
+	mov $2, %rdx
+	mov $7, %rcx
 	call CreatePTE
 
-	mov $tas1, %rsi				# Move the task code
+	mov $tas1, %rsi					# Move the task code
 	mov $UserCode, %rdi
 	mov $0x1000, %rcx				# How do we find the length of tas1? It's so small
 	cld								# that we just assume it's under 0x1000 bytes
@@ -98,10 +106,10 @@ start64:
 
 	call StartTasks
 
-	mov $UserCode, %rcx		  	# Tas1
+	mov $UserCode, %rcx		  		# Tas1
 	pushfq
 	pop %r11
-	or $0x200, %r11		  		# This will enable interrupts when we sysret
+	or $0x200, %r11		  			# This will enable interrupts when we sysret
 
 	sysretq				  			# Start Task1 and multitasking
 

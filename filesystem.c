@@ -4,9 +4,6 @@
 #include "fat.h"
 #include "filesystem.h"
 
-extern struct Task *currentTask;
-
-struct DirEntry *FindFreeDirEntry(struct DirEntry *);
 struct DirEntry *FindFile(unsigned char *name);
 int FindFileDirectorySector(unsigned char *filename, struct vDirNode *directory,
 		struct DirEntry *buffer, int *entryOffset);
@@ -68,7 +65,7 @@ void InitializeHD(void)
 }
 
 //=======================================================
-// Create the subtree of vDirNodes for the current node
+// Create the subtree of vDirNodes for the current node  *** Some work needed here to read all sectors ***
 //=======================================================
 void GetVDirEntries(struct vDirNode *currentDir)
 {
@@ -113,6 +110,7 @@ void CreateVDirectory(void)
 {
 	struct vDirNode *currentDir;
 
+	// Create the entry for the root directory
 	vDirectory = AllocUMem(sizeof(struct vDirNode));
 	vDirectory->name = AllocUMem(2);
 	strcpy(vDirectory->name, "/");
@@ -121,7 +119,21 @@ void CreateVDirectory(void)
 	vDirectory->nextSibling = 0;
 	vDirectory->firstChild = 0;
 	currentDir = vDirectory;
+
+	// Now fill in details for all directories in the root directory
+	// This will recursively scan the whole directory tree
 	GetVDirEntries(currentDir);
+}
+
+//============================================================
+// Given a full path return a pointer to the name part
+// Note that this function does not allocate any memory
+//============================================================
+unsigned char *GetFilename(unsigned char *fullpath)
+{
+	int i = strlen(fullpath);
+	while (fullpath[i] != '/') i--;
+	return (unsigned char *)fullpath + i + 1;
 }
 
 //==========================================================
@@ -134,32 +146,19 @@ int NameToDirName(char *name, char *dirname)
 	short int i = 0;
 	short int j = 0;
 
-	for (i = 0; i < 11; i++)
-	{
-		dirname[i] = ' ';
-	}
+	for (i = 0; i < 11; i++) dirname[i] = ' ';
 	if (name[0] == '.' && name[1] == '.' && (name[3] == 0 || name[3] == ' '))
 	{
 		dirname[0] = dirname[1] = '.';
 		return 0;
 	}
 	i = 0;
-	while (name[i] != '.' && i < 8 && name[i] != 0)
-	{
-		dirname[j++] = name[i++];
-	}
-	if (name[i] == 0)
-		return (0);
-	if ((i == 8) && (name[i] != '.'))
-	{
-		return (1);
-	}
+	while (name[i] != '.' && i < 8 && name[i] != 0) dirname[j++] = name[i++];
+	if (name[i] == 0) return (0);
+	if ((i == 8) && (name[i] != '.')) return (1);
 	j = 8;
 	i++;
-	while (name[i] != 0 && j < 11)
-	{
-		dirname[j++] = name[i++];
-	}
+	while (name[i] != 0 && j < 11) dirname[j++] = name[i++];
 	return (0);
 }
 
@@ -229,12 +228,7 @@ struct DirEntry *FindFile(unsigned char *name)
 
 	unsigned char *tempName = AllocKMem(strlen(name) + 1);
 	strcpy(tempName, name);
-
-	int i = strlen(tempName);
-	while (name[i] != '/')
-		i--;
-	unsigned char *filename = tempName + i + 1;
-
+	unsigned char *filename = GetFilename(name);
 	struct vDirNode *directory = FindDirectory(tempName);
 	DeallocMem(tempName);
 
@@ -277,7 +271,11 @@ int FindFileDirectorySector(unsigned char *filename, struct vDirNode *directory,
 			{
 				dirName = DirNameToName(temp->name);
 				if (!strcmp(dirName, filename))
+				{
+					DeallocMem(dirName);
 					break;
+				}
+				DeallocMem(dirName);
 				entryno++;
 				temp++;
 			}
@@ -290,7 +288,6 @@ int FindFileDirectorySector(unsigned char *filename, struct vDirNode *directory,
 			entryno = 0;
 		}
 	}
-	DeallocMem(dirName);
 	return (sector);
 }
 
@@ -301,33 +298,8 @@ int FindFreeCluster(void)
 {
 	int count = 0;
 
-	while (FAT[count] != 0)
-	{
-		count++;
-	}
+	while (FAT[count++] != 0);
 	return (count);
-}
-
-//==========================================
-// Find a free directory entry in directory
-// Return a pointer to the directory entry
-//        or 0 on failure
-//==========================================
-struct DirEntry *FindFreeDirEntry(struct DirEntry *directory)
-{
-	int count = 0;
-	struct DirEntry *entries;
-
-	entries = directory;
-	while (entries[count].name[0] != 0xE5)
-	{
-		if (entries[count].name[0] == 0)
-			return (&entries[count]);
-		count++;
-		if (count == RootDirectoryEntries)
-			return (0);
-	}
-	return (&entries[count]);
 }
 
 //==================================
@@ -342,18 +314,38 @@ void SaveFAT(void)
 		WriteSector(FATbuffer + (count * BytesPerSector), FirstFAT + count);
 }
 
-//========================================
-// Save the Directory buffer back to disk
-//========================================
-void SaveDir(struct vDirNode *directory)
+//======================================================================
+// Find an empty directory slot.
+// Returns a pointer to the zero-filled entry, or 0 on failure
+// Buffer will contain the sector of the directory containing the entry
+//======================================================================
+struct DirEntry *FindEmptyDirectorySlot(struct DirEntry *directory, struct vDirNode *dir)
 {
-	int count = 0;
+	if (dir)
+	{
+		struct DirSects dirSect;
+		int sector = FindFirstDirectorySector(dir, &dirSect);
+		ReadSector((unsigned char *) directory, sector);
+		struct DirEntry *entry = directory;
+		int count;
 
-	for (count = 0; count < (RootDirectoryEntries * 0x20) / BytesPerSector;
-			count++)
-		WriteSector(
-				(unsigned char *) directory->startSector
-						+ (count * BytesPerSector), RootDir + count);
+		// Find a free entry
+		while (!(entry->name[0] == 0xE5 || entry->name[0] == 0))
+		{
+			entry++;
+			if ((unsigned char *)entry == (unsigned char *)directory + 512)
+			{
+				sector = FindNextDirectorySector(&dirSect); // Need some code here to deal with the fact that there are no free entries
+				ReadSector((unsigned char *) directory, sector);
+			}
+		}
+
+		// Zero directory entry
+		for (count = 0; count < sizeof(struct DirEntry); count++)
+			((unsigned char *) entry)[count] = (unsigned char) 0;
+		return entry;
+	}
+	return 0;
 }
 
 //======================================
@@ -367,47 +359,17 @@ struct FCB *CreateFile(unsigned char *name, unsigned short pid)
 	if (FindFile(name))
 		return (0);
 
-	struct FCB *fHandle = (struct FCB *) AllocKMem(sizeof(struct FCB));
 	struct vDirNode *dir = FindDirectory(name);
 	struct DirEntry *directory = AllocUMem(512);
+	unsigned char *filename = GetFilename(name);
+	struct DirEntry *entry = FindEmptyDirectorySlot(directory, dir);
 
-	unsigned char *tempName = AllocKMem(strlen(name) + 1);
-	strcpy(tempName, name);
-
-	int i = strlen(tempName);
-	while (name[i] != '/')
-		i--;
-	unsigned char * fileName = tempName + i + 1;
-
-	if (dir)
+	if (entry)
 	{
-		struct DirSects dirSect;
-		int sector = FindFirstDirectorySector(dir, &dirSect);
-		ReadSector((unsigned char *) directory, sector);
-		struct DirEntry *entry = directory;
-		int count;
-
-		// Find a free entry
-		while (!(entry->name[0] == 0xE5 || entry->name[0] == 0))
-		{
-			entry++;
-			if (entry == directory + 512)
-			{
-				sector = FindNextDirectorySector(&dirSect); // Need some code here to deal with the fact that there are no free entries
-				ReadSector((unsigned char *) directory, sector);
-			}
-		}
-
-		// Zero directory entry
-		for (count = 0; count < sizeof(struct DirEntry); count++)
-			((unsigned char *) entry)[count] = (unsigned char) 0;
-
 		// Fill in a few details
-		if (NameToDirName(fileName, entry->name))
+		if (NameToDirName(filename, entry->name))
 		{
-			DeallocMem(fHandle);
 			DeallocMem(directory);
-			DeallocMem(tempName);
 			return (0);
 		}
 
@@ -420,6 +382,8 @@ struct FCB *CreateFile(unsigned char *name, unsigned short pid)
 		SaveFAT();
 		// SaveDir(directory);
 		WriteSector((unsigned char *) directory, dir->startSector);
+
+		struct FCB *fHandle = (struct FCB *) AllocKMem(sizeof(struct FCB));
 		fHandle->dirEntry = entry;
 		fHandle->dir = FindDirectory(name);
 		fHandle->currentCluster = entry->startingCluster;
@@ -430,14 +394,11 @@ struct FCB *CreateFile(unsigned char *name, unsigned short pid)
 		fHandle->filebuf = (char *) AllocUMem(512);
 		fHandle->sectorInCluster = 1;
 		DeallocMem(directory);
-		DeallocMem(tempName);
 		return (fHandle);
 	}
 	else
 	{
-		DeallocMem(fHandle);
 		DeallocMem(directory);
-		DeallocMem(tempName);
 		return (0);
 	}
 }
@@ -581,8 +542,13 @@ int FindNextDirectorySector(struct DirSects *dirSect)
 		else // it's a normal directory so get next cluster
 		{
 			dirSect->cluster = FAT[dirSect->cluster];
-			dirSect->sector = ClusterToSector(dirSect->cluster);
-			dirSect->sectorInCluster = 1;
+			if (dirSect->cluster != 0xFFFF)
+			{
+				dirSect->sector = ClusterToSector(dirSect->cluster);
+				dirSect->sectorInCluster = 1;
+			}
+			else
+				dirSect->sector = 0;
 		}
 	}
 	return dirSect->sector;
@@ -749,43 +715,18 @@ long CreateDir(unsigned char *name, unsigned short pid)
 
 	struct vDirNode *dir = FindDirectory(name);
 	struct DirEntry *directory = AllocUMem(512);
+	unsigned char *filename = GetFilename(name);
+	struct DirEntry *entry = FindEmptyDirectorySlot(directory, dir);
 
-	unsigned char *tempName = AllocKMem(strlen(name) + 1);
-	strcpy(tempName, name);
-
-	int i = strlen(tempName);
-	while (name[i] != '/')
-		i--;
-	unsigned char * fileName = tempName + i + 1;
-
-	if (dir)
-	{
+	if (entry)
+		{
 		struct DirSects dirSect;
 		int sector = FindFirstDirectorySector(dir, &dirSect);
-		ReadSector((unsigned char *) directory, sector);
-		struct DirEntry *entry = directory;
-		int count;
-
-		// Find a free entry
-		while (!(entry->name[0] == 0xE5 || entry->name[0] == 0))
-		{
-			entry++;
-			if (entry == directory + 512)
-			{
-				sector = FindNextDirectorySector(&dirSect); // Need some code here to deal with the fact that there are no free entries
-				ReadSector((unsigned char *) directory, sector);
-			}
-		}
-
-		// Zero directory entry
-		for (count = 0; count < sizeof(struct DirEntry); count++)
-			((unsigned char *) entry)[count] = (unsigned char) 0;
 
 		// Fill in a few details
-		if (NameToDirName(fileName, entry->name))
+		if (NameToDirName(filename, entry->name))
 		{
 			DeallocMem(directory);
-			DeallocMem(tempName);
 			return (-1);
 		}
 
@@ -804,8 +745,9 @@ long CreateDir(unsigned char *name, unsigned short pid)
 		unsigned char *udirectory = (unsigned char *)directory;
 		sector = ClusterToSector(startingCluster);
 		ReadSector((unsigned char *)directory, sector);
-		for (count = 0; count < BytesPerSector; count++)
-			udirectory[count] = 0;
+
+		int count;
+		for (count = 0; count < BytesPerSector; count++) udirectory[count] = 0;
 		entry = directory;
 		for (count = 0; count < 11; count++) entry->name[count] = ' ';
 		entry->name[0] = '.';
@@ -822,19 +764,31 @@ long CreateDir(unsigned char *name, unsigned short pid)
 			sector++;
 			ReadSector((unsigned char *)directory, sector);
 			int count2;
-			for (count2 = 0; count2 < BytesPerSector; count2++)
-				udirectory[count2] = 0;
+			for (count2 = 0; count2 < BytesPerSector; count2++) udirectory[count2] = 0;
 			WriteSector((unsigned char *)directory, sector);
 		}
 
+		// Make entry in vDirectory
+		struct vDirNode *newNode = AllocUMem(sizeof(struct vDirNode));
+		newNode->firstChild = 0;
+		newNode->parent = dir;
+		newNode->nextSibling = 0;
+		newNode->name = AllocUMem(strlen(filename) + 1);
+		if (!dir->firstChild)
+			dir->firstChild = newNode;
+		else
+		{
+			dir = dir->firstChild;
+			while (dir->nextSibling) dir = dir->nextSibling;
+			dir->nextSibling = newNode;
+		}
+
 		DeallocMem(directory);
-		DeallocMem(tempName);
 		return (0);
 	}
 	else
 	{
 		DeallocMem(directory);
-		DeallocMem(tempName);
 		return (-1);
 	}
 }

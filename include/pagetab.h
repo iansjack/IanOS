@@ -66,10 +66,10 @@ struct PT {
 };
 
 void *AllocPage(unsigned short int pid);
-long CreatePTE(void *pAddress, long lAddress, unsigned short pid, unsigned char global);
-long AllocAndCreatePTE(long lAddress, unsigned short pid, unsigned char global);
+long CreatePTE(void *pAddress, long lAddress, unsigned short pid, short flags);
+long AllocAndCreatePTE(long lAddress, unsigned short pid, short flags);
 long CreatePTEWithPT(struct PML4 *pml4, void *pAddress, long lAddress,
-		     unsigned short pid, unsigned char global);
+		     unsigned short pid, short flags);
 void *VCreatePageDir(unsigned short pid, unsigned short parentPid);
 
 #endif

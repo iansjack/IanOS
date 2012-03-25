@@ -144,7 +144,7 @@ long DoExec(char *name, char *environment)
 		size = codelen;
 		while (codelen > PageSize)
 		{
-			AllocAndCreatePTE(++currentPage, currentTask->pid, 0);
+			AllocAndCreatePTE(++currentPage, currentTask->pid, RW | US | P);
 			size -= PageSize;
 		}
 		ReadFromFile(fHandle, (char *) UserCode, codelen);
@@ -152,7 +152,7 @@ long DoExec(char *name, char *environment)
 		size = datalen;
 		while (datalen > PageSize)
 		{
-			AllocAndCreatePTE(++currentPage, currentTask->pid, 0);
+			AllocAndCreatePTE(++currentPage, currentTask->pid, RW | US | P);
 			size -= PageSize;
 		}
 		ReadFromFile(fHandle, (char *) UserData, datalen);

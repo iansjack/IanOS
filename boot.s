@@ -28,10 +28,10 @@ nTotalSect32:	.long 0x00000000
 bBootDrive:		.byte 0x00
 ResvdByte:		.byte 0x00
 ExtBootSig:		.byte 0x29
-nOSSectors:		.word 0x0080
+nOSSectors:		.word 0x0080	# Make sure this is enough! 0x 80 sectors takes us to 0x10000 (+0x1000)
 ResvsWord:		.word 0x3F51
-Volname:			.ascii "RICH       "
-FatType:			.ascii "FAT12   "
+Volname:		.ascii "RICH       "
+FatType:		.ascii "FAT12   "
 
 # Relocate boot sector to 0x90000
 Bootup:

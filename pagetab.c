@@ -147,7 +147,7 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 		long c;
 		struct PT *pt = (struct PT *) GetPT(pml4, UserData, pid);
 		VIRT(PT,pt)->entries[GetPTIndex(UserData)].value = AllocAndCreatePTE(
-				TempUserData, pid, 0);
+				TempUserData, pid, RW | P);
 		c = TempUserData;
 		asm ("invlpg %0;"
 				:
@@ -156,7 +156,7 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 
 		pt = (struct PT *) GetPT(pml4, UserStack, pid);
 		VIRT(PT,pt)->entries[GetPTIndex(UserStack)].value =
-				AllocAndCreatePTE(TempUStack, pid, 0);
+				AllocAndCreatePTE(TempUStack, pid, RW | P);
 		c = TempUStack;
 		asm ("invlpg %0;"
 				:
@@ -181,7 +181,7 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 		{
 			// Create a page table entry in the new Page Table and also point TempUserCode to it.
 			VIRT(PT,pt)->entries[i].value = AllocAndCreatePTE(TempUserCode,
-					pid, 0);
+					pid, US | RW | P);
 			// Copy the physical memory
 			copyMem(
 					((VIRT(PT, currentPT)->entries[i].value) & 0xFFFFF000)
@@ -200,7 +200,7 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 		{
 			// Create a page table entry in the new Page Table and also point TempUserCode to it.
 			VIRT(PT,pt)->entries[i].value = AllocAndCreatePTE(TempUserCode,
-					pid, 0);
+					pid, US | RW | P);
 			// Copy the physical memory
 			copyMem(
 					((VIRT(PT, currentPT)->entries[i].value) & 0xFFFFF000)
@@ -219,7 +219,7 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 		{
 			// Create a page table entry in the new Page Table and also point TempUserCode to it.
 			VIRT(PT,pt)->entries[i].value = AllocAndCreatePTE(TempUserCode,
-					pid, 0);
+					pid, US | RW | P);
 			// Copy the physical memory
 			copyMem(
 					((VIRT(PT, currentPT)->entries[i].value) & 0xFFFFF000)
@@ -238,7 +238,7 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 		{
 			// Create a page table entry in the new Page Table and also point TempUserCode to it.
 			VIRT(PT,pt)->entries[i].value = AllocAndCreatePTE(TempUserCode,
-					pid, 0);
+					pid, US | RW | P);
 			// Copy the physical memory
 			copyMem(
 					((VIRT(PT, currentPT)->entries[i].value) & 0xFFFFF000)
@@ -255,17 +255,17 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 // Create a Page Table Entry in the current Page Table
 // Allocate the physical page
 //=====================================================
-long AllocAndCreatePTE(long lAddress, unsigned short pid, unsigned char global)
+long AllocAndCreatePTE(long lAddress, unsigned short pid, short flags)
 {
 	void *pAddress = AllocPage(pid);
-	return CreatePTE(pAddress, lAddress, pid, global);
+	return CreatePTE(pAddress, lAddress, pid, flags);
 }
 
 //================================================================
 // Create a Page Table Entry in the Page Table pointed to by pml4
 //================================================================
 long CreatePTEWithPT(struct PML4 *pml4, void *pAddress, long lAddress,
-		unsigned short pid, unsigned char global)
+		unsigned short pid, short flags)
 {
 	int ptIndex = GetPTIndex(lAddress);
 	;
@@ -273,26 +273,21 @@ long CreatePTEWithPT(struct PML4 *pml4, void *pAddress, long lAddress,
 
 	// We don't want this function to be interrupted.
 	asm ("cli");
-	if (global)
-		VIRT(PT,pt)->entries[ptIndex].value = ((long) pAddress & 0xFFFFF000)
-				| RW | US | P | G;
-	else
-		VIRT(PT,pt)->entries[ptIndex].value = ((long) pAddress & 0xFFFFF000)
-				| RW | US | P;
+	VIRT(PT,pt)->entries[ptIndex].value = ((long) pAddress & 0xFFFFF000) | flags;
 	asm ("sti");
 
-	return ((long) pAddress | 7);
+	return ((long) pAddress | flags);
 }
 
 //=====================================================
 // Create a Page Table Entry in the current Page Table
 //=====================================================
 long CreatePTE(void *pAddress, long lAddress, unsigned short pid,
-		unsigned char global)
+		short flags)
 {
 	long retVal = 0;
 	struct PML4 *pml4 = (struct PML4 *) (currentTask->cr3 & 0xFFFFF000);
-	retVal = CreatePTEWithPT(pml4, pAddress, lAddress, pid, global);
+	retVal = CreatePTEWithPT(pml4, pAddress, lAddress, pid, flags);
 	asm ("invlpg %0;"
 			:
 			:""(lAddress)
