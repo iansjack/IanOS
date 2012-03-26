@@ -1,7 +1,7 @@
 include ../Flags.mak
 
 LIBS = ../library/liblib.a ../library/libsyscalls.a 
-TASKS = TASK1 TASK2 TASK3 TASK4 PWD LS CAT
+TASKS = TASK1 TASK2 TASK3 TASK4 PWD LS CAT EDIT
 
 all: $(TASKS) 
 
@@ -50,6 +50,12 @@ CAT: cat.o inittask.o $(LIBS)
 
 cat.o: cat.c
 
+EDIT: edit.o inittask.o $(LIBS)
+	ld -Tlink.ld edit.o $(LIBS) -oEDIT
+	mcopy -o EDIT c:/BIN 
+
+edit.o: edit.c
+
 clean:
-	rm -f TASK? *.o LS* CAT* PWD* *~
+	rm -f TASK? *.o LS* CAT* PWD* EDIT* *~
 

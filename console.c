@@ -1,6 +1,7 @@
 #include "memory.h"
 #include "kernel.h"
 #include "console.h"
+//#include <sys/io.h>
 
 //====================================================
 // This is the task that listens for console requests.
@@ -27,7 +28,9 @@ void switchConsole(long console)
 			VideoBuffer[i] = ConsoleBuffer[i];
 	}
 	currentBuffer = console;
+	currCons = &consoles[console];
 	asm("sti");
+	Position_Cursor(currCons->row, currCons->column);
 }
 
 void ScrollScreen(long console)
@@ -83,6 +86,8 @@ void ClrScr(long console)
 			}
 		}
 	}
+	currCons->row = currCons->column = 0;
+	Position_Cursor(0, 0);
 }
 
 void ClrEOL(long console)
@@ -143,6 +148,7 @@ void PrintChar(unsigned char c, long console)
 		}
 		break;
 	}
+	Position_Cursor(currCons->row, currCons->column);
 }
 
 void ProcessChar(unsigned char c)
@@ -321,8 +327,7 @@ void consoleTaskCode()
 
 		case WRITESTR:
 			s = (unsigned char *) ConsoleMsg.quad;
-			while (*s != 0)
-				ProcessChar(*s++);
+			while (*s != 0)	ProcessChar(*s++);
 			DeallocMem((void *) ConsoleMsg.quad);
 			break;
 

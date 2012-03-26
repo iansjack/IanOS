@@ -4,20 +4,21 @@
 	.global sys_SendMessage
 	.global sys_SendReceive
 	.global sys_GetCurrentConsole
-	.global Sys_Getcwd
-	.global Sys_Chdir
-	.global Sys_Open
-	.global Sys_Close
-	.global Sys_Fork
-	.global Sys_Execve
-	.global Sys_Wait
-	.global Sys_Stat
-	.global Sys_Read
-	.global Sys_Write
-	.global Sys_Creat
-	.global Sys_Unlink
-	.global Sys_Nanosleep
-	.global Sys_MkDir
+	.global getcwd
+	.global chdir
+	.global open
+	.global close
+	.global fork
+	.global execve
+	.global wait
+	.global stat
+	.global read
+	.global write
+	.global creat
+	.global unlink
+	.global nanosleep
+	.global mkdir
+	.global lseek
 
 	.text
 
@@ -41,73 +42,78 @@ sys_GetCurrentConsole:
 	syscall
 	ret
 
-Sys_Getcwd:
+getcwd:
 	mov $SYS_GETCWD, %r9
 	syscall
 	ret
 
-Sys_Chdir:
+chdir:
 	mov $SYS_CHDIR, %r9
 	syscall
 	ret
 	
-Sys_Open:
+open:
 	mov $SYS_OPEN, %r9
 	syscall
 	ret
 
-Sys_Close:
+close:
 	mov $SYS_CLOSE, %r9
 	syscall
 	ret
 	
-Sys_Fork:
+fork:
 	mov $SYS_FORK, %r9
 	syscall
 	ret
 	
-Sys_Execve:
+execve:
 	mov $SYS_EXECVE, %r9
 	syscall
 	ret
 
-Sys_Wait:
+wait:
 	mov $SYS_WAITPID, %r9
 	syscall
 	ret
 	
-Sys_Stat:
+stat:
 	mov $SYS_STAT, %r9
 	syscall
 	ret
 		
-Sys_Read:
+read:
 	mov $SYS_READ, %r9
 	syscall
 	ret
 
-Sys_Write:
+write:
 	mov $SYS_WRITE, %r9
 	syscall
 	ret
 
-Sys_Creat:
+creat:
 	mov $SYS_CREAT, %r9
 	syscall
 	ret
 	
-Sys_Unlink:
+unlink:
 	mov $SYS_UNLINK, %r9
 	syscall 
 	ret
 
-Sys_Nanosleep:
+nanosleep:
 	mov $SYS_NANOSLEEP, %r9
 	syscall
 	ret
 	
-Sys_MkDir:
+mkDir:
 	mov $SYS_MKDIR, %r9
 	syscall
 	ret
 	
+lseek:
+	mov $SYS_LSEEK, %r9
+	syscall
+	ret
+

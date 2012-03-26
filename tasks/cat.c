@@ -6,18 +6,18 @@ int main(int argc, char **argv)
 {
 	int ret;
 
-	FD InFile = Sys_Open(argv[1]);
+	FD InFile = open(argv[1]);
 	if (InFile != -1) {
 		struct FileInfo inf;
-		Sys_Stat(InFile, &inf);
+		stat(InFile, &inf);
 
 		char *buffer = (char *)sys_AllocMem(inf.Length + 1);
-		ret = Sys_Read(InFile, buffer, inf.Length);
+		ret = read(InFile, buffer, inf.Length);
 		buffer[inf.Length] = 0;
-		Sys_Write(STDOUT, buffer, inf.Length + 1);
-		Sys_Close(InFile);
+		write(STDOUT, buffer, inf.Length + 1);
+		close(InFile);
 		sys_DeallocMem(buffer);
 	}
-	sys_Exit();
+	exit();
 	return (0);
 }

@@ -12,21 +12,16 @@ long ReadFromFile(struct FCB *fHandle, char *buffer, long noBytes)
 {
 	long retval;
 
-	struct Message *FSMsg;
-
-	FSMsg = (struct Message *)ALLOCMSG;
+	struct Message *FSMsg = ALLOCMSG;
 	char *buff = AllocKMem(noBytes);
-	int i;
 
 	FSMsg->nextMessage = 0;
 	FSMsg->byte = READFILE;
-	FSMsg->quad = (long)fHandle;
-	FSMsg->quad2 = (long)buff;
+	FSMsg->quad = (long) fHandle;
+	FSMsg->quad2 = (long) buff;
 	FSMsg->quad3 = noBytes;
-	SendReceiveMessage((struct MessagePort *)FSPort, FSMsg);
-	for (i = 0; i < noBytes; i++) {
-		buffer[i] = buff[i];
-	}
+	SendReceiveMessage(FSPort, FSMsg);
+	copyMem(buff, buffer, noBytes);
 	DeallocMem(buff);
 	retval = FSMsg->quad;
 	DeallocMem(FSMsg);
@@ -40,12 +35,14 @@ void copyMem(unsigned char *source, unsigned char *dest, long size)
 {
 	int i;
 
-	if (dest < (unsigned char *)0x10000) {
+	if (dest < (unsigned char *) 0x10000)
+	{
 		KWriteString("OOps!!!", 20, 40);
 		asm("cli;" "hlt;");
 	}
 
-	for (i = 0; i < size; i++) {
+	for (i = 0; i < size; i++)
+	{
 		dest[i] = source[i];
 	}
 }
@@ -55,11 +52,12 @@ void copyMem(unsigned char *source, unsigned char *dest, long size)
 //===========================================================================
 void KWriteString(char *str, int row, int col)
 {
-	char *VideoBuffer = (char *)0xB8000;
+	char *VideoBuffer = (char *) 0xB8000;
 
 	int temp = 160 * row + 2 * col;
 	int i = 0;
-	while (str[i] != 0) {
+	while (str[i] != 0)
+	{
 		VideoBuffer[temp + 2 * i] = str[i];
 		i++;
 	}
@@ -68,20 +66,23 @@ void KWriteString(char *str, int row, int col)
 //==========================================================================
 // A kernel library function to write a quad character to the screen.
 //==========================================================================
-void KWriteHex(long c, int row)	//, int col)
+void KWriteHex(long c, int row) //, int col)
 {
-	char *VideoBuffer = (char *)0xB8000;
+	char *VideoBuffer = (char *) 0xB8000;
 
 	int i;
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		char lo = c & 0xF;
 		lo += 0x30;
-		if (lo > 0x39) {
+		if (lo > 0x39)
+		{
 			lo += 7;
 		}
 		char hi = (c & 0xF0) >> 4;
 		hi += 0x30;
-		if (hi > 0x39) {
+		if (hi > 0x39)
+		{
 			hi += 7;
 		}
 		VideoBuffer[160 * row + 28 - 4 * i] = hi;
@@ -99,19 +100,20 @@ FD KOpenFile(unsigned char *s)
 	struct FCB *fcb = 0;
 
 	unsigned char *S = NameToFullPath(s);
-	struct Message *msg = (struct Message *)ALLOCMSG;
+	struct Message *msg = ALLOCMSG;
 	msg->nextMessage = 0;
 	msg->byte = OPENFILE;
-	msg->quad = (long)S;
-	SendReceiveMessage((struct MessagePort *)FSPort, msg);
-	fcb = (struct FCB *)msg->quad;
+	msg->quad = (long) S;
+	SendReceiveMessage(FSPort, msg);
+	fcb = (struct FCB *) msg->quad;
 	DeallocMem(S);
 	DeallocMem(msg);
-	if (fcb) {
+	if (fcb)
+	{
 		struct FCB *temp = currentTask->fcbList;
 		int tempID = 2;
-		while (temp->nextFCB
-		       && (temp->nextFCB->fileDescriptor == tempID)) {
+		while (temp->nextFCB && (temp->nextFCB->fileDescriptor == tempID))
+		{
 			temp = temp->nextFCB;
 			tempID++;
 		}
@@ -130,8 +132,10 @@ int KCloseFile(FD fileDescriptor)
 {
 	struct FCB *temp = currentTask->fcbList;
 	struct FCB *temp2;
-	while (temp->nextFCB) {
-		if (temp->nextFCB->fileDescriptor == fileDescriptor) {
+	while (temp->nextFCB)
+	{
+		if (temp->nextFCB->fileDescriptor == fileDescriptor)
+		{
 			temp2 = temp->nextFCB;
 			temp->nextFCB = temp->nextFCB->nextFCB;
 			temp = temp2;
@@ -139,13 +143,14 @@ int KCloseFile(FD fileDescriptor)
 		}
 		temp = temp->nextFCB;
 	}
-	if (temp) {
-		struct Message *msg = (struct Message *)ALLOCMSG;
+	if (temp)
+	{
+		struct Message *msg = ALLOCMSG;
 
 		msg->nextMessage = 0;
 		msg->byte = CLOSEFILE;
-		msg->quad = (long)temp /*fHandle */ ;
-		SendReceiveMessage((struct MessagePort *)FSPort, msg);
+		msg->quad = (long) temp /*fHandle */;
+		SendReceiveMessage(FSPort, msg);
 		DeallocMem(msg);
 		return 0;
 	}
@@ -157,23 +162,25 @@ int DoStat(FD fileDescriptor, struct FileInfo *info)
 	int retval = -1;
 
 	struct FCB *temp = currentTask->fcbList;
-	while (temp->nextFCB) {
+	while (temp->nextFCB)
+	{
 		if (temp->fileDescriptor == fileDescriptor)
 			break;
 		temp = temp->nextFCB;
 	}
-	if (temp) {
-		struct Message *msg = (struct Message *)ALLOCMSG;
-		char *buff = (char *)AllocKMem(sizeof(struct FileInfo));
+	if (temp)
+	{
+		struct Message *msg = ALLOCMSG;
+		char *buff = (char *) AllocKMem(sizeof(struct FileInfo));
 
 		msg->nextMessage = 0;
 		msg->byte = GETFILEINFO;
-		msg->quad = (long)temp;
-		msg->quad2 = (long)buff;
-		SendReceiveMessage((struct MessagePort *)FSPort, msg);
-		copyMem(buff, (char *)info, sizeof(struct FileInfo));
+		msg->quad = (long) temp;
+		msg->quad2 = (long) buff;
+		SendReceiveMessage(FSPort, msg);
+		copyMem(buff, (char *) info, sizeof(struct FileInfo));
 		DeallocMem(buff);
-		retval = 0;	//msg->quad;
+		retval = 0; //msg->quad;
 		DeallocMem(msg);
 	}
 	return (retval);
@@ -184,38 +191,42 @@ long DoRead(FD fileDescriptor, char *buffer, long noBytes)
 	long retval = 0;
 
 	struct FCB *temp = currentTask->fcbList;
-	while (temp->nextFCB) {
+	while (temp->nextFCB)
+	{
 		if (temp->fileDescriptor == fileDescriptor)
 			break;
 		temp = temp->nextFCB;
 	}
-	if (temp) {
-		if (temp->deviceType == KBD) {
+	if (temp)
+	{
+		if (temp->deviceType == KBD)
+		{
 			struct Message *kbdMsg;
 
-			kbdMsg = (struct Message *)ALLOCMSG;
+			kbdMsg = ALLOCMSG;
 			kbdMsg->nextMessage = 0;
 			kbdMsg->byte = 1;
 			kbdMsg->quad = currentTask->console;
-			SendReceiveMessage((struct MessagePort *)KbdPort,
-					   kbdMsg);
+			SendReceiveMessage(KbdPort, kbdMsg);
 			char c = kbdMsg->byte;
 			buffer[0] = c;
 			buffer[1] = 0;
 			DeallocMem(kbdMsg);
 			return (1);
-		} else {
+		}
+		else
+		{
 			struct Message *FSMsg;
 
-			FSMsg = (struct Message *)ALLOCMSG;
+			FSMsg = ALLOCMSG;
 			char *buff = AllocKMem(noBytes);
 
 			FSMsg->nextMessage = 0;
 			FSMsg->byte = READFILE;
-			FSMsg->quad = (long)temp;
-			FSMsg->quad2 = (long)buff;
+			FSMsg->quad = (long) temp;
+			FSMsg->quad2 = (long) buff;
 			FSMsg->quad3 = noBytes;
-			SendReceiveMessage((struct MessagePort *)FSPort, FSMsg);
+			SendReceiveMessage(FSPort, FSMsg);
 			copyMem(buff, buffer, noBytes);
 			DeallocMem(buff);
 			retval = FSMsg->quad;
@@ -230,38 +241,43 @@ long DoWrite(FD fileDescriptor, char *buffer, long noBytes)
 	long retval = 0;
 
 	struct FCB *temp = currentTask->fcbList;
-	while (temp->nextFCB) {
+	while (temp->nextFCB)
+	{
 		if (temp->fileDescriptor == fileDescriptor)
 			break;
 		temp = temp->nextFCB;
 	}
-	if (temp) {
-		if (temp->deviceType == CONS) {
+	if (temp)
+	{
+		if (temp->deviceType == CONS)
+		{
 			char *buff = AllocKMem(noBytes + 1);
 			copyMem(buffer, buff, noBytes);
 			buff[noBytes] = 0;
 
-			struct Message *msg = (struct Message *)ALLOCMSG;
+			struct Message *msg = ALLOCMSG;
 			msg->nextMessage = 0;
 			msg->byte = WRITESTR;
-			msg->quad = (long)buff;
+			msg->quad = (long) buff;
 			msg->quad2 = currentTask->console;
-			SendMessage((struct MessagePort *)ConsolePort, msg);
+			SendMessage(ConsolePort, msg);
 			DeallocMem(msg);
 			retval = noBytes;
-		} else {
+		}
+		else
+		{
 			struct Message *FSMsg;
 
-			FSMsg = (struct Message *)ALLOCMSG;
+			FSMsg = ALLOCMSG;
 			char *buff = AllocKMem(noBytes);
 			copyMem(buffer, buff, noBytes);
 
 			FSMsg->nextMessage = 0;
 			FSMsg->byte = WRITEFILE;
-			FSMsg->quad = (long)temp;
-			FSMsg->quad2 = (long)buff;
+			FSMsg->quad = (long) temp;
+			FSMsg->quad2 = (long) buff;
 			FSMsg->quad3 = noBytes;
-			SendReceiveMessage((struct MessagePort *)FSPort, FSMsg);
+			SendReceiveMessage(FSPort, FSMsg);
 			DeallocMem(buff);
 			retval = FSMsg->quad;
 			DeallocMem(FSMsg);
@@ -273,20 +289,21 @@ long DoWrite(FD fileDescriptor, char *buffer, long noBytes)
 FD DoCreate(unsigned char *s)
 {
 	unsigned char *S = NameToFullPath(s);
-	struct Message *msg = (struct Message *)ALLOCMSG;
+	struct Message *msg = ALLOCMSG;
 	msg->nextMessage = 0;
 	msg->byte = CREATEFILE;
-	msg->quad = (long)S;	//str;
-	SendReceiveMessage((struct MessagePort *)FSPort, msg);
+	msg->quad = (long) S; //str;
+	SendReceiveMessage(FSPort, msg);
 	DeallocMem(S);
 	long retval = msg->quad;
 	DeallocMem(msg);
-	struct FCB *fcb = (struct FCB *)retval;
-	if (fcb) {
+	struct FCB *fcb = (struct FCB *) retval;
+	if (fcb)
+	{
 		struct FCB *temp = currentTask->fcbList;
 		int tempID = 2;
-		while (temp->nextFCB
-		       && (temp->nextFCB->fileDescriptor == tempID)) {
+		while (temp->nextFCB && (temp->nextFCB->fileDescriptor == tempID))
+		{
 			temp = temp->nextFCB;
 			tempID++;
 		}
@@ -302,11 +319,11 @@ FD DoCreate(unsigned char *s)
 long DoMkDir(unsigned char *s)
 {
 	unsigned char *S = NameToFullPath(s);
-	struct Message *msg = (struct Message *)ALLOCMSG;
+	struct Message *msg = ALLOCMSG;
 	msg->nextMessage = 0;
 	msg->byte = CREATEDIR;
-	msg->quad = (long)S;
-	SendReceiveMessage((struct MessagePort *)FSPort, msg);
+	msg->quad = (long) S;
+	SendReceiveMessage(FSPort, msg);
 	DeallocMem(S);
 	long retval = msg->quad;
 	DeallocMem(msg);
@@ -316,14 +333,12 @@ long DoDelete(unsigned char *name)
 {
 	int retval = 0;
 	unsigned char *S = NameToFullPath(name);
-	//AllocKMem(strlen(name) + 1);
-	//strcpy(S, name); 
-	struct Message *msg = (struct Message *)ALLOCMSG;
+	struct Message *msg = ALLOCMSG;
 
 	msg->nextMessage = 0;
 	msg->byte = DELETEFILE;
-	msg->quad = (long)S;
-	SendReceiveMessage((struct MessagePort *)FSPort, msg);
+	msg->quad = (long) S;
+	SendReceiveMessage(FSPort, msg);
 	DeallocMem(S);
 	DeallocMem(msg);
 	return retval;
@@ -338,9 +353,10 @@ long DoChDir(unsigned char *dirName)
 
 	msg->nextMessage = 0;
 	msg->byte = TESTFILE;
-	msg->quad = (long)S;
-	SendReceiveMessage((struct MessagePort *)FSPort, msg);
-	if (msg->quad) {
+	msg->quad = (long) S;
+	SendReceiveMessage(FSPort, msg);
+	if (msg->quad)
+	{
 		DeallocMem(currentTask->currentDirName);
 		currentTask->currentDirName = AllocKMem(strlen(S) + 1);
 		strcpy(currentTask->currentDirName, S);
@@ -353,28 +369,66 @@ long DoChDir(unsigned char *dirName)
 
 unsigned char *DoGetcwd(void)
 {
-	unsigned char *name =
-	    AllocUMem(strlen(currentTask->currentDirName) + 1);
+	unsigned char *name = AllocUMem(strlen(currentTask->currentDirName) + 1);
 	strcpy(name, currentTask->currentDirName);
 	return name;
 }
 
+int Do_Seek(FD fileDescriptor, int offset, int whence)
+{
+	long retval = -1;
+
+	struct FCB *temp = currentTask->fcbList;
+	while (temp->nextFCB)
+	{
+		if (temp->fileDescriptor == fileDescriptor)
+			break;
+		temp = temp->nextFCB;
+	}
+	if (temp)
+	{
+		if (temp->deviceType == CONS)
+		{
+		}
+		else
+		{
+			struct Message *FSMsg;
+
+			FSMsg = ALLOCMSG;
+
+			FSMsg->nextMessage = 0;
+			FSMsg->byte = SEEK;
+			FSMsg->quad = (long) temp;
+			FSMsg->quad2 = (long) offset;
+			FSMsg->quad3 = (long) whence;
+			SendReceiveMessage(FSPort, FSMsg);
+			retval = FSMsg->quad;
+			DeallocMem(FSMsg);
+		}
+	}
+	return (retval);
+}
+
 unsigned char *NameToFullPath(unsigned char *name)
 {
-	char *S =
-	    AllocKMem(strlen(name) + strlen(currentTask->currentDirName) + 3);
+	char *S = AllocKMem(strlen(name) + strlen(currentTask->currentDirName) + 3);
 	Debug();
 	// "." is a very special case. It changes nothing.
-	if (!strcmp(name, ".")) {
+	if (!strcmp(name, "."))
+	{
 		strcpy(S, currentTask->currentDirName);
 		return S;
 	}
 	// The special case ".."
-	if (!strcmp(name, "..")) {
-		if (!strcmp(currentTask->currentDirName, "/")) {
+	if (!strcmp(name, ".."))
+	{
+		if (!strcmp(currentTask->currentDirName, "/"))
+		{
 			strcpy(S, "/");
 			return S;
-		} else {
+		}
+		else
+		{
 			strcpy(S, currentTask->currentDirName);
 			while (S[strlen(S) - 1] != '/')
 				S[strlen(S) - 1] = 0;
@@ -382,30 +436,34 @@ unsigned char *NameToFullPath(unsigned char *name)
 			if (strlen(S) == 0)
 				S[0] = '/';
 		}
-	} else {
+	}
+	else
+	{
 		// The special case "./xxx"
 		if (name[0] == '.' && name[1] == '/')
 			name += 2;
 		// The special case "../xxx"
-		if (name[0] == '.' && name[1] == '.' && name[2] == '/') {
+		if (name[0] == '.' && name[1] == '.' && name[2] == '/')
+		{
 			name += 3;
 			strcpy(S, currentTask->currentDirName);
 			while (S[strlen(S) - 1] != '/')
 				S[strlen(S) - 1] = 0;
 			strcat(S, name);
-		} else {
+		}
+		else
+		{
 			strcpy(S, "");
 			if (!strcmp(name, "/"))
 				strcpy(S, "/");
-			else {
+			else
+			{
 				if (name[0] == '/')
 					strcpy(S, name);
-				else {
-					if (strcmp
-					    (currentTask->currentDirName, "/"))
-						strcpy(S,
-						       currentTask->
-						       currentDirName);
+				else
+				{
+					if (strcmp(currentTask->currentDirName, "/"))
+						strcpy(S, currentTask->currentDirName);
 					strcat(S, "/");
 					strcat(S, name);
 				}

@@ -1,4 +1,4 @@
-#Thu Mar 22 17:20:16 GMT 2012
+#Mon Mar 26 16:55:29 BST 2012
 eclipse.preferences.version=1
 org.eclipse.cdt.codan.checkers.errnoreturn=Warning
 org.eclipse.cdt.codan.checkers.errnoreturn.params={implicit\=>false}
@@ -14,7 +14,7 @@ org.eclipse.cdt.codan.internal.checkers.AssignmentInConditionProblem=Warning
 org.eclipse.cdt.codan.internal.checkers.AssignmentInConditionProblem.params={}
 org.eclipse.cdt.codan.internal.checkers.AssignmentToItselfProblem=Error
 org.eclipse.cdt.codan.internal.checkers.AssignmentToItselfProblem.params={}
-org.eclipse.cdt.codan.internal.checkers.CaseBreakProblem=Warning
+org.eclipse.cdt.codan.internal.checkers.CaseBreakProblem=-Warning
 org.eclipse.cdt.codan.internal.checkers.CaseBreakProblem.params={no_break_comment\=>"no break",last_case_param\=>true,empty_case_param\=>false}
 org.eclipse.cdt.codan.internal.checkers.CatchByReference=Warning
 org.eclipse.cdt.codan.internal.checkers.CatchByReference.params={unknown\=>false,exceptions\=>()}

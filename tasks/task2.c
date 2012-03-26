@@ -5,11 +5,11 @@
 
 int main(void)
 {
-	FD fileDescriptor = Sys_Creat("TEST.TXT");
+	FD fileDescriptor = creat("TEST.TXT");
 	if (fileDescriptor != -1) {
-		Sys_Write(fileDescriptor, "1234\n", 5);
-		Sys_Close(fileDescriptor);
+		write(fileDescriptor, "1234\n", 5);
+		close(fileDescriptor);
 	}
-	sys_Exit();
+	exit();
 	return (0);
 }

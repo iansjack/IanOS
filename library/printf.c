@@ -54,6 +54,6 @@ int printf(unsigned char *s, ...)
 		}
 	}
 	va_end(ap);
-	Sys_Write(STDOUT, sprocessed, j);
+	write(STDOUT, sprocessed, j);
 	return 0;
 }

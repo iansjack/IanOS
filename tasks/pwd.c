@@ -2,9 +2,9 @@
 
 int main(void)
 {
-	unsigned char *cwd = Sys_Getcwd();
+	unsigned char *cwd = getcwd();
 	printf("%s\n", cwd);
 	sys_DeallocMem(cwd);
-	sys_Exit();
+	exit();
 	return (0);
 }

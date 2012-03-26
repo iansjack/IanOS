@@ -44,6 +44,12 @@ start64:
 	mov	%cr4, %rax
 	bts $7, %rax					# Enable global pages
 	mov %rax, %cr4
+#	mov $0xC0000080, %ecx
+#	rdmsr
+#	mov $0xC0000080, %ecx
+#	bts $11, %eax
+#	wrmsr
+
 
 # Final preparations before starting tasking
 	call InitMem64

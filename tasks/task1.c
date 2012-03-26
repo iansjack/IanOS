@@ -19,7 +19,7 @@ int main(int argc, char **argv)
 			printf("%c#%d", ESC, i);
 		}
 	printf("%c[2J", ESC);
-	printf("IanOS Version 0.1.3 - 2012  Console %d\n#> _\b", i + 1);
+	printf("IanOS Version 0.1.3 - 2012  Console %d\n#> ", i + 1);
 	name[80] = environment[80] = 0;
 	for (i = 0; i < 80; i++)
 		commandline[i] = ' ';
@@ -30,7 +30,7 @@ int main(int argc, char **argv)
 		switch (c) {
 		case BACKSPACE:
 			if (column > 0) {
-				printf(" \b\b_\b");
+				printf(" \b");
 				commandline[column--] = 0;
 			}
 			break;
@@ -68,24 +68,24 @@ int main(int argc, char **argv)
 					else
 						break;
 				directory[i] = 0;
-				int dir = Sys_Chdir(directory);
+				int dir = chdir(directory);
 				if (dir == -1)
 					printf("Directory not found!\n");
 			} else {
-				int pid = Sys_Fork();
+				int pid = fork();
 				if (!pid)
 				{
-					if (Sys_Execve(name, environment))
+					if (execve(name, environment))
 					{
 						printf("Command not found\n");
-						sys_Exit();
+						exit();
 					}
 				}
 				else
-					Sys_Wait(pid);
+					wait(pid);
 			}
 
-			printf("#> _\b");
+			printf("#> ");
 
 			// Clear commandline[]
 			for (i = 0; i < 80; i++) {
@@ -95,7 +95,7 @@ int main(int argc, char **argv)
 
 		default:
 			commandline[column++] = c;
-			printf("%c_\b", c);
+			printf("%c", c);
 			break;
 		}
 	}

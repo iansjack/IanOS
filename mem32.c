@@ -55,6 +55,10 @@ void InitMemManagement()
 	PMap[0x80] = 1;
 	nPagesFree--;
 
+	// EBDA
+	PMap[0x9E] = PMap[0x9F] = 1;
+	nPagesFree -= 2;
+
 	// Ports, ROM, VideoMem, etc.
 	for (count = 0xA0; count < 0x100; count++) {
 		PMap[count] = 1;

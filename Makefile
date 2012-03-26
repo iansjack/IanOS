@@ -1,7 +1,7 @@
 include Flags.mak
 
 OBJS = startup.o os.o mem32.o ptab32.o hwsetup.o gates.o messages.o memory.o pagetab.o keyboard.o \
-		console.o filesystem.o syscalls.o newtask.o tasking.o messaging.o interrupts.o \
+		console.o vga.o filesystem.o syscalls.o newtask.o tasking.o messaging.o interrupts.o \
 		ide.o kernlib.o  tasklist.o tas1.o
 
 all: bootdisk IanOS.o
@@ -65,6 +65,8 @@ pagetab.o: pagetab.c $(INC)/memory.h $(INC)/pagetab.h $(INC)/kstructs.h
 keyboard.o: keyboard.c $(INC)/memory.h $(INC)/kstructs.h
 
 console.o: console.c $(INC)/memory.h $(INC)/kstructs.h $(INC)/console.h
+
+vga.o: vga.s
 
 filesystem.o: filesystem.c $(INC)/memory.h $(INC)/kstructs.h
 

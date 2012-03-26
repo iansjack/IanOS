@@ -21,24 +21,25 @@
 #define UserData        0x0000000000600000L
 #define KernelStack     0x0000000000800000L
 #define UserStack       0x0000000000a00000L
-#define VAddr				0x0000008000000000L
+#define VAddr			0x0000008000000000L
 
 // Free                 0x0000000000C00000 - 0x0000007FFFFFFFFF
 
-#define PageSize			0x1000
-#define KbdPort			0x6F010L
-#define ConsolePort		0x6F020L
-#define FSPort				0x6F030L
+#define PageSize		0x1000
 
-#define OsCodeSeg			0x8
-#define OsDataSeg			0x10
-#define code64				0x18
-#define data64				0x20
+#define KbdPort			(struct MessagePort *)0x6F010L
+#define ConsolePort		(struct MessagePort *)0x6F020L
+#define FSPort			(struct MessagePort *)0x6F030L
+
+#define OsCodeSeg		0x8
+#define OsDataSeg		0x10
+#define code64			0x18
+#define data64			0x20
 #define udata64			0x28
-#define user64				0x30
-#define tssd64				0x38
+#define user64			0x30
+#define tssd64			0x38
 
-#define tsslength			0x80
+#define tsslength		0x80
 
 void *AllocMem(long sizeRequested, struct MemStruct *list);
 void *AllocKMem(long sizeRequested);

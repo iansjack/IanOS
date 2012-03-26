@@ -6,14 +6,14 @@
 void tas1(void)
 {
 	// Give tasks time to set themselves up
-	Sys_Nanosleep(10);
+	nanosleep(10);
 
-	long pid = Sys_Fork();
+	long pid = fork();
 	if (!pid)
-		Sys_Execve("TASK1", "TASK1 0");
-	pid = Sys_Fork();
+		execve("TASK1", "TASK1 0");
+	pid = fork();
 	if (!pid)
-		Sys_Execve("TASK1", "TASK1 1");
-	pid = Sys_Fork();
-	sys_Exit();
+		execve("TASK1", "TASK1 1");
+//	pid = Sys_Fork();
+	exit();
 }

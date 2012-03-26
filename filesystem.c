@@ -587,7 +587,6 @@ long ReadFile(struct FCB *fHandle, char *buffer, long noBytes)
 			}
 			if (fHandle->sectorInCluster++ == SectorsPerCluster)
 			{
-				Debug();
 				fHandle->currentCluster = FAT[fHandle->currentCluster];
 				fHandle->nextSector = ClusterToSector(fHandle->currentCluster);
 				fHandle->sectorInCluster = 1;
@@ -793,6 +792,64 @@ long CreateDir(unsigned char *name, unsigned short pid)
 	}
 }
 
+int Seek(struct FCB *fHandle, int offset, int whence)
+{
+	switch (whence)
+	{
+	case SEEK_SET:
+		fHandle->fileCursor = offset;
+		break;
+
+	case SEEK_CUR:
+		fHandle->fileCursor += offset;
+		break;
+
+	case SEEK_END:
+		fHandle->fileCursor = fHandle->length + offset;
+		break;
+
+	default:
+		return -1;
+	}
+
+	if (fHandle->fileCursor < 0)
+	{
+		fHandle->fileCursor = 0;
+		offset = 0;
+	}
+
+	if (fHandle->fileCursor > fHandle->length)
+	{
+		fHandle->fileCursor = fHandle->length;
+		offset = fHandle->length;
+	}
+
+	fHandle->bufCursor = fHandle->fileCursor;
+	fHandle->currentCluster = fHandle->startCluster;
+	fHandle->sectorInCluster = 1;
+
+	while (fHandle->bufCursor > BytesPerSector)
+	{
+		fHandle->bufCursor -= BytesPerSector;
+		if (fHandle->bufIsDirty)
+		{
+			WriteSector(
+					fHandle->filebuf,
+					ClusterToSector(fHandle->currentCluster)
+							+ fHandle->sectorInCluster - 1);
+		}
+		if (fHandle->sectorInCluster++ == SectorsPerCluster)
+		{
+			fHandle->currentCluster = FAT[fHandle->currentCluster];
+			fHandle->nextSector = ClusterToSector(fHandle->currentCluster);
+			fHandle->sectorInCluster = 1;
+		}
+		ReadSector(fHandle->filebuf, fHandle->nextSector);
+		fHandle->nextSector++;
+	}
+	return offset;
+}
+
 //=============================
 // The actual filesystem task
 //=============================
@@ -905,9 +962,16 @@ void fsTaskCode(void)
 			break;
 
 		case CREATEDIR:
-			;
-			int retVal = CreateDir((char *) FSMsg->quad, FSMsg->pid);
+			result = CreateDir((char *) FSMsg->quad, FSMsg->pid);
 			tempPort = (struct MessagePort *) FSMsg->tempPort;
+			FSMsg->quad = result;
+			SendMessage(tempPort, FSMsg);
+			break;
+
+		case SEEK:
+			result = Seek((struct FCB *)FSMsg->quad, FSMsg->quad2, FSMsg->quad3);
+			tempPort = (struct MessagePort *)FSMsg->tempPort;
+			FSMsg->quad = result;
 			SendMessage(tempPort, FSMsg);
 			break;
 

@@ -10,6 +10,7 @@
 #define LSHIFT       42
 #define RSHIFT       54
 #define ALT          56
+#define CTRL		 29
 #define CAPSLOCK     58
 #define F1           59
 #define F2           60
@@ -85,6 +86,31 @@ char KbdTableS[] = {
 	0 /*darrow */ , 0 /*pdown */ , 0 /*ins */ , 0 /*del */ , 0, 0, '|', 0 /*F11 */ , 0	/*F12 */
 };
 
+//==============================
+// The Ctrl keyboard table.
+//==============================
+
+char KbdTableC[] = {
+	0, 0 /*esc */ , '!', '"', '#', '$', '%', '^', '&', '*', '(', ')', '_',
+	'+',
+	8 /*backspace */ ,
+	0 /*tab */ , 17, 23, 5, 18, 20, 25, 21, 9, 15, 16, '{', '}',
+	13,
+	0 /*ctrl */ , 1, 19, 4, 6, 7, 8, 10, 11, 12, ':', '@',
+	'`',
+	0 /*lshift */ , '#',
+	26, 24, 3, 22, 2, 14, 13, '<', '>', '?',
+	0 /*rshift */ , 0 /*sysreq */ , 0 /*alt */ , ' ', 0 /*capslock */ ,
+	0 /*F1 */ , 0 /*F2 */ , 0 /*F3 */ ,
+	0 /*F4 */ , 0 /*F5 */ , 0 /*F6 */ , 0 /*F7 */ , 0 /*F8 */ ,
+	0 /*F9 */ , 0 /*F10 */ , 0 /*numlock */ , 0 /*scrolllock */ ,
+	0 /*home */ ,
+	0 /*uarrow */ , 0 /*pup */ , '-' /*numminus */ ,
+	0 /*larrow */ , '5' /*num5 */ , 0 /*rarrow */ , '+' /*numplus */ ,
+	0 /*end */ ,
+	0 /*darrow */ , 0 /*pdown */ , 0 /*ins */ , 0 /*del */ , 0, 0, '|', 0 /*F11 */ , 0	/*F12 */
+};
+
 //==========================================================
 // Send a KEYPRESSED message to kbTaskCode
 //==========================================================
@@ -101,22 +127,11 @@ void keyPressed()
 
 void ProcessMsgQueue(struct Console *console)
 {
-//      if (currentBuffer != 0)
-//      {
-//              KWriteString("In ProcessMsgQueue", 20, 0);
-//              while (1);
-//      }
-
 	while (console->kbBufCount && console->MsgQueue) {
 		unsigned char temp = console->kbBuffer[console->kbBufStart];
 		console->kbBufCount--;
 		console->kbBufStart++;
 		struct Message *tempMsg = console->MsgQueue;
-//      if (tempMsg == 0)
-//      {
-//              KWriteString("Ooops In ProcessMsgQueue", 20, 0);
-//              while (1);
-//      }
 		console->MsgQueue = tempMsg->nextMessage;
 		if (tempMsg->byte == GETCHAR) {
 			struct MessagePort *tempPort =
@@ -221,6 +236,11 @@ void kbTaskCode()
 					temp = 0x80;
 					break;
 
+				case CTRL:
+					modifier += CTRLED;
+					temp = 0x80;
+					break;
+
 				case F1:
 					switchConsole(0);
 					break;
@@ -237,28 +257,13 @@ void kbTaskCode()
 					switchConsole(3);
 					break;
 
-					/*case F5:
-					   switchConsole(4);
-					   break;
-
-					   case F6:
-					   switchConsole(5);
-					   break;
-
-					   case F7:
-					   switchConsole(6);
-					   break;
-
-					   case F8:
-					   switchConsole(7);
-					   break; */
-
 				default:
-					if (modifier & SHIFTED) {
+					if (modifier & CTRLED)
+						temp = KbdTableC[temp];
+					else if (modifier & SHIFTED)
 						temp = KbdTableS[temp];
-					} else {
+					else
 						temp = KbdTableU[temp];
-					}
 					currentCons->kbBuffer[currentCons->
 							      kbBufCurrent]
 					    = temp;
@@ -271,7 +276,9 @@ void kbTaskCode()
 				case RSHIFT:
 					modifier -= SHIFTED;
 					break;
-
+				case CTRL:
+					modifier -= CTRLED;
+					break;
 				default:
 					break;
 				}

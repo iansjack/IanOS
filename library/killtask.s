@@ -1,10 +1,10 @@
 	.include "../include/syscalls.inc"
 
-	.global sys_Exit
+	.global exit
 
 	.text
 
-sys_Exit:
+exit:
 	mov $SYS_EXIT, %r9
 	syscall
 	ret

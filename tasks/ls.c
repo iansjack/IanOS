@@ -13,18 +13,18 @@ int main(int argc, char **argv)
 
 	FD file;
 	if (argc == 2)
-		file = Sys_Open(argv[1]);
+		file = open(argv[1]);
 	else
 	{
-		cwd = Sys_Getcwd();
-		file = Sys_Open(cwd);
+		cwd = getcwd();
+		file = open(cwd);
 		sys_DeallocMem(cwd);
 	}
 	if (file != -1)
 	{
 		for (count1 = 0; count1 < 40; count1++)
 		{
-			ret = Sys_Read(file, (char *) &entry, sizeof(struct DirEntry));
+			ret = read(file, (char *) &entry, sizeof(struct DirEntry));
 			if (entry.attribute != 0x08)	// Volume lable, not really a directory entry
 			{
 				if (entry.name[0])
@@ -48,8 +48,8 @@ int main(int argc, char **argv)
 					break;
 			}
 		}
-		Sys_Close(file);
+		close(file);
 	}
-	sys_Exit();
+	exit();
 	return (0);
 }

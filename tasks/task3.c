@@ -2,7 +2,7 @@
 
 int main(void)
 {
-	Sys_Unlink("TEST.TXT");
-	sys_Exit();
+	unlink("TEST.TXT");
+	exit();
 	return (0);
 }

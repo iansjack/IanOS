@@ -10,6 +10,11 @@
 #define TESTFILE  	7
 #define GETFILEINFO 8
 #define CREATEDIR	9
+#define SEEK		10
+
+#define SEEK_SET	0
+#define SEEK_CUR	1
+#define SEEK_END	2
 
 struct DirectoryBuffer {
 	long Directory;		// The cluster number of the directory

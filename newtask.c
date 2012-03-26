@@ -125,7 +125,7 @@ long DoExec(char *name, char *environment)
 	strcpy(kname, "/BIN/");
 	strcat(kname, name);
 
-	struct Message *FSMsg = (struct Message *) ALLOCMSG;
+	struct Message *FSMsg = ALLOCMSG;
 
 	// Open file
 	FSMsg->nextMessage = 0;
@@ -257,7 +257,7 @@ void KillTask(void)
 
 	if (task->parentPort)
 	{
-		struct Message *m = (struct Message *) ALLOCMSG;
+		struct Message *m = ALLOCMSG;
 		m->quad = 0;
 		SendMessage(task->parentPort, m);
 		DeallocMem(m);

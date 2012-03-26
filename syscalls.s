@@ -27,7 +27,8 @@ CallNo:
 	.quad	Sys_MkNod
 	.quad	Sys_ChMod
 	.quad	Sys_LChOwn
-	.quad	Sys_Stat			
+	.quad	Sys_Stat
+	.quad	Sys_LSeek
 	.quad	GetTicks				# GETTICKS
 	.quad	Sys_Nanosleep
 	.quad	Alloc_Mem				# ALLOCMEM
@@ -170,7 +171,13 @@ Sys_Stat:
 	push %rcx
 	call DoStat
 	pop %rcx
-	sysretq			
+	sysretq
+
+Sys_LSeek:
+	push %rcx
+	call Do_Seek
+	pop %rcx
+	sysretq
 
 
 #========================================================
