@@ -4,7 +4,7 @@ int main(void)
 {
 	unsigned char *cwd = getcwd();
 	printf("%s\n", cwd);
-	sys_DeallocMem(cwd);
+	free(cwd);
 	exit();
 	return (0);
 }

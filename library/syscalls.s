@@ -12,6 +12,7 @@
 	.global execve
 	.global wait
 	.global stat
+	.global fstat
 	.global read
 	.global write
 	.global creat
@@ -19,6 +20,8 @@
 	.global nanosleep
 	.global mkdir
 	.global lseek
+	.global malloc
+	.global free
 
 	.text
 
@@ -82,6 +85,11 @@ stat:
 	syscall
 	ret
 		
+fstat:
+	mov $SYS_FSTAT, %r9
+	syscall
+	ret
+
 read:
 	mov $SYS_READ, %r9
 	syscall
@@ -116,4 +124,15 @@ lseek:
 	mov $SYS_LSEEK, %r9
 	syscall
 	ret
+
+malloc:
+	mov $ALLOCMEM, %r9
+	syscall
+	ret
+
+free:
+	mov $DEALLOCMEM, %r9
+	syscall
+	ret
+
 

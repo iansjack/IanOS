@@ -19,24 +19,34 @@ CallNo:
 	.quad	Sys_Close	
 	.quad	SysWaitPID
 	.quad	Sys_Creat
-	.quad	Sys_Link
+	.quad	Unimplemented	#Sys_Link
 	.quad	Sys_UnLink
 	.quad	Sys_Execve
 	.quad	Sys_ChDir
-	.quad	Sys_Time	
-	.quad	Sys_MkNod
-	.quad	Sys_ChMod
-	.quad	Sys_LChOwn
+	.quad	Unimplemented	#Sys_Time
+	.quad	Unimplemented	#Sys_MkNod
+	.quad	Unimplemented	#Sys_ChMod
+	.quad	Unimplemented	#Sys_LChOwn
+	.quad	Unimplemented	#Unused
 	.quad	Sys_Stat
 	.quad	Sys_LSeek
-	.quad	GetTicks				# GETTICKS
+	.quad	Unimplemented	#Sys_GetPid
+	.quad	Unimplemented	#Sys_Mount
+	.quad	Unimplemented	#Sys_Umount
+	.quad	Unimplemented	#Sys_SetUID
+	.quad	Unimplemented	#Sys_GetUID
+	.quad	Unimplemented	#Sys_Stime
+	.quad	Unimplemented	#Sys_Ptrace
+	.quad	Unimplemented	#Sys_Alarm
+	.quad	Sys_FStat
+	.quad	GetTicks
 	.quad	Sys_Nanosleep
-	.quad	Alloc_Mem				# ALLOCMEM
-	.quad	Send_Message			# SENDMESSAGE
-	.quad	Receive_Message 		# RECEIVEMESSAGE
-	.quad	Dealloc_Mem				# DEALLOCMEM
-	.quad	Send_Receive			# SENDRECEIVE
-	.quad	GetCurrentConsole		# GETCURRENTCONSOLE
+	.quad	Alloc_Mem
+	.quad	Send_Message
+	.quad	Receive_Message
+	.quad	Dealloc_Mem
+	.quad	Send_Receive
+	.quad	GetCurrentConsole
 	.quad 	Sys_Getcwd
 	.quad	Sys_MkDir
 
@@ -120,7 +130,7 @@ Sys_Creat:
 #=========================================================
 # 
 #=========================================================
-Sys_Link:
+Unimplemented:	 #Sys_Link:
 	sysretq
 
 #=========================================================
@@ -155,21 +165,15 @@ Sys_ChDir:
 	pop %rcx
 	sysretq				
 
-Sys_Time:
-	sysretq
-	
-Sys_MkNod:
-	sysretq
-	
-Sys_ChMod:
-	sysretq
-	
-Sys_LChOwn:
-	sysretq
-	
 Sys_Stat:
 	push %rcx
 	call DoStat
+	pop %rcx
+	sysretq
+
+Sys_FStat:
+	push %rcx
+	call DoFStat
 	pop %rcx
 	sysretq
 

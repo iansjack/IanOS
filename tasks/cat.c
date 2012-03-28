@@ -11,12 +11,12 @@ int main(int argc, char **argv)
 		struct FileInfo inf;
 		stat(InFile, &inf);
 
-		char *buffer = (char *)sys_AllocMem(inf.Length + 1);
+		char *buffer = malloc(inf.Length + 1);
 		ret = read(InFile, buffer, inf.Length);
 		buffer[inf.Length] = 0;
 		write(STDOUT, buffer, inf.Length + 1);
 		close(InFile);
-		sys_DeallocMem(buffer);
+		free(buffer);
 	}
 	exit();
 	return (0);

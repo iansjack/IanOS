@@ -20,7 +20,8 @@ FD open(unsigned char *filename);
 int close(FD fileDescriptor);
 long execve(unsigned char *name, char *environment);
 void wait(unsigned short pid);
-int stat(FD fileDescriptor, struct FileInfo *info);
+int stat(FD fileDescriptor, struct FileInfo *info);	// Wrong - should take filename as parameter!!!
+int fstat(FD fileDescriptor, struct FileInfo *info);
 long read(FD fileDescriptor, unsigned char *buffer, long noBytes);
 long write(FD fileDescriptor, unsigned char *buffer, long noBytes);
 FD creat(unsigned char *name);
@@ -28,5 +29,7 @@ int unlink(unsigned char *name);
 long mkdir(unsigned char *name);
 int lseek(FD fDescriptor, int offset, int whence);
 int fork();
+void *malloc(int size);
+void free(void *ptr);
 
 #endif

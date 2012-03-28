@@ -9,4 +9,6 @@ To run under the debuuger follow this procedure:
 
 Should Delete file check all FCBs to see if anyone has that file open?
 
-CreateFile only works for root directory.
+stat system call is taking an FD parameter, but it should be a filename.
+
+Big memory leak. In DoExec we allocate new memory for program but don't free existing pages!!!

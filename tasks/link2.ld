@@ -1,6 +1,6 @@
 OUTPUT_FORMAT("elf64-x86-64")
 ENTRY(_start)
-STARTUP(inittask.o)
+STARTUP(inittask2.o)
 SEARCH_DIR(.)
 SECTIONS
 {

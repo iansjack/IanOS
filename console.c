@@ -87,7 +87,6 @@ void ClrScr(long console)
 		}
 	}
 	currCons->row = currCons->column = 0;
-	Position_Cursor(0, 0);
 }
 
 void ClrEOL(long console)
@@ -288,6 +287,7 @@ void ProcessChar(unsigned char c)
 		Mode = NORMAL_MODE;
 		break;
 	}
+	Position_Cursor(currCons->row, currCons->column);
 }
 
 void consoleTaskCode()

@@ -73,5 +73,6 @@ long AllocAndCreatePTE(long lAddress, unsigned short pid, short flags);
 long CreatePTEWithPT(struct PML4 *pml4, void *pAddress, long lAddress,
 		     unsigned short pid, short flags);
 void *VCreatePageDir(unsigned short pid, unsigned short parentPid);
+void ClearUserMemory(void);
 
 #endif

@@ -157,7 +157,7 @@ int KCloseFile(FD fileDescriptor)
 	return -1;
 }
 
-int DoStat(FD fileDescriptor, struct FileInfo *info)
+int DoStat(FD fileDescriptor, struct FileInfo *info) // *** No - this should take a filename!!!
 {
 	int retval = -1;
 
@@ -186,6 +186,34 @@ int DoStat(FD fileDescriptor, struct FileInfo *info)
 	return (retval);
 }
 
+int DoFStat(FD fileDescriptor, struct FileInfo *info)
+{
+	int retval = -1;
+
+	struct FCB *temp = currentTask->fcbList;
+	while (temp->nextFCB)
+	{
+		if (temp->fileDescriptor == fileDescriptor)
+			break;
+		temp = temp->nextFCB;
+	}
+	if (temp)
+	{
+		struct Message *msg = ALLOCMSG;
+		char *buff = (char *) AllocKMem(sizeof(struct FileInfo));
+
+		msg->nextMessage = 0;
+		msg->byte = GETFILEINFO;
+		msg->quad = (long) temp;
+		msg->quad2 = (long) buff;
+		SendReceiveMessage(FSPort, msg);
+		copyMem(buff, (char *) info, sizeof(struct FileInfo));
+		DeallocMem(buff);
+		retval = 0; //msg->quad;
+		DeallocMem(msg);
+	}
+	return (retval);
+}
 long DoRead(FD fileDescriptor, char *buffer, long noBytes)
 {
 	long retval = 0;

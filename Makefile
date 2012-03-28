@@ -18,7 +18,7 @@ IanOS.o: $(OBJS) library/liblib.a library/libsyscalls.a
 	ld -Tlink2.ld $(OBJS) library/liblib.a library/libsyscalls.a -oIanOS.o 
 
 IanOS.bin: $(OBJS) library/liblib.a library/libsyscalls.a
-	ld --print-map -Tlink.ld $(OBJS) library/liblib.a library/libsyscalls.a -oIanOS.bin>linkmap 
+	ld -s --print-map -Tlink.ld $(OBJS) library/liblib.a library/libsyscalls.a -oIanOS.bin>linkmap 
 
 bootdisk: bootsect.bin 32sect IanOS.bin
 	cat bootsect.bin 32sect IanOS.bin floppy >I.fdd

@@ -15,6 +15,11 @@ SECTIONS
 		*(.data)
 		*(.rodata*)
 	}
-	DataLength = SIZEOF (.data);
+	.bss : 
+	{
+		*(.bss)
+	}
+	
+	DataLength = SIZEOF (.data) + SIZEOF (.bss);
 	.eh_frame : { *(.eh_frame) }
 }

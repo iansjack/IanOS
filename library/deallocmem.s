@@ -4,7 +4,3 @@
 
 	.text
 
-sys_DeallocMem:
-	mov $DEALLOCMEM, %r9
-	syscall
-	ret

@@ -8,6 +8,9 @@ all: $(TASKS)
 inittask.o: inittask.s
 	as inittask.s -o inittask.o
 
+inittask2.o: inittask.s
+	as inittask2.s -o inittask2.o
+
 TASK1: task1.o inittask.o $(LIBS)
 	ld -Tlink.ld task1.o $(LIBS) -oTASK1
 	mcopy -o TASK1 c:/BIN 
@@ -51,8 +54,12 @@ CAT: cat.o inittask.o $(LIBS)
 cat.o: cat.c
 
 EDIT: edit.o inittask.o $(LIBS)
-	ld -Tlink.ld edit.o $(LIBS) -oEDIT
-	mcopy -o EDIT c:/BIN 
+	ld -s --print-map -Tlink.ld edit.o $(LIBS) -oEDIT>linkmap
+	mcopy -o EDIT c:/BIN
+	
+edit: edit.o inittask2.o $(LIBS)
+	ld -Tlink2.ld edit.o $(LIBS) -oedit
+ 
 
 edit.o: edit.c
 

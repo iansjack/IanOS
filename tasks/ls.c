@@ -18,7 +18,7 @@ int main(int argc, char **argv)
 	{
 		cwd = getcwd();
 		file = open(cwd);
-		sys_DeallocMem(cwd);
+		free(cwd);
 	}
 	if (file != -1)
 	{
