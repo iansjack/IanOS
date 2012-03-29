@@ -4,17 +4,16 @@
 <<HR>>
 The file <<F boot.s>> contains the source of a boot sector that will be written to a floppy (or image file).
 <<PAR>>
-This boot sector borrows heavily from that in <<I Developing Your Own 32-bit Operating System>> (but then, there are only so many ways of writing a boot sector). To make life easy I assume the the OS can be found as 128 contiguous sectors starting from the first sector of the first data file on the floppy. This will be sector 0x21 (and, of course, that's where I'll put it).
+This boot sector borrows heavily from that in <<I Developing Your Own 32-bit Operating System>> (but then, there are only so many ways of writing a boot sector). To make life easy I assume that the OS can be found as 128 contiguous sectors starting from the first sector of the first data file on the floppy. This will be sector <<C 0x21>> (and, of course, that's where I'll put it).
 <<PAR>>
-The Global Descriptor Table is located in the boot sector; note that it serves both as a 32-bit and 64-bit GDT. After loading the OS sectors to 0x1000 the GDT is relocated to location 0x0. The A20 line is then enabled, register GDT is loaded with a pointer to the Global Descriptor Table and bit 0 in register CR0 is set to switch into Protected (32-bit) mode. A long jump to CS:0x1000 then starts the OS running at that location. As CS is 0x8, corresponding to the OsCodeSegment descriptor, the absolute location of the start of the OS code proper is 0x1000.
+The Global Descriptor Table is located in the boot sector; note that it serves both as a 32-bit and 64-bit GDT. After loading the OS sectors to <<C 0x1000>> the GDT is relocated to location <<C 0x0>>. The A20 line is then enabled, register <<C GDT>> is loaded with a pointer to the Global Descriptor Table and bit 0 in register <<C CR0>> is set to switch into Protected (32-bit) mode. A long jump to <<C CS:0x1000>> starts the OS running at that location. As <<C CS>> is <<C 0x8>>, corresponding to the <<C OsCodeSegment>> descriptor, the absolute location of the start of the OS code proper is <<C 0x1000>>.
 <<PAR>>
 To build the boot sector use the command:
 <<PAR>>
 <<D+ make bootsect>>
 This will produce a file <<S bootsect.bin>> which needs to be written to the first sector of the floppy disk.
 <<PAR>>
-If you want to step through what happens from now on you can set a breakpoint in <<S SimNow>> at location 0x1000.
-<<PAR>>
+If you want to step through what happens from now on you can set a breakpoint in <<S SimNow>> at location <<C 0x1000>>.
 <<HR>>
 <<CONT>>
 

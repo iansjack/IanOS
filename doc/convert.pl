@@ -36,7 +36,7 @@ foreach $file (@files) {
 			s/<<I\s+(.+?)>>/<span class="italic">$1<\/span>/;
 			s/<<H1\s+(.+?)>>/<h1 class=\"normal\">$1<\/h1>/;
 			s/<<H([2-9])\s+(.+?)>>/<h$1>$2<\/h$1>/;
-			s/<<T\s+(.+?)>>/<!DOCTYPE HTML PUBLIC \"-\/\/W3C\/\/DTD HTML 4.01 Transitional\/\/EN\" \"http:\/\/www\.w3\.org\/TR\/html4\/loose.dtd\">\n<html>\n<head>\n<title>$1<\/title>\n<LINK REL=StyleSheet HREF=\"style\.css\" TYPE=\"text\/css\" MEDIA=screen>\n<\/head>\n<body>/;
+			s/<<T\s+(.+?)>>/<!DOCTYPE HTML PUBLIC \"-\/\/W3C\/\/DTD HTML 4.01 Transitional\/\/EN\" \"http:\/\/www\.w3\.org\/TR\/html4\/loose.dtd\">\n<html>\n<head>\n<title>$1<\/title>\n<LINK REL=StyleSheet HREF=\"mystyle\.css\" TYPE=\"text\/css\" MEDIA=screen>\n<\/head>\n<body>/;
 			s/<<F\s+(.+?)>>/<a STYLE="text-decoration: none" href=\"HTML\/$assoc{$1}\"><span class=\"sans\">$1<\/span><\/a>/;
 			s/<<X\s+(.+?)>>/<a STYLE="text-decoration: none" href=\"HTML\/$assoc{$1}\"><span class=\"code\">$1<\/span><\/a>/;
 			s/<<D\s+(.+?)>>/<div class="displaycode">$1<\/div>/;

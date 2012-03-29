@@ -1,7 +1,7 @@
 <<T Building the System>>
 <<H1 Building and Running the System>>
 <<HR>>
-<h3>Building</h3>
+<<H3 Building>>
 Untarring the file <<S IanOS.tar.gz>> will result in a directory <<S IanOS>> containing all of the source files required to build the system. Within this directory run the command:
 <<PAR>>
 <<D+ tasks/createdisk.sh>>
@@ -21,7 +21,30 @@ which should produce a listing that looks something like:
 <<D TASK2    BIN       262 2008-03-22  20:56>>
 <<D+ TASK3    BIN       378 2008-03-22  20:56>>
 (only the file names are important).
-<<H3 Running>>
+
+<<H3 Running with SimNow>>
 Run <<S simnow>>. At the main window choose the menu option <<S File/Open BSD>> and open the file <<S bsds/cheetah_1p.bsd>>. Then use the <<S File menu>> to set the primary IDE disk and floppy disk to those that we have just created. At this point you should save the BSD so that you don't have to repeat this step every time you want to run the system. I have found <<S simnow>> to be a little buggy when BSDs are opened and closed, so it's best to close <<S simnow>>, restart it, and load the BSD that you have just created. Click on the <<S run>> toolbar icon and the system will boot and run.
+
+<<H3 Running with qemu>>
+IanOS will also run in <<S qemu>>, which is considerably faster than <<S SimNow>>. It also has the advantage of being able to debug the kernel and kernel tasks at the C-code level, rather than working at the assembler level. (Each has its place.)
 <<PAR>>
+Assuming that you have installed <<S qemu>>, you should be able to run the system normally by typing <<S ./IanOS>>
+from the IanOS directory.
+<<PAR>>
+To debug under <<S qemu>>, open two terminal windows and change to the <<S IanOS>> directory in each. Then follow these steps:
+<<PAR>>
+1. In one window type <<S ./IanOSd>>. This will open a <<S qemu>> window, but the system isn't running yet.
+<<PAR>>
+2. In the second window type <<S gdb>>.
+<<PAR>>
+3. At the <<S gdb>> command line type <<S c>>.
+<<PAR>>
+4. The program will now start running in the <<S qemu>> window. Wait until the <<S #> >> prompt displays and then press <<S ctrl-C>>.
+<<PAR>>
+5. The program is now interrupted, and the <<S gdb>> display will show an error with a load of numbers; ignore this. Type <<S file IanOS.o>> on the <<S gdb>> command line.
+<<PAR>>
+6. The error clears, and a listing of the program is given. You can now debug just like any other C program, setting breakpoints and watches, inspecting data, stepping through code, etc. 
+<<PAR>>
+<<S gdb>> takes a bit of getting used to, but this is much easier than using the assembly level debugger in <<S SimNow>>. There are also graphical interfaces such as <<S ddd>> available. Note that the above instructions rely upon the presence of a hidden file <<S .gdbinit>> in the <<S IanOS>> directory. This is included in the source code.
+<<HR>>
 

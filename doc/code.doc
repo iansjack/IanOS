@@ -7,7 +7,7 @@
 	<<IN <<A bootsector.html 1.1. Boot Sector>> >>
 	<<IN <<A startup.html 1.2. From Protected Mode to Long Mode>> >>
 <<A 64bit.html 2. The 64-bit Code>><br>
-	<<IN <<A memory.html 2.1. Memory>> >>
+	<<IN <<A memory.html 2.1. Memory Management>> >>
 	<<IN <<A tasking.html 2.2. Tasking>> >>
 	<<IN <<A tcreate.html 2.3. Task Creation>> >>
 	<<IN <<A messaging.html 2.4. Messaging>> >>

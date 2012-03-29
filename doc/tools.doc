@@ -9,18 +9,17 @@ It's highly unlikely that you'll be running your OS directly on a physical compu
 <<PAR>>
 (If you look at the documentation for <<S SimNow>> you'll see that it's stated requirements are a host Athlon64 or Opteron. Don't worry - it works fine on the Intel 64-bit chips.)
 <<PAR>>
-I also use <<A http://fabrice.bellard.free.fr/qemu/ <<S qemu>>.>> This is much faster than <<S SimNow>>, but lacks the debugging facilities. <<S qemu>> can read and write to disks created for use with <<S SimNow>>.
+I also use <<A http://wiki.qemu.org/Index.html <<S qemu>>.>> This is much faster than <<S SimNow>>, and can debug the kernel and kernel tasks (but not user tasks) at the C-code level; but it's not so good at debugging at the assembler level, which you need to look at the startup code. <<S qemu>> can read and write to disks created for use with <<S SimNow>>.
 
 <<H3 Compilers>>
-I use the <<S gcc>> toolset exclusively. There are other assemblers available but I find that the <<S gcc>> assembler, <<S as,>> has all of the facilities that I require. Also it's very easy to combine assembler modules and C modules. (I started out writing everything in assembler but eventually realised that it's much easier to use C where possible.)
+I use the <<S gcc>> toolset exclusively. There are other assemblers available but I find that the <<S gcc>> assembler, <<S as>>, has all of the facilities that I require. Also it's very easy to combine assembler modules and C modules. (I started out writing everything in assembler but eventually realised that it's much easier to use C where possible.)
 
 <<H3 Editors>>
-There are a host of programmer's editors available for Linux. My (current) favourite is the <<S Anjuata>> IDE. You will also need a hex editor; I use <<S ghex>>.
+There are a host of programmer's editors available for Linux. My favourite used to be the <<S Anjuata>> IDE, but I now prefer <<S Eclipse>>. You will probably also need a hex editor (this can be useful to examine disk images); I use <<S ghex>>.
 
 <<H3 Source Control>>
 If you're really diligent about making notes of everything you do (I'm not) you may be able to do without source control. But it's saved me a lot of work to be able to easily revert to a previous version of a file when I've gone down a dead end. I find that <<S subversion>> works very well for me.
   
 <<H3 Miscellaneous>>
-To access the hard disk image that we use you will need to have <<S mtools>> installed on your system. Most likely it will already be installed (check if the file <<S /etc/mtools.conf>> exists.
-<<PAR>>
+To access the hard disk image that we use you will need to have <<S mtools>> installed on your system. Most likely it will already be installed (check if the file <<S /etc/mtools.conf>> exists).
 <<HR>>
