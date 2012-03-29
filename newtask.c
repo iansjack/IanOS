@@ -96,6 +96,7 @@ long DoFork()
 	asm("cli");
 	LinkTask(task);
 	asm("sti");
+
 	// We want the forked process to return to this point. So we
 	// need to save the registers from here to the new task structure.
 	SaveRegisters(task);

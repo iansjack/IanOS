@@ -37,33 +37,19 @@ start64:
 	ltr %ax
 	lidt idt_64
 
-	mov	%cr0, %rax
-	bts	$16, %rax					# Enable paging
-	bts	$31, %eax					# Enable write protection
-	mov %rax, %cr0
-	mov	%cr4, %rax
-	bts $7, %rax					# Enable global pages
-	mov %rax, %cr4
-#	mov $0xC0000080, %ecx
-#	rdmsr
-#	mov $0xC0000080, %ecx
-#	bts $11, %eax
-#	wrmsr
-
-
 # Final preparations before starting tasking
 	call InitMem64
-	mov $0xFFF, %rcx			# Zero page of memory locations for task structures
+	mov $0xFFF, %rcx                   # Zero page of memory locations for task structures
 	mov $0, %rax
 	mov $0x200, %rcx
 	mov $TaskStruct, %rdi
 	cld
 	rep stosq
 	
-	mov $TaskStruct, %r15			# Set up skeleton task structure for first task
+	mov $TaskStruct, %r15              # Set up skeleton task structure for first task
 	movq $0, TS.nexttask(%r15)
 	movq %r15, TS.r15(%r15)
-	movb $0, TS.waiting(%r15)		# We don't want task1 to be waiting when it starts
+	movb $0, TS.waiting(%r15)          # We don't want task1 to be waiting when it starts
 	movq $UserData, TS.firstfreemem(%r15)
 	movq $2, TS.pid(%r15)
 	movq $cd, TS.currentDirName(%r15)
@@ -73,16 +59,16 @@ start64:
 	mov	%r15, currentTask
 
 	mov $2, %rdi
-	call AllocPage					# Page for kernel stack
+	call AllocPage                     # Page for kernel stack
 	mov %rax, %rdi
 	mov $KernelStack, %rsi
 	mov $2, %rdx
 	mov $3, %rcx
 	call CreatePTE
 	mov $KernelStack + 0x1000, %eax
-	mov %eax, TSS64 + 36			# Kernel stack pointer in TSS
+	mov %eax, TSS64 + 36               # Kernel stack pointer in TSS
 	mov $2, %rdi
-	call AllocPage					# Page for user stack
+	call AllocPage                     # Page for user stack
 	mov %rax, %rdi
 	mov $UserStack, %rsi
 	mov $2, %rdx
@@ -90,34 +76,34 @@ start64:
 	call CreatePTE
 	mov $UserStack + 0x1000, %rsp
 	mov $2, %rdi
-	call AllocPage					# Page for task code
+	call AllocPage                     # Page for task code
 	mov %rax, %rdi
 	mov $UserCode, %rsi
 	mov $2, %rdx
 	mov $7, %rcx
 	call CreatePTE
 	mov $2, %rdi
-	call AllocPage		  			# Page for task data
+	call AllocPage                     # Page for task data
 	mov %rax, %rdi
 	mov $UserData, %rsi
 	mov $2, %rdx
 	mov $7, %rcx
 	call CreatePTE
 
-	mov $tas1, %rsi					# Move the task code
+	mov $tas1, %rsi                    # Move the task code
 	mov $UserCode, %rdi
-	mov $0x1000, %rcx				# How do we find the length of tas1? It's so small
-	cld								# that we just assume it's under 0x1000 bytes
+	mov $0x1000, %rcx                  # How do we find the length of tas1? It's so small
+	cld                                # that we just assume it's under 0x1000 bytes
 	rep movsb
 
 	call StartTasks
 
-	mov $UserCode, %rcx		  		# Tas1
+	mov $UserCode, %rcx                # Tas1
 	pushfq
 	pop %r11
-	or $0x200, %r11		  			# This will enable interrupts when we sysret
+    or $0x200, %r11                    # This will enable interrupts when we sysret
 
-	sysretq				  			# Start Task1 and multitasking
+    sysretq                            # Start Task1 and multitasking
 
 	.data
 	
@@ -125,10 +111,10 @@ cd:	.byte '/', 0
 
 	.global tempstack
 
-gdt_48: .word	0x800				# Allow up to 512 entries in GDT
-	.long	GDT
+gdt_48:	.word 0x800                  # Allow up to 512 entries in GDT
+	.long GDT
 
-idt_64: .word 0x800					# Allow up to 512 entries in IDT
+idt_64:	.word 0x800                  # Allow up to 512 entries in IDT
 	.quad IDT
 
 # A minimal stack whilst the system is being initialized

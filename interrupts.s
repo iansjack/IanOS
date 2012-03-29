@@ -111,19 +111,20 @@ HdInt:	push %rax
 	call UnBlockTask
 	POP_ALL
 	SWITCH_TASKS
-#	SWITCH_TASKS_R15
 	jmp  .done2
-.goon:	mov  TS.nexttask(%r15), %r15
+.goon:
+	mov  TS.nexttask(%r15), %r15
 	cmpq $0, %r15
 	jne  .again2
-.done2:	pop  %rax
+.done2:
+	pop  %rax
 	iretq
 
 #===========================================================================================================
 # We need to wrap these two subroutines inside interrupt routines.
 # Thus we can call them from, e.g., a SYSCALL. (They expect to be called from within an interrupt routine.)
 #===========================================================================================================
-SwitchTasks:			# int 20
+SwitchTasks:				# int 20
 	cli
 	call TaskSwitch
 	iretq
