@@ -6,5 +6,6 @@ cd doc
 perl map.pl
 perl xref.pl
 perl convert.pl
-cp mystyle.css HTML
+cp *.css HTML
+cp *.jpg HTML
 
