@@ -1,6 +1,10 @@
+<<NAVSTART>>
+	<<PREV bootsector.html Boot Sector>>
+	<<CONT>>
+	<<NEXT 64bit.html The 64-Bit Code>>
+<<NAVEND>>
 <<T Protected Mode to Long Mode>>
 <<H1 From Protected Mode to Long Mode>>
-<<CONT>>
 <<HR>>
 The file <<F startup.s>> contains the code that will take the processor from 32-bit Protected Mode to 64-bit Long Mode. The last instruction in the boot sector is:
 <<PAR>>
@@ -8,13 +12,16 @@ The file <<F startup.s>> contains the code that will take the processor from 32-
 which jumps to the start of <<F startup.s>>. After setting the appropriate segment descriptors into the data and stack segment registers, routines
 <<X InitMemManagement>> is called to set up the initial memory map; Unused memory pages are then loaded with zeros to make sure that the machine is in a know state. Next <<X HWSetup>> is called to initialize the hardware. I'm relying a lot here on the hardware having already been initialized by the BIOS; for completeness I really ought to intialize it completely - something for a rainy day!
 <<PAR>>
-After setting up a temporary stack pointer, <<X CreatePageDir>> creates a page directory for the first task that will run in Long Mode; the address of this page directory is stored in register <<C CR3>>. See the section <<A memory.html Memory Management>> for more details of this.
+After setting up a temporary stack pointer, <<X CreatePageDir>> creates a page directory for the first task that will run in Long Mode; the address of this page directory is stored in register <<C cr3>>. See the section <<A memory.html Memory Management>> for more details of this.
 <<PAR>>
-The next 4 instructions set the Physical Address Extension and Global Pages bits in register <<C CR4>>. There are then 5 instructions that enable the syscall/sysret instructions and enable Long Mode. (But note that we are  not yet in Long Mode - this won't happen until paging is enabled.) Finally Paging and Write Protection of pages are enabled by setting the appropriate bits in <<C CR0>> and a long jump is made to the start of the 64-bit code. From now on we can start to use the 64-bit  instructions and registers.
+The next 4 instructions set the Physical Address Extension and Global Pages bits in register <<C cr4>>. There are then 5 instructions that enable the syscall/sysret instructions and enable Long Mode. (But note that we are  not yet in Long Mode - this won't happen until paging is enabled.) Finally Paging and Write Protection of pages are enabled by setting the appropriate bits in <<C cr0>> and a long jump is made to the start of the 64-bit code. From now on we can start to use the 64-bit  instructions and registers.
 <<PAR>>
-Note that, although we set up the interrupt controllers in <<X HwSetup>>, interrupts are currently disabled (one of the last instructions in <F boot.s>> was <<C CLI>>). That's just as well because we haven't yet set up an Interrupt Descriptor Table, so any interrupt would lead to an instant crash. One of the first things that will be done in <<F os.s>> (this file contains the start of the OS proper, and is where 64-bit instructions are first used) will be to set up an IDT.
+Note that, although we set up the interrupt controllers in <<X HwSetup>>, interrupts are currently disabled (one of the last instructions in <<F boot.s>> was <<C cli>>). That's just as well because we haven't yet set up an Interrupt Descriptor Table, so any interrupt would lead to an instant crash. One of the first things that will be done in <<F os.s>> (this file contains the start of the OS proper, and is where 64-bit instructions are first used) will be to set up an IDT.
 <<PAR>>
 At this point I have achieved my initial ambition and managed to get the processor into 64-bit Long Mode. It looks pretty easy now, but I had to follow a lot of false trails, crashes, and general puzzlement before I got this far! Everything from here on is a minimal OS to demonstrate some aspects of 64-bit programming.
 <<HR>>
-<<CONT>>
-
+<<NAVSTART>>
+	<<PREV bootsector.html Boot Sector>>
+	<<CONT>>
+	<<NEXT 64bit.html The 64-Bit Code>>
+<<NAVEND>>

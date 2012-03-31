@@ -1,6 +1,10 @@
+<<NAVSTART>>
+	<<PREV 64bit.html The 64-Bit Code>>
+	<<CONT>>
+	<<NEXT tasking.html Tasking>>
+<<NAVEND>>
 <<T Memory Management>>
 <<H1 Memory Management>>
-<<CONT>>
 <<HR>>
 Memory management is one of the most important tasks that an Operating System performs (after all, whatever other devices a system may support, it must have memory to work in). Understanding the operation of logical-to-physical address mapping and ensuring that memory is correctly allocated and released can be quite tricky. Any mistake here is going to lead almost instantly to a crash of the system; and a small, constant memory leak can soon gobble up free RAM.
 <<PAR>>
@@ -11,7 +15,7 @@ Basic memory allocation is handled in the files <<F mem32.c>>, <<F ptab32.c>>, <
 <<H2 Page Tables>>
 The use of Page Tables to map addresses to physical memory is central to 64-bit mode. When running in this mode virtual addressing is compulsory. Each address that is specified (the logical address) is mapped by the Page Table to a physical memory page. This means that the same logical address can refer to different physical addresses if different Page Tables are used. Also, it is possible for more than one logical address to refer to the same physical address. We make use of both of these capabilities.
 <<PAR>>
-Each process (task, whatever you like to call it) will have it's own Page Table. The process's code will be located at UserCode and its data at UserData. It will also have a separate user stack and kernel stack (the stack used when the process is running kernel code) located at UserStack and KernelStack. The physical addresses will be different for each process. Because a process's Page Table will only contain entries for it's own memory it cannot access memory belonging to another process. (The Page Table will also contain entries for the kernel memory, but this is only used by system calls.)
+Each process (task, whatever you like to call it) will have its own Page Table. The process's code will be located at UserCode and its data at UserData. It will also have a separate user stack and kernel stack (the stack used when the process is running kernel code) located at UserStack and KernelStack. The physical addresses will be different for each process. Because a process's Page Table will only contain entries for its own memory it cannot access memory belonging to another process. (The Page Table will also contain entries for the kernel memory, but this is only used by system calls.)
 <<PAR>>
 To understand the routines that create the Page Tables it is absolutely essential that you fully understand how paging works in 64-bit mode.  Study section 5.3 of <<I AMD2>> (remembering that we are using 4K pages exclusively). I find that these routines are some of the most conceptually difficult in the system; a couple of months  after writing them I had great difficult in understanding exactly what was going on  (a sure sign that I didn't use enough comments - I hope that I have now remedied that).
 <<PAR>>
@@ -20,7 +24,7 @@ Every Page Table also contains a set of entries that translate every physical ad
 <<D+ LogicalAddress = PhysicalAddress + VAddr>>
 We need to do this so that when creating Page Tables, for example, we can access the underlying physical memory addresses. Entries in Page Tables are all physical addresses.
 <<PAR>>
-Page Tables consist of four hierarchical levels that link a logical address to a physical page. This makes it easier to create mappings in widely separated parts of the logical address space without having to specify loads of empty entries. The logical address is split into 5 parts (note that current implementations only support 48-bit addressing): 9 bits specify an entry in a top-level table (<<C PLP4>>); these point to lower level tables (<<C PDP>>). Entries in the <<C PDP>> tables point to the next level of tables (<<C PD>>); the next 9-bits then point to the final level tables (<<C PT>>). The entries in <<C PT>> tables point to physical memory pages. The final 12 bits (48 = 9 + 9 + 9 + 9 +12) then specify the offset of the address in the physical page. The register <<C CR3>> will point to the top level table.
+Page Tables consist of four hierarchical levels that link a logical address to a physical page. This makes it easier to create mappings in widely separated parts of the logical address space without having to specify loads of empty entries. The logical address is split into 5 parts (note that current implementations only support 48-bit addressing): 9 bits specify an entry in a top-level table (<<C PLP4>>); these point to lower level tables (<<C PDP>>). Entries in the <<C PDP>> tables point to the next level of tables (<<C PD>>); the next 9-bits then point to the final level tables (<<C PT>>). The entries in <<C PT>> tables point to physical memory pages. The final 12 bits (48 = 9 + 9 + 9 + 9 +12) then specify the offset of the address in the physical page. The register <<C cr3>> will point to the top level table.
 <<PAR>>  
 The resulting Page Table looks something like:
 <<PAR>>
@@ -48,8 +52,12 @@ The function <<X AllocKMem>> allocates memory on the kernel heap.
 <<PAR>>
 Memory is deallocated by the function <<X DeallocMem>> which suffices for both user memory and kernel memory. Note that none of these functions will be called directly by user programs; system calls are provided which encapsulate these functions.
 <<PAR>>
-There is a potential problem in a multi-tasking system when allocating or deallocating resources. Should a task switch occur in the middle of the memory allocation routine and the task switched to then call the routine itself, we could end up in a heap (no pun intended) of trouble. The linked linsts would almost certainly get corrupted. We guard against this by setting a semaphore before entering these routines, and only releasing it once the allocation has succeeded. The x86_64 instruction set provides the <<C CMPXCHG>> which will test and optionally set a memory location as an atomic action which facilitates the use of semaphores.
+There is a potential problem in a multi-tasking system when allocating or deallocating resources. Should a task switch occur in the middle of the memory allocation routine and the task switched to then call the routine itself, we could end up in a heap (no pun intended) of trouble. The linked linsts would almost certainly get corrupted. We guard against this by setting a semaphore before entering these routines, and only releasing it once the allocation has succeeded. The x86_64 instruction set provides the <<C cmpxchg>> which will test and optionally set a memory location as an atomic action which facilitates the use of semaphores.
 <<PAR>>
-You should note that I treat heap memory for a user program differently to many operating systems, where it is managed by the application itself. I provide system calls to manage <<C malloc()>> and <<C free()>> calls. At the expense of a little efficiency, this makes the runtime code of user programs easier (and smaller) and makes it easier for the kernel to deal with allocation of new pages when the memory allocated to a process runs short. If you don't like this it would be easy enough to make the programs handle their own memory.
+You should note that I treat heap memory for a user program differently to many operating systems, where it is managed by the application itself. I provide system calls to manage <<C malloc>> and <<C freed>> calls. At the expense of a little efficiency, this makes the runtime code of user programs easier (and smaller) and makes it easier for the kernel to deal with allocation of new pages when the memory allocated to a process runs short. If you don't like this it would be easy enough to make the programs handle their own memory.
 <<HR>>
-<<CONT>>
+<<NAVSTART>>
+	<<PREV 64bit.html The 64-Bit Code>>
+	<<CONT>>
+	<<NEXT tasking.html Tasking>>
+<<NAVEND>>

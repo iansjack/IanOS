@@ -1,3 +1,8 @@
+<<NAVSTART>>
+	<<PREV memory.html Memory Management>>
+	<<CONT>>
+	<<NEXT tcreate.html Task Creation>>
+<<NAVEND>>
 <<T Tasking>>
 <<H1 Tasking>>
 <<CONT>>
@@ -14,5 +19,8 @@ Now that we have determined which task to switch to, both routines save the cont
 <<PAR>>
 There are a couple of things about saving/restoring registers that needs to be explained further. First, one has to be a little careful about <<C r15>>. When the routine is called <<C r15>> points to the task to switch to, which is what we want to save, but we change it to point to the current task (so that we can access its task structure). Hence the "<<C push %r15>>" instruction before <<C currentTask>> is stored in <<C r15>>; this pushed value is later popped to <<C rax>> and then stored to the task structure. Second, these two routines are designed to be called as subroutines from within an interrupt routine (<<C int $20>>). If we just saved the stack pointer we would just be saving the address of the calling interrupt routine; what we really want to save is stack pointer when the interrupt routine called the subroutine. This is why there is a <<C pop %rcx>> before saving the stack pointer and a <<C push %rcx>> after restoring it.
 <<HR>>
-<<CONT>>
-
+<<NAVSTART>>
+	<<PREV memory.html Memory Management>>
+	<<CONT>>
+	<<NEXT tcreate.html Task Creation>>
+<<NAVEND>>

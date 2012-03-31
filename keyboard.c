@@ -173,7 +173,7 @@ void kbTaskCode()
 
 	modifier = 0;
 
-	asm("mov $0b11111000, %al");	// enable keyboard + timer interrupt"
+	asm("mov $0b11111000, %al");	// enable keyboard + timer interrupt
 	asm("out %al, $0x21");
 
 	((struct MessagePort *)KbdPort)->waitingProc = (struct Task *)-1L;

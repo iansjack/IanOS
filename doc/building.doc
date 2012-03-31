@@ -1,6 +1,7 @@
 <<T Building the System>>
 <<H1 Building and Running the System>>
 <<HR>>
+
 <<H3 Building>>
 Untarring the file <<S IanOS.tar.gz>> will result in a directory <<S IanOS>> containing all of the source files required to build the system. Within this directory run the command:
 <<PAR>>
@@ -14,12 +15,21 @@ Now (still in directory <<S IanOS>>) run the command <<S make all>> to build the
 The result will be a floppy disk image file <<S IanOS.fdd>> and a few files added to <<S c.hdd>>.
 You can check that those files are there with the command:
 <<PAR>>
-<<D+ mdir c:>>
+<<D+ mdir c:/BIN>>
 which should produce a listing that looks something like:
 <<PAR>>
-<<D TASK1    BIN       634 2008-03-22  20:56>>
-<<D TASK2    BIN       262 2008-03-22  20:56>>
-<<D+ TASK3    BIN       378 2008-03-22  20:56>>
+<pre>
+.            &ltDIR&gt     2012-03-31   8:29
+..           &ltDIR&gt     2012-03-31   8:29
+TASK1             2432 2012-03-31   8:30
+TASK2              488 2012-03-31   8:30
+TASK3              376 2012-03-31   8:30
+TASK4             1688 2012-03-31   8:30
+PWD               1416 2012-03-31   8:30
+LS                1792 2012-03-31   8:30
+CAT                512 2012-03-31   8:30
+EDIT              2992 2012-03-31   8:30
+</pre>
 (only the file names are important).
 
 <<H3 Running with SimNow>>
@@ -47,4 +57,3 @@ To debug under <<S qemu>>, open two terminal windows and change to the <<S IanOS
 <<PAR>>
 <<S gdb>> takes a bit of getting used to, but this is much easier than using the assembly level debugger in <<S SimNow>>. There are also graphical interfaces such as <<S ddd>> available. Note that the above instructions rely upon the presence of a hidden file <<S .gdbinit>> in the <<S IanOS>> directory. This is included in the source code.
 <<HR>>
-

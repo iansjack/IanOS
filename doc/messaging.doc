@@ -1,11 +1,19 @@
+<<NAVSTART>>
+	<<PREV tcreate.html Task Creation>>
+	<<CONT>>
+	<<NEXT timer.html Timer>>
+<<NAVEND>>
 <<T Messaging>>
 <<H1 Messaging>>
 <<HR>>
 Any OS that runs more than one task at a time needs some mechanism for the tasks to communicate with each other. For example, in IanOS keboard events are obtained by sending a message from the requesting program to the keyboard task. Because tasks have separate memory maps they cannot access each other's memory, so simple shared variables are not possible. In IanOS we solve this problem by the use of messages. Tasks send a message to a port and other tasks retrieve this message from the same port. The routines to handle messaging are in the file <<F messaging.c>>. There are two basic functions, <<X SendMessage>> and <<X ReceiveMessage>>. A third function, <<X SendReceiveMessage>> allows a task to send a message and then wait for a reply.
 <<PAR>>
-The format of messages, and message ports, is defined by the structs <<X Message>> and <<X MessagePort>> in <<F ckstructs.h>>. One thing that we must account for is that there may be more than one message waiting at a message port; hence the struct <<X Message>> contains a field <<C nextMessage>>, that allows us to create a linked list of waiting messages, and the struct <<X MessagePort>> has a field <<C msgQueue>> pointing to this linked list. <<X SendMessage>> allocates some kernel memory to store the message, copies the message from the sending task's memory space to this kernel memory, and then links the message into the queue for that message port. The field <<C waitingProc>> of the message port is then checked to see if any task is waiting to receive a message from this particular message port (the field will be -1 is no-one is waiting). If no task is waiting, the job is done; if there is a waiting task then it is marked as runnable and a specific task switch is made to that task. (It seems to me fair that if a task is blocked waiting for a message then it gets a chance to run as soon as the message is available - whether this is a reasonable view remains to be seen.)
+The format of messages, and message ports, is defined by the structs <<X Message>> and <<X MessagePort>> in <<F include/kstructs.h>>. One thing that we must account for is that there may be more than one message waiting at a message port; hence the struct <<X Message>> contains a field <<C nextMessage>>, that allows us to create a linked list of waiting messages, and the struct <<X MessagePort>> has a field <<C msgQueue>> pointing to this linked list. <<X SendMessage>> allocates some kernel memory to store the message, copies the message from the sending task's memory space to this kernel memory, and then links the message into the queue for that message port. The field <<C waitingProc>> of the message port is then checked to see if any task is waiting to receive a message from this particular message port (the field will be -1 is no-one is waiting). If no task is waiting, the job is done; if there is a waiting task then it is marked as runnable and a specific task switch is made to that task. (It seems to me fair that if a task is blocked waiting for a message then it gets a chance to run as soon as the message is available - whether this is a reasonable view remains to be seen.)
 <<PAR>>
-<<X RecieveMessage>> is very simple. It checks the message port to see if any messages are waiting there; if not the calling task is marked non-runnable and a task switch is made. If a message (or messages) is waiting at the port it is removed from the message queue and it's contents are copied to the buffer (<<C Msg>>) specified in the function call. <<X SendReceiveMessage>> is also very simple. It creates a temporary message port, passes this address as part of the message being sent, and then receives the reply on that temporary message port - naturally, the task will block until that reply is received.
+<<X RecieveMessage>> is very simple. It checks the message port to see if any messages are waiting there; if not the calling task is marked non-runnable and a task switch is made. If a message (or messages) is waiting at the port it is removed from the message queue and its contents are copied to the buffer (<<C Msg>>) specified in the function call. <<X SendReceiveMessage>> is also very simple. It creates a temporary message port, passes this address as part of the message being sent, and then receives the reply on that temporary message port - naturally, the task will block until that reply is received.
 <<HR>>
-<<CONT>>
-
+<<NAVSTART>>
+	<<PREV tcreate.html Task Creation>>
+	<<CONT>>
+	<<NEXT timer.html Timer>>
+<<NAVEND>>

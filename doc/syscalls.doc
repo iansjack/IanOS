@@ -1,8 +1,23 @@
+<<NAVSTART>>
+	<<PREV ide.htnl Hard Disk>>
+	<<CONT>>
+	<<NEXT misc.html Miscellaneous>>
+<<NAVEND>>
 <<T SysCalls>>
 <<H1 System Calls>>
 <<HR>>
-Due to the protection mechanisms built into the processor, programs running with user privilege cannot access certain memory locations, or execute certain instructions. This, after all, is the whole point of the protection mechanisms - to protect the kernel against errant user programs. Some mechanism has to be found to let a user program indicate to the kernel that it requires certain tasks to be undertaken on its behalf. The easiest way to accomplish this (although not the only way) is to use the <<C syscall>> and <<C sysret>> instructions. These instructions allow the program to switch privilege levels, run some kernel code, and then switch back again. In reality most programs will request many kernel services by sending a message to a kernel task - but message sending itself requires a system call.
+Due to the protection mechanisms built into the processor, programs running with user privilege cannot access certain memory locations, or execute certain instructions. This, after all, is the whole point of the protection mechanisms - to protect the kernel against errant user programs. Some mechanism has to be found to let a user program indicate to the kernel that it requires certain tasks to be undertaken on its behalf. The easiest way to accomplish this (although not the only way) is to use the <<C syscall>> and <<C sysretq>> instructions. These instructions allow the program to switch privilege levels, run some kernel code, and then switch back again.
 <<PAR>>
-All system calls are defined in <<F syscalls.s>> (although most of the routines here call functions from elsewhere in the kernel). The <<C syscall>> instruction always jumps to the same code (in our case <<X SysCalls>>) with register <<C r9>> containing the number of the particular system call requested. A simple jump table routes to the appropriate routine. These routines are all very simple, and must all end with a <<C sysret>> instruction to return to the calling program. The current selection is by no means complete; in a more complete system there will be a lot more of them (and some of the current ones will, no doubt, disappear.)
+In the original incantation of IanOS I thought up my own list of system calls. Now I have decided that it more expedient to use the well-defined set in UNIX systems (but, of course, my implementation of these calls is completely different). Apart from the fact that they are a well thought out list it means that, should I ever get to that stage, porting programs written for UNIX or Linux will be easier. That seems unlikely to happen any time soon, but you never know!
+<<PAR>>
+All system calls are defined in <<F syscalls.s>> (although most of the routines here call functions from elsewhere in the kernel). The <<C syscall>> instruction always jumps to the same code (in our case <<X SysCalls>>) with register <<C r9>> containing the number of the particular system call requested. A simple jump table routes to the appropriate routine. These routines are all very simple, and must all end with a <<C sysretq>> instruction to return to the calling program. The current selection is by no means complete; in a more complete system there will be a lot more of them.
+<<PAR>>
+There is a very important point to note if you wish to write your own system calls. The <<C syscall>> instruction is a bit like a subroutine call, but rather than storing its return address on the stack it stores it in the register <<C rcx>> and the <<C sysretq>> instruction expects its return address to be in <<C rcx>>. It is essential that, if your code is going to change <<C rcx>> (which any C routine is very likely to do), you immediately save that value and restore it just before <<C sysretq>>. The flags register is also stored in <<C r11>>, but it doesn't really matter whether this is preserved or not.
+<<PAR>>
+There is just one system call where we put a different value into <<C rcx>>. This is the <<C execve>> system call, which loads a new program and so needs to start at the starting address of that new program. In this case we put the correct value into <<C rcx>> and discard the one that was there before.
 <<HR>>
-<<CONT>>
+<<NAVSTART>>
+	<<PREV ide.htnl Hard Disk>>
+	<<CONT>>
+	<<NEXT misc.html Miscellaneous>>
+<<NAVEND>>

@@ -233,7 +233,7 @@ long DoRead(FD fileDescriptor, char *buffer, long noBytes)
 
 			kbdMsg = ALLOCMSG;
 			kbdMsg->nextMessage = 0;
-			kbdMsg->byte = 1;
+			kbdMsg->byte = 1;					//
 			kbdMsg->quad = currentTask->console;
 			SendReceiveMessage(KbdPort, kbdMsg);
 			char c = kbdMsg->byte;

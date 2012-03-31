@@ -8,4 +8,4 @@ perl xref.pl
 perl convert.pl
 cp *.css HTML
 cp *.jpg HTML
-
+cp *.png HTML
