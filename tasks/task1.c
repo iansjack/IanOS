@@ -30,7 +30,7 @@ int main(int argc, char **argv)
 		switch (c) {
 		case BACKSPACE:
 			if (column > 0) {
-				printf(" \b");
+				printf("\b \b");
 				commandline[column--] = 0;
 			}
 			break;

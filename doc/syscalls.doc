@@ -1,5 +1,5 @@
 <<NAVSTART>>
-	<<PREV ide.htnl Hard Disk>>
+	<<PREV ide.html Hard Disk>>
 	<<CONT>>
 	<<NEXT misc.html Miscellaneous>>
 <<NAVEND>>
@@ -17,7 +17,7 @@ There is a very important point to note if you wish to write your own system cal
 There is just one system call where we put a different value into <<C rcx>>. This is the <<C execve>> system call, which loads a new program and so needs to start at the starting address of that new program. In this case we put the correct value into <<C rcx>> and discard the one that was there before.
 <<HR>>
 <<NAVSTART>>
-	<<PREV ide.htnl Hard Disk>>
+	<<PREV ide.html Hard Disk>>
 	<<CONT>>
 	<<NEXT misc.html Miscellaneous>>
 <<NAVEND>>

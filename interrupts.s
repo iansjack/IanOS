@@ -41,14 +41,14 @@ KbInt:
 	PUSH_ALL
 	in   $0x60, %al		 # MUST read byte from keyboard - else no more ints
 	mov  $kbBuffer, %rbx
-   	add  (kbBufCurrent), %rbx
+   	add  kbBufCurrent, %rbx
 	mov  %al, (%rbx)
 	incl kbBufCurrent
-   	incb (kbBufCount)
-   	cmpl $128, (kbBufCurrent)
-	jne  .kbistaskwaiting
-   	movl $0, (kbBufCurrent)
-.kbistaskwaiting:
+   	incb kbBufCount
+   	cmpl $128, kbBufCurrent
+	jne  .notoverflow
+   	movl $0, kbBufCurrent
+.notoverflow:
    	call keyPressed
 	mov  $0x20, %al		  # clear int
 	out  %al, $0x20

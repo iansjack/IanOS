@@ -1,7 +1,7 @@
 <<T Introduction>>
 <<H1 Programming a 64-bit Operating System>>
 <<HR>>
-<b>Note:</b> Those of you who have visited this site before should be aware that I have recently made considerable changes to the code and the documentation, so you may want to download the source again. Have a look at at <<A http:wordpress the blog>> for more details.
+<<I <b>Note:</b> Those of you who have visited this site before should be aware that I have recently made considerable changes to the code and the documentation, so you may want to download the source again. Have a look at at <<A http:wordpress the blog>> for more details.>>
 <<PAR>>
 Soon after the AMD Athlon64 was released I bought a computer incorporating one with the intent of learning its assembly language. It took some time, but I finally got around to a little experimenting. Although AMD make their excellent Programmer's Manuals available on-line for free, I found it very difficult to find other information. Specifically I could have done with some simple examples showing how exactly to get the processor from reset to long (i.e. 64-bit) mode. Plenty of sites give this sort of detail for protected mode on the i386 but I couldn't find much
 about the x86_64 processors.
@@ -27,8 +27,6 @@ Whatever, before you can get to grips with the CPU you're going to need the appr
 Please feel free to <<A mailto:ian@ijack.co.uk contact me>> about any aspect of this project.
 <br>Alternatively, post a comment in my <<A guestbook Guest book>>.
 <br>If you are interested - <<A aboutme.html About Me>>.
-<<HR>>
-<!-- I thought that it might be fun to start a blog where I can describe my thought processes, problems, and development of IanOS. You can look at it <<A wordpress here>>.
-<<PAR>> ->>
+I thought that it might be fun to start a blog where I can describe my thought processes, problems, and development of IanOS. You can look at it <<A wordpress here>>.
 <<HR>>
 

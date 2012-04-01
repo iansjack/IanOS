@@ -5,11 +5,13 @@
 <<H3 Building>>
 Untarring the file <<S IanOS.tar.gz>> will result in a directory <<S IanOS>> containing all of the source files required to build the system. Within this directory run the command:
 <<PAR>>
-<<D+ tasks/createdisk.sh>>
+<<D+ ./createdisk.sh>>
 to create a hard disk image <<S c.hdd>>. Note that you will need to be root to run this command; if not logged on as root (you never do that do you!) you will need to use <<S su>> or <<S sudo>>. This hard disk image will be populated with some files by the Makefile in <<S tasks>>. To access this hard disk image we use <<S mtools>>. The file <<S /etc/mtools.conf>> should be edited so that it contains a line similar to:
 <<PAR>>
 <<D+ drive c: file="/home/ian/Projects/IanOS/c.hdd" offset=32256>>
 (adjust the path to <<S IanOS>> to suit your system).
+<<PAR>>
+Just in case you have any difficulty creating the hard disk image, I have included a <<A Downloads/base.hdd.gz gzipped pre-built blank disk>>. It's a 31MB download and unzips to <<C base.hdd>>; you probably want to keep this safe and copy it to <<C c.hdd>> in <<C IanOS>> as it's easy to corrupt the disk image when playing with new things.
 <<PAR>>
 Now (still in directory <<S IanOS>>) run the command <<S make all>> to build the system.
 The result will be a floppy disk image file <<S IanOS.fdd>> and a few files added to <<S c.hdd>>.
