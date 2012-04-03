@@ -647,7 +647,7 @@ long WriteFile(struct FCB *fHandle, char *buffer, long noBytes)
 // Returns 0 on success
 //       1 if file does not exist
 //===================================
-int DeleteFile(char name[11], unsigned short pid)
+int DeleteFile(unsigned char *name, unsigned short pid)
 {
 	struct DirEntry *entry = (struct DirEntry *) FindFile(name);
 
@@ -656,14 +656,15 @@ int DeleteFile(char name[11], unsigned short pid)
 		entry->name[0] = 0xE5;
 		unsigned short int cluster = entry->startingCluster;
 		unsigned short int nextCluster;
-		while (cluster != 0xFFFF)
+		while (FAT[cluster] != 0xFFFF)
 		{
 			nextCluster = FAT[cluster];
 			FAT[cluster] = 0;
 			cluster = nextCluster;
 		}
+		FAT[cluster] = 0;
 		SaveFAT();
-		struct FCB *fHandle = 0;
+		struct FCB *fHandle = OpenFile(name, pid);
 		struct DirEntry * directory = AllocUMem(512);
 		struct DirSects dirSector;
 		int sector = FindFirstDirectorySector(fHandle->dir, &dirSector);
