@@ -9,6 +9,6 @@ EOF
 /sbin/mkdosfs -F16 /dev/loop0 100768
 /sbin/losetup -d /dev/loop0
 chmod a+rw c.hdd
-mformat C: -t200 -h16 -n63
+mformat C: -t200 -h16 -s63
 mmd C:/BIN
 
