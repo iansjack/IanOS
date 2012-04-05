@@ -298,7 +298,7 @@ int FindFreeCluster(void)
 {
 	int count = 0;
 
-	while (FAT[count++] != 0);
+	while (FAT[++count] != 0);
 	return (count);
 }
 
@@ -385,12 +385,12 @@ struct FCB *CreateFile(unsigned char *name, unsigned short pid)
 
 		struct FCB *fHandle = (struct FCB *) AllocKMem(sizeof(struct FCB));
 		fHandle->dirEntry = entry;
-		fHandle->dir = FindDirectory(name);
+		fHandle->dir = dir;
 		fHandle->currentCluster = entry->startingCluster;
 		fHandle->startSector = ClusterToSector(entry->startingCluster);
 		fHandle->startCluster = entry->startingCluster;
 		fHandle->fileCursor = fHandle->bufCursor = fHandle->bufIsDirty = 0;
-		fHandle->length = entry->fileSize;
+		fHandle->length = 0;
 		fHandle->filebuf = (char *) AllocUMem(512);
 		fHandle->sectorInCluster = 1;
 		DeallocMem(directory);

@@ -1,8 +1,9 @@
 #include "syscalls.h"
 
-int main(void)
+int main(int argc, char **argv)
 {
-	unlink("TEST.TXT");
+	if (argc == 2)
+		unlink(argv[1]);
 	exit();
 	return (0);
 }

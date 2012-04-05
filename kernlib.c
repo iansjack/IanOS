@@ -216,6 +216,9 @@ int DoFStat(FD fileDescriptor, struct FileInfo *info)
 }
 long DoRead(FD fileDescriptor, char *buffer, long noBytes)
 {
+	if (!noBytes)
+		return 0;
+
 	long retval = 0;
 
 	struct FCB *temp = currentTask->fcbList;
@@ -266,6 +269,9 @@ long DoRead(FD fileDescriptor, char *buffer, long noBytes)
 
 long DoWrite(FD fileDescriptor, char *buffer, long noBytes)
 {
+	if (!noBytes)
+		return 0;
+
 	long retval = 0;
 
 	struct FCB *temp = currentTask->fcbList;
