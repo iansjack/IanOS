@@ -1,9 +1,9 @@
-<<NAVSTART>>
+<<T Display>><<NAVSTART>>
 	<<PREV timer.html Timer>>
 	<<CONT>>
 	<<NEXT keyboard.html Keyboard>>
 <<NAVEND>>
-<<T Display>><<H1 Display>><<HR>>As with the keyboard, the display is handled by a kernel task (<<X consoleTaskCode>> in <<F console.c>>). This function is very straightforward. It accepts requests on the port <<C ConsolePort>>; currently it handles just two types of request - write a character and write a string, and only the latter is used (via the <<C write>> system call. Characters are written directly to video memory - this is strictly a text-based display at the moment.<<PAR>>
+<<H1 Display>><<HR>>As with the keyboard, the display is handled by a kernel task (<<X consoleTaskCode>> in <<F console.c>>). This function is very straightforward. It accepts requests on the port <<C ConsolePort>>; currently it handles just two types of request - write a character and write a string, and only the latter is used (via the <<C write>> system call. Characters are written directly to video memory - this is strictly a text-based display at the moment.<<PAR>>
 The console implements a small subset of the VT100 terminal commands, allowing for clearing of the screen, cursor movement, and similar events.
 <<PAR>>
 The code has become slightly more complicated than in the previous version as I support multiple consoles. But it should still be fairly easy to understand from the code and comments.<<HR>><<NAVSTART>>

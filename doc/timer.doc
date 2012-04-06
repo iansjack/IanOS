@@ -1,9 +1,9 @@
+<<T Timer>>
 <<NAVSTART>>
 	<<PREV messaging.html Messaging>>
 	<<CONT>>
 	<<NEXT display.html Display>>
 <<NAVEND>>
-<<T Timer>>
 <<H1 Timer>>
 <<HR>>
 The interrupt routine <<X TimerInt>> in <<F interrupts.s>> does the basic work for timing services. This is triggered at regular intervals by the hardware timer chip. The primary purpose of this routine is to increment the variable <<C Ticks>> which counts the number of timer interrupts since the system was started. Next the blocked task queue is checked to see if any tasks are waiting on a timer (the timer is implemented as a field in the task structure). If so, the timer field <<C Task.timer>> is decremented. If this variable has reached zero then the task is re-awakened. The last job of the interrupt routine is to decrement the variable <<C TimeSliceCount>>. If this has reached zero then it is reset to 5 and a call to <<C SWITCH_TASKS>> is made. In other words, a task switch is called for every 5 ticks.

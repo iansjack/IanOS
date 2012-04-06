@@ -1,9 +1,9 @@
+<<T Memory Management>>
 <<NAVSTART>>
 	<<PREV 64bit.html The 64-Bit Code>>
 	<<CONT>>
 	<<NEXT tasking.html Tasking>>
 <<NAVEND>>
-<<T Memory Management>>
 <<H1 Memory Management>>
 <<HR>>
 Memory management is one of the most important tasks that an Operating System performs (after all, whatever other devices a system may support, it must have memory to work in). Understanding the operation of logical-to-physical address mapping and ensuring that memory is correctly allocated and released can be quite tricky. Any mistake here is going to lead almost instantly to a crash of the system; and a small, constant memory leak can soon gobble up free RAM.
@@ -28,7 +28,7 @@ Page Tables consist of four hierarchical levels that link a logical address to a
 <<PAR>>  
 The resulting Page Table looks something like:
 <<PAR>>
-<img src="pt.jpg" width="800" height="291" alt="" border="0">
+<img src="pt.jpg" width="800" height="291" alt="This diagram pictures the Page Table Structure">
 <<H3 32-Bit Table Code>>
 The file <<F ptab32.c>> contains the routine <<X CreatePageDir>> which creates an initial Page Table whilst we are still in 32-bit mode. We need to do this as 64-bit mode won't work without paging enabled, and paging won't work without a Page Table. The structures used in this, and subsequent code, are really just aliases for 64-bit (long) integers and arrays of long integers. In the end this is all that the various table are. Note that we need to define alternate versions for 32- and 64-bit code; a long in 32-bit mode is only 32-bits.
 

@@ -1,9 +1,9 @@
+<<T Task Creation>>
 <<NAVSTART>>
 	<<PREV tasking.html Tasking>>
 	<<CONT>>
 	<<NEXT messaging.html Messaging>>
 <<NAVEND>>
-<<T Task Creation>>
 <<H1 Task Creation>>
 <<HR>>
 Two routines, <<X DoFork>> and <<X NewKernelTask>>, in the file <<F newtask.c>> handle the creation of tasks. <<X NewKernelTask>> creates a task running as part of the kernel, with the appropriate privileges. <<X DoFork>> duplicates the current task (this implements the <<C fork>> system call) and returns the <<C pid>> of the new task to the routine that caaled it, and 0 to the new routine. (Because <<C fork>> duplicates the current task it, in effect, returns twice - once in the original task, once in the new one. It returns different values so that the tasks know which one they are. The normal thing that happens is that the new task will immediately call <<X DoExec>> to load a new program from disk, whereas the original task will just continue to do other things.)

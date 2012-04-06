@@ -1,9 +1,9 @@
+<<T Keyboard>>
 <<NAVSTART>>
 	<<PREV display.html Display>>
 	<<CONT>>
 	<<NEXT ide.html Hard Disk>>
 <<NAVEND>>
-<<T Keyboard>>
 <<H1 Keyboard>>
 <<HR>>
 The keyboard driver is about the simplest device driver there can be (at least conceptually). It consists of two parts, the interrupt routine and the keyboard processing code; this latter runs as a separate task and communicates with other programs by receiving and sending messages.
@@ -12,11 +12,11 @@ The interrupt routine is <<X KbInt>> in the file <<F interrupts.s>> It reads the
 <<PAR>>
 The real work of the keyboard routine is done in the keyboard task <<X kbTaskCode>>, which is defined in the file <<F keyboard.c>>. Messages to and from the keyboard task are sent via the port <<C KbdPort>> (this is defined in <<F include/memory.h>> as a fixed position in memory - other tasks have to know where to find it). The very first thing that is done in this task is to enable the keyboard interrupt; this was disabled until now as we don't want keyboard interrupts happening until we are ready to handle them. The rest of the keyboard task is an infinite loop which waits for a message on <<C KbdPort>> requesting a service; the service requested is encoded in the <<C byte>> field of the messages struct. 
 <<PAR>>
-The task provides two services: <<C GETCHAR>> and <<C KEYPRESSED>>. <<C KEYPRESSED>> is used only by the keyboard interrupt routine via the function <<X keyPressed>>. (Although <<X keyPressed>> is defined in <<F keyboard.c>> it is part of the interrupt routine rather than the keyboard task.) It takes the code from the keyboard queue and checks it to see if it is a special code or represents a normal character. Special codes include the &ltshift&gt, &ltctrl&gt, and &ltalt&gt modifier keys, toggles such as &ltcapslock&gt and the function keys (which I use to switch consoles). If it is a normal character code it is placed on the input queue of the appropriate console.
+The task provides two services: <<C GETCHAR>> and <<C KEYPRESSED>>. <<C KEYPRESSED>> is used only by the keyboard interrupt routine via the function <<X keyPressed>>. (Although <<X keyPressed>> is defined in <<F keyboard.c>> it is part of the interrupt routine rather than the keyboard task.) It takes the code from the keyboard queue and checks it to see if it is a special code or represents a normal character. Special codes include the &lt;shift&gt;, &lt;ctrl&gt;, and &lt;alt&gt; modifier keys, toggles such as &lt;capslock&gt; and the function keys (which I use to switch consoles). If it is a normal character code it is placed on the input queue of the appropriate console.
 <<PAR>>
 <<C GetChar>> is the service call that is used when a program requests a character from the keyboard (which it actually does <<I via>> the <<C read>> system call. It simply takes the waiting character (if there is one) from the appropriate console keyboard buffer and then calls <<X ProcessMsgQueue>> to create a message to send back to the requesting program. This is sent on a temporary port that was created by the calling program - its address was passed to the keyboard task in the <<C tempPort>> element of the message. (We can't use <<C KbdPort>> to send the return message on as it might have messages from other programs queued; if we used it as the return port we would, erroneously, receive the first of these messages.) The consoles actually maintain a queue to guard against the possibility that there may be more than one message to be processed. (I'm not sure if that could ever happen, but it does no harm.)
 <<PAR>>
-<b>Note:</b> There is a problem with the handling of the capslock key that I can't put my finger on at present. For some reason it requires two presses to lock caps, and two to unlock. It may be trivial or it may be a result of running in a VM, but I just can't track it down. Just be aware of it.
+<<B Note:>> There is a problem with the handling of the capslock key that I can't put my finger on at present. For some reason it requires two presses to lock caps, and two to unlock. It may be trivial or it may be a result of running in a VM, but I just can't track it down. Just be aware of it.
 <<HR>>
 <<NAVSTART>>
 	<<PREV display.html Display>>

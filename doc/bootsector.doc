@@ -1,9 +1,9 @@
+<<T Boot Sector>>
 <<NAVSTART>>
 	<<PREV boot.html Overview of Boot Process>>
 	<<CONT>>
 	<<NEXT startup.html From Protected Mode to Long Mode>>
 <<NAVEND>>
-<<T Boot Sector>>
 <<H1 Boot Sector>>
 <<HR>>
 The file <<F boot.s>> contains the source of a boot sector that will be written to a floppy (or image file).

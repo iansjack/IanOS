@@ -1,11 +1,10 @@
+<<T Tasking>>
 <<NAVSTART>>
 	<<PREV memory.html Memory Management>>
 	<<CONT>>
 	<<NEXT tcreate.html Task Creation>>
 <<NAVEND>>
-<<T Tasking>>
 <<H1 Tasking>>
-<<CONT>>
 <<HR>>
 To actually achieve anything the OS runs a number of tasks. Some of these are user programs, others are central to the OS itself; for example, hardware drivers, such as those for the keyboard or the display, run as separate tasks. One of the prime functions of an OS is to manage these separate tasks; each must be activated at regular intervals to give the impression that they are all running all of the time. In 32-bit (Protected) mode the x86 processors actually provide hardware support for task switching. In practice most operating systems do not make use of this hardware support; this is so that their code is portable to other processors. In any case, in 64-bit mode the processor does not provide this hardware support, so it all has to be done in software.
 <<PAR>>

@@ -1,9 +1,9 @@
+<<T Protected Mode to Long Mode>>
 <<NAVSTART>>
 	<<PREV bootsector.html Boot Sector>>
 	<<CONT>>
 	<<NEXT 64bit.html The 64-Bit Code>>
 <<NAVEND>>
-<<T Protected Mode to Long Mode>>
 <<H1 From Protected Mode to Long Mode>>
 <<HR>>
 The file <<F startup.s>> contains the code that will take the processor from 32-bit Protected Mode to 64-bit Long Mode. The last instruction in the boot sector is:

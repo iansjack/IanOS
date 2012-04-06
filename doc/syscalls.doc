@@ -1,9 +1,9 @@
+<<T SysCalls>>
 <<NAVSTART>>
 	<<PREV ide.html Hard Disk>>
 	<<CONT>>
 	<<NEXT misc.html Miscellaneous>>
 <<NAVEND>>
-<<T SysCalls>>
 <<H1 System Calls>>
 <<HR>>
 Due to the protection mechanisms built into the processor, programs running with user privilege cannot access certain memory locations, or execute certain instructions. This, after all, is the whole point of the protection mechanisms - to protect the kernel against errant user programs. Some mechanism has to be found to let a user program indicate to the kernel that it requires certain tasks to be undertaken on its behalf. The easiest way to accomplish this (although not the only way) is to use the <<C syscall>> and <<C sysretq>> instructions. These instructions allow the program to switch privilege levels, run some kernel code, and then switch back again.

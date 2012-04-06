@@ -1,14 +1,14 @@
 
-<<A index.html Home>>
 <<T Contents>>
+<div><<A index.html Home>></div>
 <<H1 The Code>>
 <<HR>>
 (<<A HTML/index.html Browse Source>>)
 <<PAR>>
-<<A boot.html 1. Overview of the Boot Process>><br>
+<div><<A boot.html 1. Overview of the Boot Process>></div>
 	<<IN <<A bootsector.html 1.1. Boot Sector>> >>
 	<<IN <<A startup.html 1.2. From Protected Mode to Long Mode>> >>
-<<A 64bit.html 2. The 64-Bit Code>><br>
+<div><<A 64bit.html 2. The 64-Bit Code>></div>
 	<<IN <<A memory.html 2.1. Memory Management>> >>
 	<<IN <<A tasking.html 2.2. Tasking>> >>
 	<<IN <<A tcreate.html 2.3. Task Creation>> >>
@@ -18,6 +18,6 @@
 	<<IN <<A keyboard.html 2.7. Keyboard>> >>
 	<<IN <<A ide.html 2.8. Hard Disk>> >>
 	<<IN <<A syscalls.html 2.9. System Calls>> >>
-<<A misc.html 3. Miscellaneous>><br>
+<div><<A misc.html 3. Miscellaneous>></div>
 	<<IN <<A programs.html User Programs>> >>
 <<HR>> 

@@ -1,9 +1,9 @@
+<<T Messaging>>
 <<NAVSTART>>
 	<<PREV tcreate.html Task Creation>>
 	<<CONT>>
 	<<NEXT timer.html Timer>>
 <<NAVEND>>
-<<T Messaging>>
 <<H1 Messaging>>
 <<HR>>
 Any OS that runs more than one task at a time needs some mechanism for the tasks to communicate with each other. For example, in IanOS keboard events are obtained by sending a message from the requesting program to the keyboard task. Because tasks have separate memory maps they cannot access each other's memory, so simple shared variables are not possible. In IanOS we solve this problem by the use of messages. Tasks send a message to a port and other tasks retrieve this message from the same port. The routines to handle messaging are in the file <<F messaging.c>>. There are two basic functions, <<X SendMessage>> and <<X ReceiveMessage>>. A third function, <<X SendReceiveMessage>> allows a task to send a message and then wait for a reply.

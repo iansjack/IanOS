@@ -1,7 +1,7 @@
 <<T Miscellaneous>>
 <<H1 Filesystem>>
 <<HR>>
-Access to the filesystem is handled by a separate kernel task contained in <<F filesystem.c>>. Currently the filesysem handles messages to create, open, read from, write to and close files. In addition there are messages to delete a file, return a directory entry, and return the PID of the filesystem (I've got a feeling I'm going to need this at a later stage).
+Access to the filesystem is handled by a separate kernel task contained in <<F filesystem.c>>. Currently the filesystem handles messages to create, open, read from, write to and close files. In addition there are messages to delete a file, return a directory entry, and return the PID of the filesystem (I've got a feeling I'm going to need this at a later stage).
 <<PAR>>
 The filesystem is a limited implementation of the FAT filesystem. Currently I only deal with a flat filesystem containg up to 200 files. I may expand this to cover more features of a FAT filesystem or, more likely, I might write my own filesystem with more capabilities.
 <<PAR>>
@@ -10,4 +10,3 @@ For the sake of efficiency the whole of the directory and the whole of the file 
 There's nothing particularly complicated about the filesystem code, so I don't intend to document it further at the moment.
 <<PAR>>
 <<HR>>
-<<CONT>>

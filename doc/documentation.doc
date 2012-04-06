@@ -1,16 +1,16 @@
 <<T Documentation>>
 <<H1 Documentation>>
 <<HR>>
-<<H3 Programmer's Manuals>>
+<<H2 Programmer's Manuals>>
 The most important information that you require is that produced by the manufacturer of the chip. We are extremely fortunate that both AMD and Intel make the Programmer's Manuals, and many other useful documents, available at no charge on their web sites.
 <<PAR>>
 <<IN <<A http://developer.amd.com/documentation/guides/Pages/default.aspx AMD documentation>> >>
-<<IN+ <<A http://www.intel.com/products/processor/manuals/index.htm Intel documentation>> >>
+<<IN+ <<A http://www.intel.com/content/www/us/en/processors/architectures-software-developer-manuals.html Intel documentation>> >>
 Whichever make of processor you have I would strongly recommend looking at both sets of documents. The differences between the actual chips are minimal, but the manuals provide interestingly different slants on them.
 <<PAR>>
 From here on I will refer exclusively to the AMD manuals. A reference to <<I AMD2>> (for example) means <<I AMD64 Architecture Programmer's Manual Volume 2: System Programming>>.
 
-<<H3 Books>>
+<<H2 Books>>
 Some books that I found extremely useful are:
 <<PAR>>
 <<IN Richard Burgess, <<I Developing Your Own 32-Bit Operating System>>, Sams Publishing, 1995. ISBN 0672306557.>>
@@ -23,7 +23,7 @@ These two aren't OS-related but will probably be of interest to anyone who appre
 <<IN Douglas Hoftstatder, <<I Godel, Escher, Bach: An Eternal Golden Braid (20th anniversary edition)>>, Penguin Books Ltd, 2000. ISBN 0140289208.>>
 <<IN Roger Penrose, <<I The Road to Reality: A Complete Guide to the Laws of the Universe>>, Vintage, 2006. ISBN 0099440687.>>
 
-<<H3 Websites>>
+<<H2 Websites>>
 There are a large number of websites that provide useful information, and I find new ones every day. The amount of information available for free nowadays is just amazing (particularly to those of us who grew up 50 years ago). Three sites that I would particularly recommend are:
 <<PAR>>
 <<IN <<A http://wiki.osdev.org/Expanded_Main_Page The OSDev Wiki>> >>

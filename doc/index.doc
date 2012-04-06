@@ -1,7 +1,9 @@
 <<T Introduction>>
 <<H1 Programming a 64-bit Operating System>>
 <<HR>>
-<<I <b>Note:</b> Those of you who have visited this site before should be aware that I have recently made considerable changes to the code and the documentation, so you may want to download the source again. Have a look at at <<A http:wordpress the blog>> for more details.>>
+Before progressing any further I would ask you to read my <<B <<A privacy.html Privacy Policy.>> >>
+<<PAR>>
+<<I <<B Note:>> Those of you who have visited this site before should be aware that I have recently made considerable changes to the code and the documentation, so you may want to download the source again. Have a look at at <<A wordpress the blog>> for more details.>>
 <<PAR>>
 Soon after the AMD Athlon64 was released I bought a computer incorporating one with the intent of learning its assembly language. It took some time, but I finally got around to a little experimenting. Although AMD make their excellent Programmer's Manuals available on-line for free, I found it very difficult to find other information. Specifically I could have done with some simple examples showing how exactly to get the processor from reset to long (i.e. 64-bit) mode. Plenty of sites give this sort of detail for protected mode on the i386 but I couldn't find much
 about the x86_64 processors.
@@ -22,11 +24,12 @@ Whatever, before you can get to grips with the CPU you're going to need the appr
 <<IN+ <<A code.html The Code>> >>
 (Before reading about the code you may wish to have a quick look at <<A note.html this note>> about the online source code.)
 <<PAR>>
-<b>Note</b>: If anybody wishes to use any of this code in their own project, please do so. Credit would be nice but, if not, no matter. Note that the boot sector code is strongly modelled on that in <<I Developing Your Own 32-bit Operating System>>.
+<<B Note>>: If anybody wishes to use any of this code in their own project, please do so. Credit would be nice but, if not, no matter. Note that the boot sector code is strongly modelled on that in <<I Developing Your Own 32-bit Operating System>>.
 <<HR>>
 Please feel free to <<A mailto:ian@ijack.co.uk contact me>> about any aspect of this project.
-<br>Alternatively, post a comment in my <<A guestbook Guest book>>.
-<br>If you are interested - <<A aboutme.html About Me>>.
+<<PAR>>Alternatively, post a comment in my <<A guestbook Guest book>>.
+<<PAR>>If you are interested - <<A aboutme.html About Me>>.
+<<PAR>>
 I thought that it might be fun to start a blog where I can describe my thought processes, problems, and development of IanOS. You can look at it <<A wordpress here>>.
 <<HR>>
 
