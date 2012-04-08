@@ -64,7 +64,10 @@ Sys_Exit:
 	sysretq
 
 #=========================================================
-# 
+# Creates an exact copy of the current task
+# Returns in RAX either the pid of the new file or 0
+# when returning to the new file. Note that this function
+# returns both in the calling program and the copy.
 #=========================================================	
 Sys_Fork:
 	push %rcx
@@ -73,7 +76,10 @@ Sys_Fork:
 	sysretq
 	
 #=========================================================
-# 
+# Reads from the file whose FCB is in RDI
+# RSI = buffer to read into
+# RDX = number of bytes to read
+# Returns actual number read in RAX
 #=========================================================	
 Sys_Read:
 	push %rcx
@@ -82,7 +88,10 @@ Sys_Read:
 	sysretq
 	
 #=========================================================
-# 
+# Writes to the file whose FCB is in RDI
+# RSI = buffer to write from
+# RDX = number of bytes to write
+# Returns actual number written in RAX
 #=========================================================
 Sys_Write:
 	push %rcx
@@ -110,7 +119,9 @@ Sys_Close:
 	sysretq				
 
 #=========================================================
-# 
+# Tells this process to wait for the task with pid RDI
+# to finish. The task will be sent a message when this
+# happens
 #=========================================================
 SysWaitPID:
 	push %rcx
@@ -119,7 +130,7 @@ SysWaitPID:
 	sysretq
 	
 #=========================================================
-# 
+# Create a new file whose name is pointed to by RDI
 #=========================================================
 Sys_Creat:
 	push %rcx
@@ -128,13 +139,13 @@ Sys_Creat:
 	sysretq
 
 #=========================================================
-# 
+# Unimplemented
 #=========================================================
 Unimplemented:	 #Sys_Link:
 	sysretq
 
 #=========================================================
-# 
+# Delete the file whose name is pointed to by RDI
 #=========================================================
 Sys_UnLink:
 	push %rcx
@@ -143,7 +154,8 @@ Sys_UnLink:
 	sysretq
 
 #=========================================================
-# 
+# Replace the current task code with that in the file
+# pointed to by RAX
 #=========================================================
 Sys_Execve:
 	push %rcx
@@ -157,7 +169,7 @@ notLoaded:
 	sysretq
 
 #=========================================================
-# 
+# Changes to the directory whose name is pointed to by RDI
 #=========================================================
 Sys_ChDir:
 	push %rcx
@@ -165,18 +177,31 @@ Sys_ChDir:
 	pop %rcx
 	sysretq				
 
+#=========================================================
+# Returns information about the file whose name is pointed
+# to by RDI to the buffer pointed to by RSI
+#=========================================================
+
 Sys_Stat:
 	push %rcx
 	call DoStat
 	pop %rcx
 	sysretq
 
+#=========================================================
+# Returns information about the file whose FCB is in RDI
+# to the buffer pointed to by RSI
+#=========================================================
 Sys_FStat:
 	push %rcx
 	call DoFStat
 	pop %rcx
 	sysretq
 
+#=========================================================
+# Changes the buffer cursor in the FCB RDI to the offset
+# in RSI. RDX determines where the offset is from.
+#=========================================================
 Sys_LSeek:
 	push %rcx
 	call Do_Seek
@@ -350,6 +375,9 @@ Sys_MkDir:
 	pop %rcx
 	sysretq
 	
+#========================================================
+# Tell the current task to sleep for RDI nanoseconds
+#========================================================
 GoToSleep:
 	push %rdx
 	mov currentTask, %r15

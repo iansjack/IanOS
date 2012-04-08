@@ -1,2 +1,7 @@
 <<T User Programs>><<NAV>>
-<<H1 User Programs>><<HR>>This page is under construction. More soon!<<HR>><<NAV>>
+<<H1 User Programs>><<HR>>The source code includes that for a few user programs. All are fairly simple. The ones called <<C TASKx>> are just tests of various function calls, except for <<C TASK1>>, which is my shell program; I must rename it sometime. The more useful programs are named the same as their Linux counterparts; <<C ls>>, <<C cat>> etc. Note that the filenames on disk are all in caps (this is a result of using the FAT filesystem), but can be typed in lower case on the command line. Other filenames, however, are case sensitive; those created from within IanOS can can be upper case or lower case, whilst those copied from the Linux filesystem should be uppercase. (FAT filesystems have a peculiar way of representing lower-case filenames which the <<S mcopy>> program will replicate, and this will cause problesms with IanOS. IanOS is quite happy to create lc filenames and is case sensitive.) At some stage I will probably use a different filesystem; perhaps even a home-brew one.
+<<PAR>>
+Currently I'm working on a text editor, which is now just about usable but still has bugs. The current source code is included, but it is not a fully functional program. I'll update it further when it is.
+<<PAR>>
+It should be fairly obvious from the <<S tasks/makefile>> how to compile and link your own programs.
+<<HR>><<NAV>>

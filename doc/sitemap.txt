@@ -11,5 +11,6 @@ display	Display
 keyboard	Keyboard
 ide	Hard Disk
 syscalls	System Calls
+exceptions Exceptions
 misc	Miscellaneous
 programs	User Programs

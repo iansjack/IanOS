@@ -155,6 +155,11 @@ intrr:
 	KWRITE_DOUBLE 0x38(%rsp), $3, $68
 	KWRITE_STRING $ss, $4, $60
 	KWRITE_DOUBLE 0x40(%rsp), $4, $68
+	cmpl $UserCode, 0x20(%rsp)
+	jge kcode
+	KWRITE_STRING $usererror, $14, $58
+	call KillTask
+kcode:
 	cli
 	hlt
 	iretq
@@ -162,48 +167,62 @@ intrr:
 div0:
 	KWRITE_STRING $div0message, $0, $0
 	jmp intrr
+
 i1:	KWRITE_STRING $debugmessage, $0, $0
 	jmp intrr
+
 i2:	KWRITE_STRING $nmimessage, $0, $0
 	jmp intrr
+
 i3:	KWRITE_STRING $breakpointmessage, $0, $0
 	jmp intrr
+
 i4:	KWRITE_STRING $overflowmessage, $0, $0
 	jmp intrr
+
 i5:	KWRITE_STRING $boundmessage, $0, $0
 	jmp intrr
+
 i6:	KWRITE_STRING $invalidopcodemessage, $0, $0
 	jmp intrr
+
 i7:	KWRITE_STRING $devnotavailmessage, $0, $0
 	jmp intrr
+
 df:	KWRITE_STRING $DFmessage, $0, $0
 	KWRITE_STRING $error, $6, $60
 	KWRITE_DOUBLE 0x20(%rsp), $6, $68
 	add $8, %rsp
 	jmp intrr
+
 i9:	KWRITE_STRING $coprocmessage, $0, $0
 	jmp intrr
+
 ia:	KWRITE_STRING $invalidtssmessage, $0, $0
 	KWRITE_STRING $error, $6, $60
 	KWRITE_DOUBLE 0x20(%rsp), $6, $68
 	add $8, %rsp
 	jmp intrr
+
 ib:	KWRITE_STRING $segnotpresentmessage, $0, $0
 	KWRITE_STRING $error, $6, $60
 	KWRITE_DOUBLE 0x20(%rsp), $6, $68
 	add $8, %rsp
 	jmp intrr
+
 ic:	KWRITE_STRING $stackfaultmessage, $0, $0
 	KWRITE_STRING $error, $6, $60
 	KWRITE_DOUBLE 0x20(%rsp), $6, $68
 	add $8, %rsp
 	jmp intrr
+
 gpf:
 	KWRITE_STRING $GPFmessage, $0, $0
 	KWRITE_STRING $error, $6, $60
 	KWRITE_DOUBLE 0x20(%rsp), $6, $68
 	add $8, %rsp
 	jmp intrr
+
 pf:
 	KWRITE_STRING $PFmessage, $0, $0
 	KWRITE_STRING $error, $6, $60
@@ -212,9 +231,11 @@ pf:
 	KWRITE_STRING $address, $7, $60
 	KWRITE_DOUBLE %cr2, $7, $68
 	jmp intrr
+
 itf:
 	movb $'f, 0xB8000
 	jmp intr
+
 ig:	movb $'g, 0xB8000
 	jmp intr
 

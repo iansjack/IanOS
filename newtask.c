@@ -257,6 +257,7 @@ void KillTask(void)
 {
 	struct Task *task = currentTask;
 
+	// Is there a task waiting for this one to finish? Send it a message.
 	if (task->parentPort)
 	{
 		struct Message *m = ALLOCMSG;
@@ -407,11 +408,17 @@ extern void fsTaskCode(void);
 //===================================================================
 // This starts the dummy task and the services
 // Any new service will need to be added to this list
+// Sleep after each task to give it time to initialize itself
+// I'm hoping this will improve system stability
 //===================================================================
 void StartTasks()
 {
 	NewLowPriTask(dummyTask);
+	GoToSleep(100);
 	NewKernelTask(kbTaskCode);
+	GoToSleep(100);
 	NewKernelTask(consoleTaskCode);
+	GoToSleep(100);
 	NewKernelTask(fsTaskCode);
+	GoToSleep(100);
 }

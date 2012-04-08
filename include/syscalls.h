@@ -19,8 +19,8 @@ long chdir(unsigned char *directory);
 FD open(unsigned char *filename);
 int close(FD fileDescriptor);
 long execve(unsigned char *name, char *environment);
-void wait(unsigned short pid);
-int stat(FD fileDescriptor, struct FileInfo *info);	// Wrong - should take filename as parameter!!!
+void waitpid(unsigned short pid);
+int stat(unsigned char *filename, struct FileInfo *info);	// Wrong - should take filename as parameter!!!
 int fstat(FD fileDescriptor, struct FileInfo *info);
 long read(FD fileDescriptor, unsigned char *buffer, long noBytes);
 long write(FD fileDescriptor, unsigned char *buffer, long noBytes);

@@ -10,7 +10,7 @@
 	.global close
 	.global fork
 	.global execve
-	.global wait
+	.global waitpid
 	.global stat
 	.global fstat
 	.global read
@@ -75,7 +75,7 @@ execve:
 	syscall
 	ret
 
-wait:
+waitpid:
 	mov $SYS_WAITPID, %r9
 	syscall
 	ret

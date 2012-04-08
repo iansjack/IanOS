@@ -175,7 +175,7 @@ int main(int argc, char **argv)
 				strcpy(currentLineBuffer, currline->line);
 				if (column > strlen(currentLineBuffer))
 					column = strlen(currentLineBuffer);
-				printf("%c[%d,%dH", ESC, line, column);
+				printf("%c[%d;%dH", ESC, line, column);
 			}
 		}
 		else if (c == ctrl('D')) // Down Arrow
@@ -191,7 +191,7 @@ int main(int argc, char **argv)
 				strcpy(currentLineBuffer, currline->line);
 				if (column > strlen(currentLineBuffer))
 					column = strlen(currentLineBuffer);
-				printf("%c[%d,%dH", ESC, line, column);
+				printf("%c[%d;%dH", ESC, line, column);
 			}
 		}
 		else if (c == ctrl('L')) // Left Arrow

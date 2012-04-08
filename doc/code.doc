@@ -17,6 +17,7 @@
 	<<IN <<A keyboard.html 2.7. Keyboard>> >>
 	<<IN <<A ide.html 2.8. Hard Disk>> >>
 	<<IN <<A syscalls.html 2.9. System Calls>> >>
+	<<IN <<A exceptions.html 2.10 Exceptions>> >>
 <div><<A misc.html 3. Miscellaneous>></div>
 	<<IN <<A programs.html User Programs>> >>
 <<HR>> 

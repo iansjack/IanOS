@@ -82,7 +82,7 @@ int main(int argc, char **argv)
 					}
 				}
 				else
-					wait(pid);
+					waitpid(pid);
 			}
 
 			printf("#> ");
@@ -91,6 +91,12 @@ int main(int argc, char **argv)
 			for (i = 0; i < 80; i++) {
 				commandline[i] = ' ';
 			}
+			break;
+
+		case 4:		// Down arrow
+		case 12:	// Left arrow
+		case 18:	// Right arrow
+		case 21:	// Up arrow
 			break;
 
 		default:

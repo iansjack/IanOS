@@ -5,7 +5,9 @@
 
 int main(int argc, char **argv)
 {
-	int ret;
+	char * c;
+	c = 123;
+	int x = c[0];
 
 	FD InFile = open(argv[1]);
 	if (InFile != -1) {
