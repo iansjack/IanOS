@@ -856,7 +856,7 @@ int Seek(struct FCB *fHandle, int offset, int whence)
 //=============================
 void fsTaskCode(void)
 {
-	KWriteString("Starting Filesystem Task", 3, 0);
+	kprintf(3, 0, "Starting Filesystem Task");
 
 	struct Message *FSMsg;
 	struct MessagePort *tempPort;

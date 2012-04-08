@@ -136,7 +136,7 @@ void ProcessMsgQueue(struct Console *console)
 //=====================================================
 void kbTaskCode()
 {
-	KWriteString("Starting Keyboard Task", 1, 0);
+	kprintf(1, 0, "Starting Keyboard Task");
 
 	unsigned char temp = 0;
 	unsigned char modifier = 0;

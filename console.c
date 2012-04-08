@@ -292,7 +292,7 @@ void ProcessChar(unsigned char c)
 
 void consoleTaskCode()
 {
-	KWriteString("Starting Console Task", 2, 0);
+	kprintf(2, 0, "Starting Console Task");
 	Mode = NORMAL_MODE;
 
 	VideoBuffer = (char *) 0xB8000;

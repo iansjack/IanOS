@@ -135,107 +135,88 @@ SpecificSwitchTasks:		# int 22
 	iretq
 
 intr:
-	KWRITE_DOUBLE %rax, $9, $60
-	KWRITE_DOUBLE %rbx, $10, $60
-	KWRITE_DOUBLE %rcx, $11, $60
-	KWRITE_DOUBLE %rdx, $12,$60
 	KWRITE_STRING $Unknown_message, $1, $0
-	KWRITE_DOUBLE 0x20(%esp), $0, $60
-	KWRITE_DOUBLE 0x28(%esp), $1, $60
-	KWRITE_DOUBLE 0x30(%esp), $2, $60
-	KWRITE_DOUBLE 0x38(%esp), $3, $60
-	KWRITE_DOUBLE 0x40(%esp), $4, $60
-	KWRITE_DOUBLE 0x48(%esp), $5, $60
-	KWRITE_DOUBLE 0x50(%esp), $6, $60
-	KWRITE_DOUBLE 0x58(%esp), $7, $60
-	pop %rax
+intrr:
+	KWRITE_STRING $rax, $9, $60
+	KWRITE_DOUBLE %rax, $9, $68
+	KWRITE_STRING $rbx, $10, $60
+	KWRITE_DOUBLE %rbx, $10, $68
+	KWRITE_STRING $rcx, $11, $60
+	KWRITE_DOUBLE %rcx, $11, $68
+	KWRITE_STRING $rdx, $12, $60
+	KWRITE_DOUBLE %rdx, $12,$68
+	KWRITE_STRING $rip, $0, $60
+	KWRITE_DOUBLE 0x20(%rsp), $0, $68
+	KWRITE_STRING $cs, $1, $60
+	KWRITE_DOUBLE 0x28(%rsp), $1, $68
+	KWRITE_STRING $flags, $2, $60
+	KWRITE_DOUBLE 0x30(%rsp), $2, $68
+	KWRITE_STRING $rsp, $3, $60
+	KWRITE_DOUBLE 0x38(%rsp), $3, $68
+	KWRITE_STRING $ss, $4, $60
+	KWRITE_DOUBLE 0x40(%rsp), $4, $68
 	cli
 	hlt
 	iretq
 
-div0:	KWRITE_STRING $div0message, $0, $0
-	KWRITE_DOUBLE (%esp), $0, $60
-	KWRITE_DOUBLE 4(%esp), $1, $60
-	iretq
-i1:	movb $'1, 0xB8000
-	jmp intr
-i2:	movb $'2, 0xB8000
-	jmp intr
-i3:	movb $'3, 0xB8000
-	jmp intr
-i4:	movb $'4, 0xB8000
-	jmp intr
-i5:	movb $'5, 0xB8000
-	jmp intr
-i6:	movb $'6, 0xB8000
-	jmp intr
-i7:	movb $'7, 0xB8000
-	jmp intr
-df:	KWRITE_DOUBLE %rax, $9, $60
-	KWRITE_DOUBLE %rbx, $10, $60
-	KWRITE_DOUBLE %rcx, $11, $60
-	KWRITE_DOUBLE %rdx, $12,$60
-	KWRITE_STRING $DFmessage, $0, $0
-	KWRITE_DOUBLE 0x20(%esp), $0, $60
-	KWRITE_DOUBLE 0x28(%esp), $1, $60
-	KWRITE_DOUBLE 0x30(%esp), $2, $60
-	KWRITE_DOUBLE 0x38(%esp), $3, $60
-	KWRITE_DOUBLE 0x40(%esp), $4, $60
-	KWRITE_DOUBLE 0x48(%esp), $5, $60
-	KWRITE_DOUBLE 0x50(%esp), $6, $60
-	KWRITE_DOUBLE 0x58(%esp), $7, $60
-	pop %rax
-	cli
-	hlt
-	iretq
-i9:	movb $'9, 0xB8000
-	jmp intr
-ia:	movb $'a, 0xB8000
-	jmp intr
-ib:	movb $'b, 0xB8000
-	jmp intr
-ic:	movb $'c, 0xB8000
-	jmp intr
+div0:
+	KWRITE_STRING $div0message, $0, $0
+	jmp intrr
+i1:	KWRITE_STRING $debugmessage, $0, $0
+	jmp intrr
+i2:	KWRITE_STRING $nmimessage, $0, $0
+	jmp intrr
+i3:	KWRITE_STRING $breakpointmessage, $0, $0
+	jmp intrr
+i4:	KWRITE_STRING $overflowmessage, $0, $0
+	jmp intrr
+i5:	KWRITE_STRING $boundmessage, $0, $0
+	jmp intrr
+i6:	KWRITE_STRING $invalidopcodemessage, $0, $0
+	jmp intrr
+i7:	KWRITE_STRING $devnotavailmessage, $0, $0
+	jmp intrr
+df:	KWRITE_STRING $DFmessage, $0, $0
+	KWRITE_STRING $error, $6, $60
+	KWRITE_DOUBLE 0x20(%rsp), $6, $68
+	add $8, %rsp
+	jmp intrr
+i9:	KWRITE_STRING $coprocmessage, $0, $0
+	jmp intrr
+ia:	KWRITE_STRING $invalidtssmessage, $0, $0
+	KWRITE_STRING $error, $6, $60
+	KWRITE_DOUBLE 0x20(%rsp), $6, $68
+	add $8, %rsp
+	jmp intrr
+ib:	KWRITE_STRING $segnotpresentmessage, $0, $0
+	KWRITE_STRING $error, $6, $60
+	KWRITE_DOUBLE 0x20(%rsp), $6, $68
+	add $8, %rsp
+	jmp intrr
+ic:	KWRITE_STRING $stackfaultmessage, $0, $0
+	KWRITE_STRING $error, $6, $60
+	KWRITE_DOUBLE 0x20(%rsp), $6, $68
+	add $8, %rsp
+	jmp intrr
 gpf:
-	KWRITE_DOUBLE %rax, $9, $60
-	KWRITE_DOUBLE %rbx, $10, $60
-	KWRITE_DOUBLE %rcx, $11, $60
-	KWRITE_DOUBLE %rdx, $12,$60
 	KWRITE_STRING $GPFmessage, $0, $0
-	KWRITE_DOUBLE 0x20(%esp), $0, $60
-	KWRITE_DOUBLE 0x28(%esp), $1, $60
-	KWRITE_DOUBLE 0x30(%esp), $2, $60
-	KWRITE_DOUBLE 0x38(%esp), $3, $60
-	KWRITE_DOUBLE 0x40(%esp), $4, $60
-	KWRITE_DOUBLE 0x48(%esp), $5, $60
-	KWRITE_DOUBLE 0x50(%esp), $6, $60
-	KWRITE_DOUBLE 0x58(%esp), $7, $60
-	pop %rax
-	cli
-	hlt
-	iretq
+	KWRITE_STRING $error, $6, $60
+	KWRITE_DOUBLE 0x20(%rsp), $6, $68
+	add $8, %rsp
+	jmp intrr
 pf:
-	KWRITE_DOUBLE %rax, $9, $60
-	KWRITE_DOUBLE %rbx, $10, $60
-	KWRITE_DOUBLE %rcx, $11, $60
-	KWRITE_DOUBLE %rdx, $12,$60
 	KWRITE_STRING $PFmessage, $0, $0
-	KWRITE_DOUBLE 0x20(%esp), $0, $60
-	KWRITE_DOUBLE 0x28(%esp), $1, $60
-	KWRITE_DOUBLE 0x30(%esp), $2, $60
-	KWRITE_DOUBLE 0x38(%esp), $3, $60
-	KWRITE_DOUBLE 0x40(%esp), $4, $60
-	KWRITE_DOUBLE 0x48(%esp), $5, $60
-	#KWRITE_DOUBLE 0x50(%esp), $6, $60
-	#KWRITE_DOUBLE 0x58(%esp), $7, $60
-	pop %rax
-	cli
-	hlt
-	iretq
-itf:	movb $'f, 0xB8000
-	iretq
+	KWRITE_STRING $error, $6, $60
+	KWRITE_DOUBLE 0x20(%rsp), $6, $68
+	add $8, %rsp
+	KWRITE_STRING $address, $7, $60
+	KWRITE_DOUBLE %cr2, $7, $68
+	jmp intrr
+itf:
+	movb $'f, 0xB8000
+	jmp intr
 ig:	movb $'g, 0xB8000
-	iretq
+	jmp intr
 
 Pd:	mov $160, %ax
 	mul %bh
