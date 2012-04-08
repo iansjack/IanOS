@@ -1,8 +1,4 @@
-<<T Hard Disk>><<NAVSTART>>
-	<<PREV keyboard.html Keyboard>>
-	<<CONT>>
-	<<NEXT syscalls.html System Calls>>
-<<NAVEND>>
+<<T Hard Disk>><<NAV>>
 <<H1 Hard Disk>>
 <<HR>>The device driver for the hard disk consists entirely of a hardware interrupt routine, <<X HdInt>> in <<F interrupts.s>> (the hard disk controller will trigger this interrupt when it has finished its work), and a couple of routines, <<X ReadSector>> and <<X WriteSector>> in <<F ide.s>>. <<X ReadSector>> is very straightforward; the appropriate registers in the IDE controller are set and then, when the controller signifies that it is ready (hence the <<C call WaitForInt>>), a simple loop reads the data into the buffer. <<X WriteSector>> is equally simple. Note that this code only works with a straightforward IDE controller (it'll be fine with <<S SimNow>> and <<S qemu>>), not SATA or SCSI controllers. (I'll try to find a reference giving details of the IDE controller.)
 <<PAR>>
@@ -11,8 +7,4 @@ Similarly, <<X HdInt>> is not complicated. It clears the interrupt and then chec
 There appear to be potential problems with this device driver. In particular, it doesn't guard against two simultaneous requests. This is not a problem in practice; requests to the driver only come from a single task, the filesystem task, in the form of queued messages. There should, therefore, be no question of simultaneous accesses to the disk as the filesystem task looks after the necessary serialization.
 <<PAR>>
 <<B Note:>> I've just realized that the above doesn't really make sense. If the only task that calls the device driver is the filesystem task then why do I need to check which task called it? I must check carefully, but I'll leave it as it is for the time being; it certainly works as is.<<HR>>
-<<NAVSTART>>
-	<<PREV keyboard.html Keyboard>>
-	<<CONT>>
-	<<NEXT syscalls.html System Calls>>
-<<NAVEND>>
+<<NAV>>

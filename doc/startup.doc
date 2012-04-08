@@ -1,9 +1,5 @@
 <<T Protected Mode to Long Mode>>
-<<NAVSTART>>
-	<<PREV bootsector.html Boot Sector>>
-	<<CONT>>
-	<<NEXT 64bit.html The 64-Bit Code>>
-<<NAVEND>>
+<<NAV>>
 <<H1 From Protected Mode to Long Mode>>
 <<HR>>
 The file <<F startup.s>> contains the code that will take the processor from 32-bit Protected Mode to 64-bit Long Mode. The last instruction in the boot sector is:
@@ -20,8 +16,4 @@ Note that, although we set up the interrupt controllers in <<X HwSetup>>, interr
 <<PAR>>
 At this point I have achieved my initial ambition and managed to get the processor into 64-bit Long Mode. It looks pretty easy now, but I had to follow a lot of false trails, crashes, and general puzzlement before I got this far! Everything from here on is a minimal OS to demonstrate some aspects of 64-bit programming.
 <<HR>>
-<<NAVSTART>>
-	<<PREV bootsector.html Boot Sector>>
-	<<CONT>>
-	<<NEXT 64bit.html The 64-Bit Code>>
-<<NAVEND>>
+<<NAV>>

@@ -1,0 +1,2 @@
+<LINK REL=StyleSheet HREF="mystyle.css" TYPE="text/css" MEDIA=screen>
+</head>

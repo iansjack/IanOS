@@ -1,9 +1,5 @@
 <<T Boot Sector>>
-<<NAVSTART>>
-	<<PREV boot.html Overview of Boot Process>>
-	<<CONT>>
-	<<NEXT startup.html From Protected Mode to Long Mode>>
-<<NAVEND>>
+<<NAV>>
 <<H1 Boot Sector>>
 <<HR>>
 The file <<F boot.s>> contains the source of a boot sector that will be written to a floppy (or image file).
@@ -19,8 +15,4 @@ This will produce a file <<S bootsect.bin>> which needs to be written to the fir
 <<PAR>>
 If you want to step through what happens from now on you can set a breakpoint in <<S SimNow>> at location <<C 0x1000>>.
 <<HR>>
-<<NAVSTART>>
-	<<PREV boot.html Overview of Boot Process>>
-	<<CONT>>
-	<<NEXT startup.html From Protected Mode to Long Mode>>
-<<NAVEND>>
+<<NAV>>

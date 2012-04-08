@@ -5,7 +5,7 @@ mv HTML doc/HTML
 cd doc
 perl map.pl
 perl xref.pl
-perl convert.pl
+perl convertall.pl
 cp *.css HTML
 cp *.jpg HTML
 cp *.png HTML

@@ -1,9 +1,5 @@
 <<T Tasking>>
-<<NAVSTART>>
-	<<PREV memory.html Memory Management>>
-	<<CONT>>
-	<<NEXT tcreate.html Task Creation>>
-<<NAVEND>>
+<<NAV>>
 <<H1 Tasking>>
 <<HR>>
 To actually achieve anything the OS runs a number of tasks. Some of these are user programs, others are central to the OS itself; for example, hardware drivers, such as those for the keyboard or the display, run as separate tasks. One of the prime functions of an OS is to manage these separate tasks; each must be activated at regular intervals to give the impression that they are all running all of the time. In 32-bit (Protected) mode the x86 processors actually provide hardware support for task switching. In practice most operating systems do not make use of this hardware support; this is so that their code is portable to other processors. In any case, in 64-bit mode the processor does not provide this hardware support, so it all has to be done in software.
@@ -16,10 +12,6 @@ Task switches are accomplished by the routine <<X TaskSwitch>> in <<F tasking.s>
 <<PAR>>
 Now that we have determined which task to switch to, both routines save the contents of the registers to the task structure and retrieve those of the new task. (Note - I'm only concerned with the general purpose registers at this stage. In future I might look at saving the floating-point, and other, registers.) As one of the registers saved and restored is the stack pointer, the final <<C ret>> instruction returns not to the code that called the task switch but to the code that caused a task switch from the task being switched to. (If that doesn't seem clear, think about it. We don't want to return to the code that called the task switch - and as the memory map has been changed by restoring <<C cr3>> it would not even make sense to do so - but to the point that the new task was at before it last relinquished the processor.) 
 <<PAR>>
-There are a couple of things about saving/restoring registers that needs to be explained further. First, one has to be a little careful about <<C r15>>. When the routine is called <<C r15>> points to the task to switch to, which is what we want to save, but we change it to point to the current task (so that we can access its task structure). Hence the "<<C push %r15>>" instruction before <<C currentTask>> is stored in <<C r15>>; this pushed value is later popped to <<C rax>> and then stored to the task structure. Second, these two routines are designed to be called as subroutines from within an interrupt routine (<<C int $20>>). If we just saved the stack pointer we would just be saving the address of the calling interrupt routine; what we really want to save is stack pointer when the interrupt routine called the subroutine. This is why there is a <<C pop %rcx>> before saving the stack pointer and a <<C push %rcx>> after restoring it.
+There are a couple of things about saving/restoring registers that needs to be explained further. First, one has to be a little careful about <<C r15>>. When the routine is called <<C r15>> points to the task to switch to, which is what we want to save, but we change it to point to the current task (so that we can access its task structure). Hence the <<C push %r15>> instruction before <<C currentTask>> is stored in <<C r15>>; this pushed value is later popped to <<C rax>> and then stored to the task structure. Second, these two routines are designed to be called as subroutines from within an interrupt routine (<<C int $20>>). If we just saved the stack pointer we would just be saving the address of the calling interrupt routine; what we really want to save is stack pointer when the interrupt routine called the subroutine. This is why there is a <<C pop %rcx>> before saving the stack pointer and a <<C push %rcx>> after restoring it.
 <<HR>>
-<<NAVSTART>>
-	<<PREV memory.html Memory Management>>
-	<<CONT>>
-	<<NEXT tcreate.html Task Creation>>
-<<NAVEND>>
+<<NAV>>

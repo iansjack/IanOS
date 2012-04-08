@@ -1,4 +1,4 @@
-div.displaycode {margin-left: 40px; font-family: Courier New,Courier,monospace; font-size: 1em;}
+div.displaycode {margin-left: 40px; font-family: Courier New,Courier,monospace; font-size: 1.1em;}
 div.indent {margin-left: 40px;}
 div.contents {text-align: center;}
 div.prev {text-align: left;}
@@ -9,9 +9,10 @@ h2 {font-size: 1.5em;}
 span.sans {font-family: Helvetica,Arial,sans-serif; font-size: 1em; font-weight: lighter;}
 span.italic {font-style: italic;}
 span.bold {font-weight: bold;}
-span.code {font-family: Courier New,Courier,monospace; font-size: 1em; font-weight: 100}
+span.code {font-family: Courier New,Courier,monospace; font-size: 1.1em; font-weight: 100}
 span.underconst {font-style: italic; color: rgb(153, 51, 0);}
-table {width: 100%;}
-td {width: 33.3%;}
+table {width: 100%; }
+td {width: 33.3%; background-color: lightgrey; border-width: 1px; }
 p {font-size: 1em;}
 body {font-size: 100%;}
+a.home {background-color: lightgrey;}

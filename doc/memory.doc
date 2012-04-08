@@ -1,9 +1,5 @@
 <<T Memory Management>>
-<<NAVSTART>>
-	<<PREV 64bit.html The 64-Bit Code>>
-	<<CONT>>
-	<<NEXT tasking.html Tasking>>
-<<NAVEND>>
+<<NAV>>
 <<H1 Memory Management>>
 <<HR>>
 Memory management is one of the most important tasks that an Operating System performs (after all, whatever other devices a system may support, it must have memory to work in). Understanding the operation of logical-to-physical address mapping and ensuring that memory is correctly allocated and released can be quite tricky. Any mistake here is going to lead almost instantly to a crash of the system; and a small, constant memory leak can soon gobble up free RAM.
@@ -34,7 +30,7 @@ The file <<F ptab32.c>> contains the routine <<X CreatePageDir>> which creates a
 
 The function <<X AllocPage32>>, which allocates physical memory pages in 32-bit mode is to be found in <<F mem32.c>>. That file also contains the routine <<X InitMemManagement>> which determines how much RAM the system has and sets up the array <<X PMap[]>>. <<X PMap[]>> is the record of which memory pages are allocated and which are free. The size of this array can't be set in advance, so I have just allocated a range of pages for it, in the kernel address space, well out of the way of other memory. (Remember, logical addresses are plentiful!) By the time we come to fill in the map it knows how big it is, so can allocate enough pages for itself.
 <<PAR>>
-<<X AllocPage()>> finds the first free space in <<C PMap[]>>, marks it as used, zero-fills the memory, and returns the address of the newly allocated page. The marking as used is done by setting the array element to the PID of the task that allocated it. This makes it very easy to ensure that all pages used by a task are returned to the system when the task has finished (more of this later).
+<<X AllocPage>> finds the first free space in <<C PMap[]>>, marks it as used, zero-fills the memory, and returns the address of the newly allocated page. The marking as used is done by setting the array element to the PID of the task that allocated it. This makes it very easy to ensure that all pages used by a task are returned to the system when the task has finished (more of this later).
 <<PAR>>
 <<X CreatePageDir>> is fairly straightforward. At this stage we can address physical memory directly, so we just need to allocate pages for the table entries and construct the tables. Two further routines, <<X CreateKernelPT>> and <<X CreatePhysicalToVirtual>>, create tables for the kernel memory and the translation of all physical addresses to logical ones. The whole of this initial Page Table will be replicated in the page tables used by later tasks; they will also contain additional entries to allow them to address their own private pages for code, data, and stacks.
 <<H3 64-Bit Table Code>>
@@ -56,8 +52,4 @@ There is a potential problem in a multi-tasking system when allocating or deallo
 <<PAR>>
 You should note that I treat heap memory for a user program differently to many operating systems, where it is managed by the application itself. I provide system calls to manage <<C malloc>> and <<C freed>> calls. At the expense of a little efficiency, this makes the runtime code of user programs easier (and smaller) and makes it easier for the kernel to deal with allocation of new pages when the memory allocated to a process runs short. If you don't like this it would be easy enough to make the programs handle their own memory.
 <<HR>>
-<<NAVSTART>>
-	<<PREV 64bit.html The 64-Bit Code>>
-	<<CONT>>
-	<<NEXT tasking.html Tasking>>
-<<NAVEND>>
+<<NAV>>

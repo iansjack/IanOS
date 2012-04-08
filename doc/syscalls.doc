@@ -1,9 +1,5 @@
 <<T SysCalls>>
-<<NAVSTART>>
-	<<PREV ide.html Hard Disk>>
-	<<CONT>>
-	<<NEXT misc.html Miscellaneous>>
-<<NAVEND>>
+<<NAV>>
 <<H1 System Calls>>
 <<HR>>
 Due to the protection mechanisms built into the processor, programs running with user privilege cannot access certain memory locations, or execute certain instructions. This, after all, is the whole point of the protection mechanisms - to protect the kernel against errant user programs. Some mechanism has to be found to let a user program indicate to the kernel that it requires certain tasks to be undertaken on its behalf. The easiest way to accomplish this (although not the only way) is to use the <<C syscall>> and <<C sysretq>> instructions. These instructions allow the program to switch privilege levels, run some kernel code, and then switch back again.
@@ -16,8 +12,4 @@ There is a very important point to note if you wish to write your own system cal
 <<PAR>>
 There is just one system call where we put a different value into <<C rcx>>. This is the <<C execve>> system call, which loads a new program and so needs to start at the starting address of that new program. In this case we put the correct value into <<C rcx>> and discard the one that was there before.
 <<HR>>
-<<NAVSTART>>
-	<<PREV ide.html Hard Disk>>
-	<<CONT>>
-	<<NEXT misc.html Miscellaneous>>
-<<NAVEND>>
+<<NAV>>

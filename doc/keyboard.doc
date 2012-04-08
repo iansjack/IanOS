@@ -1,9 +1,5 @@
 <<T Keyboard>>
-<<NAVSTART>>
-	<<PREV display.html Display>>
-	<<CONT>>
-	<<NEXT ide.html Hard Disk>>
-<<NAVEND>>
+<<NAV>>
 <<H1 Keyboard>>
 <<HR>>
 The keyboard driver is about the simplest device driver there can be (at least conceptually). It consists of two parts, the interrupt routine and the keyboard processing code; this latter runs as a separate task and communicates with other programs by receiving and sending messages.
@@ -18,8 +14,4 @@ The task provides two services: <<C GETCHAR>> and <<C KEYPRESSED>>. <<C KEYPRESS
 <<PAR>>
 <<B Note:>> There is a problem with the handling of the capslock key that I can't put my finger on at present. For some reason it requires two presses to lock caps, and two to unlock. It may be trivial or it may be a result of running in a VM, but I just can't track it down. Just be aware of it.
 <<HR>>
-<<NAVSTART>>
-	<<PREV display.html Display>>
-	<<CONT>>
-	<<NEXT ide.html Hard Disk>>
-<<NAVEND>>
+<<NAV>>
