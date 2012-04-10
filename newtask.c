@@ -229,7 +229,7 @@ NewKernelTask(void *TaskCode)
 	LinkTask(task);
 	data = (long *) TempUserData;
 	data[0] = 0;
-	data[1] = 0xFFE;
+	data[1] = 0xFE8;
 	task->firstfreemem = UserData;
 	task->environment = (void *) 0;
 	task->parentPort = (void *) 0;

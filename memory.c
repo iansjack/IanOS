@@ -85,13 +85,13 @@ void *AllocMem(long sizeRequested, struct MemStruct *list)
 		kernel = 1;
 	// We want the memory allocation to be atomic, so set a semaphore before proceeding
 	SetSem(&memorySemaphore);
-	while (list->size < sizeRequested)
+	while (list->size < sizeRequested + sizeof(struct MemStruct))
 	{
 		if (list->next == 0)
 		// Not enough memory available. Allocate another page.
 		{
 			long temp = (long) list >> 12;
-			while (list->size < sizeRequested)
+			while (list->size < sizeRequested + sizeof(struct MemStruct))
 			{
 				if (kernel)
 					AllocAndCreatePTE(++temp << 12, 1, RW | G | P);
