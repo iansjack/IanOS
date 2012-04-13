@@ -2,8 +2,8 @@ include Flags.mak
 
 OBJS = startup.o os.o mem32.o ptab32.o hwsetup.o gates.o messages.o memory.o pagetab.o keyboard.o \
 		console.o vga.o filesystem.o syscalls.o newtask.o tasking.o messaging.o interrupts.o \
-		ide.o kernlib.o  tasklist.o tas1.o
-
+		ide.o kernlib.o  tasklist.o btree.o tas1.o
+		
 all: bootdisk IanOS.o
 	cd library; make all; cd ..
 	cd tasks; make all; cd ..
@@ -86,9 +86,9 @@ kernlib.o: kernlib.c
 
 tasklist.o: tasklist.c $(INC)/tasklist.h $(INC)/memory.h
 
-tas1.o: tas1.c $(INC)/memory.h $(INC)/syscalls.h
+btree.o: btree.c $(INC)/btree.h
 
-monitor.o: monitor.c $(INC)/memory.h $(INC)/kernel.h $(INC)/console.h
+tas1.o: tas1.c $(INC)/memory.h $(INC)/syscalls.h
 
 clean:
 	rm -f linkmap $(OBJS) *.bin boot.o *~

@@ -155,10 +155,10 @@ intrr:
 	KWRITE_DOUBLE 0x38(%rsp), $3, $68
 	KWRITE_STRING $ss, $4, $60
 	KWRITE_DOUBLE 0x40(%rsp), $4, $68
-	cmpl $UserCode, 0x20(%rsp)
-	jge kcode
-	KWRITE_STRING $usererror, $14, $58
-	call KillTask
+#	cmpl $UserCode, 0x20(%rsp)
+#	jge kcode
+#	KWRITE_STRING $usererror, $14, $58
+#	call KillTask
 kcode:
 	cli
 	hlt

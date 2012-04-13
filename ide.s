@@ -1,6 +1,6 @@
 HDINT 		= 3
-	.global ReadSector
-	.global WriteSector
+	.global ReadPSector
+	.global WritePSector
 
 #===========================================================
 # Load one sector from IDE HD to memory
@@ -9,7 +9,7 @@ HDINT 		= 3
 #===========================================================
 HD_PORT=0x1F0
 
-ReadSector:
+ReadPSector:
 	mov  $HD_PORT+7, %dx
 .again2:
 	in  %dx, %al
@@ -21,34 +21,25 @@ ReadSector:
 	inc %dx		      		# 0x1F3
 	mov %esi, %eax
 	and $0xFF, %al
-	out %al, %dx	      		# lba lo
+	out %al, %dx	      	# lba lo
 	inc %dx		      		# 0x1F4
 	mov %esi, %eax
 	and $0xFF, %ah
 	mov %ah, %al
-	out %al, %dx	      		# lba mid
+	out %al, %dx	      	# lba mid
 	inc %dx		      		# 0x1F5
 	mov %esi, %eax
 	shr $16, %eax
 	and $0xFF, %al
-	out %al, %dx	      		# lba hi
+	out %al, %dx	      	# lba hi
 	inc %dx		      		# 0x1F6
 	and $0xF, %ah
 	mov %ah, %al
-	add $0x40, %al	      		# lba mode/drive /lba top
+	add $0x40, %al	      	# lba mode/drive /lba top
 	out %al, %dx
 	inc %dx		      		# 0x1F7
 	mov $0x20, %ax			# HDC_READ
 	out %al, %dx
-	# Something wrong with the interrupt handling
-	# so reverting to simple poling
-#	cli
-#	push %rdi
-#	push %rdx
-#	mov $HDINT, %rdi
-#	call WaitForInt
-#	pop %rdx
-#	pop %rdi
 .again3:
 	in  %dx, %al
 	test $0x80, %al
@@ -61,7 +52,7 @@ ReadSector:
 	insw
 	ret
 
-WriteSector:
+WritePSector:
 	mov  $HD_PORT+7, %dx
 .again4:
 	in  %dx, %al
@@ -90,7 +81,7 @@ WriteSector:
 	add $0x40, %al	      	# lba mode/drive /lba top
 	out %al, %dx
 	inc %dx		      		# 0x1F7
-	mov $0x30, %ax				# HDC_WRITE
+	mov $0x30, %ax			# HDC_WRITE
 	out %al, %dx
 .again5:
 	in  %dx, %al
