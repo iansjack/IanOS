@@ -15,6 +15,9 @@ struct BTreeNode *sectorBuffers;
 int buffersRead;
 unsigned short *currentFATBuffer;
 int currentFATSector;
+unsigned char *DiskBuffer;
+unsigned short *FAT;
+
 
 //===============================
 // Convert a cluster to a sector
@@ -313,18 +316,18 @@ struct vDirNode *FindDirectory(unsigned char *fullpath)
 struct DirEntry *FindFile(unsigned char *name)
 {
 	struct DirEntry *buffer;
-	struct DirEntry *entry; // = AllocKMem(sizeof(struct DirEntry));
+	struct DirEntry *entry;
 	int entryOffset = 0;
 	int sector = 0;
 
-	unsigned char *tempName = AllocKMem(strlen(name) + 1);
+	unsigned char *tempName = AllocUMem(strlen(name) + 1);
 	strcpy(tempName, name);
 	unsigned char *filename = GetFilename(name);
 	struct vDirNode *directory = FindDirectory(tempName);
 
 	buffer = FindFileDirectorySector(filename, directory, &sector,
 			&entryOffset);
-	DeallocMem(tempName);
+	DeallocUMem(tempName);
 	if (!buffer)
 		return 0;
 	return buffer + entryOffset;
@@ -368,13 +371,13 @@ struct DirEntry *FindFileDirectorySector(unsigned char *filename,
 				if (!strcmp(dirName, filename))
 				{
 					// Found it!
-					DeallocMem(dirName);
+					DeallocUMem(dirName);
 					*entryOffset = entryno;
 					return buffer;
 				}
 
 				// No. Look at next entry
-				DeallocMem(dirName);
+				DeallocUMem(dirName);
 				entryno++;
 				temp++;
 			}
@@ -568,7 +571,7 @@ void CloseFile(struct FCB *fHandle)
 			struct DirEntry *buffer;
 			buffer = FindFileDirectorySector(filename, fHandle->dir, &sector,
 					&offset);
-			DeallocMem(filename);
+			DeallocUMem(filename);
 			struct DirEntry *temp = buffer + offset;
 			// SaveDir(); We need to write values to the directory
 			if (fHandle->deviceType == FILE)

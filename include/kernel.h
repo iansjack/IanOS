@@ -24,5 +24,6 @@ unsigned char *strchr(unsigned char *, char);
 unsigned char *NameToFullPath(unsigned char *name);
 
 #define ALLOCMSG (struct Message *)AllocKMem(sizeof(struct Message))
+#define ASSERT(expr) if (!expr){kprintf(24, 1, "Assertion failed - System halted.");asm("cli");asm("hlt");}
 
 #endif

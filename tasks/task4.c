@@ -7,6 +7,7 @@ int main(int argc, char **argv)
 {
 	char * c = (char *)0x10000;
 
+	free(0);
 	FD InFile = open(argv[1]);
 	if (InFile != -1) {
 		struct FileInfo inf;

@@ -80,6 +80,7 @@ void InitMem64(void)
 //=========================================================================================
 void *AllocMem(long sizeRequested, struct MemStruct *list)
 {
+	ASSERT(list & sizeRequested > 0);
 	unsigned char kernel = 0;
 	if (list == firstFreeKMem)
 		kernel = 1;
@@ -96,7 +97,8 @@ void *AllocMem(long sizeRequested, struct MemStruct *list)
 				if (kernel)
 					AllocAndCreatePTE(++temp << 12, 1, RW | G | P);
 				else
-					AllocAndCreatePTE(++temp << 12, currentTask->pid, RW | US | P);
+					AllocAndCreatePTE(++temp << 12, currentTask->pid,
+							RW | US | P);
 				list->size += PageSize;
 			}
 		}
@@ -143,40 +145,44 @@ void *AllocMem(long sizeRequested, struct MemStruct *list)
 	return (list + 1);
 }
 
+DeallocUMem(void *list)
+{
+	ASSERT(list >= UserData & list < KernelStack);
+	DeallocMem(list);
+}
+
 //==================================================
 // Deallocate the memory at location list.
 // This will deallocate both user and kernel memory
 //==================================================
 void DeallocMem(void *list)
 {
-	if (list)
-	{
-		struct MemStruct *l = (struct MemStruct *) list;
+	ASSERT(list);
+	struct MemStruct *l = (struct MemStruct *) list;
 
-		// We want the memory deallocation to be atomic, so set a semaphore before proceeding
-		SetSem(&memorySemaphore);
-		l--;
-		if (!l->size)
-		{
-			l->size = (long) l->next - (long) l - sizeof(struct MemStruct);
+	// We want the memory deallocation to be atomic, so set a semaphore before proceeding
+	SetSem(&memorySemaphore);
+	l--;
+	if (!l->size)
+	{
+		l->size = (long) l->next - (long) l - sizeof(struct MemStruct);
 #ifdef DEBUG
-			NoOfAllocations--;
-			KWriteHex(NoOfAllocations, 24);
-			if (debugging == 1)
+		NoOfAllocations--;
+		KWriteHex(NoOfAllocations, 24);
+		if (debugging == 1)
+		{
+			int i;
+			for (i = 0; i < 32; i++)
+			if (allocations[i].memory == list &&
+					allocations[i].deallocated == 0)
 			{
-				int i;
-				for (i = 0; i < 32; i++)
-				if (allocations[i].memory == list &&
-						allocations[i].deallocated == 0)
-				{
-					allocations[i].deallocated = 1;
-					break;
-				}
+				allocations[i].deallocated = 1;
+				break;
 			}
-#endif
 		}
-		ClearSem(&memorySemaphore);
+#endif
 	}
+	ClearSem(&memorySemaphore);
 }
 
 //===============================================================================

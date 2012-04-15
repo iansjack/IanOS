@@ -9,11 +9,14 @@ SECTIONS
 		*(.text) 
 		
 	}
+	.rodata :
+	{
+		*(.rodata)
+	}
 	CodeLength = . - phys;
 	.data 0x600000 : AT (ADDR (.text) + SIZEOF (.text) )
 	{ 
 		*(.data)
-		*(.rodata*)
 	}
 	.bss : 
 	{

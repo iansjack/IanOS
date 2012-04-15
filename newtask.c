@@ -114,7 +114,7 @@ long DoExec(char *name, char *environment)
 {
 	struct FCB *fHandle;
 	long codelen, datalen;
-	char header[3];
+	char header[9];
 	long *data;
 	long currentPage;
 	long size;
@@ -138,7 +138,7 @@ long DoExec(char *name, char *environment)
 	fHandle = (struct FCB *) FSMsg->quad;
 	if (fHandle)
 	{
-		ReadFromFile(fHandle, header, 4);
+		ReadFromFile(fHandle, header, 9);
 		ReadFromFile(fHandle, (char *) &codelen, 8);
 		ReadFromFile(fHandle, (char *) &datalen, 8);
 		currentPage = UserCode;
@@ -146,21 +146,26 @@ long DoExec(char *name, char *environment)
 		ClearUserMemory();
 		while (size > 0)
 		{
-			AllocAndCreatePTE(++currentPage, currentTask->pid, RW | US | P);
+			AllocAndCreatePTE(currentPage, currentTask->pid, RW | US | P);
 			size -= PageSize;
+			currentPage += PageSize;
 		}
-		ReadFromFile(fHandle, (char *) UserCode, codelen);
+		copyMem((char *)header, (char *)UserCode, 9);
+		copyMem((char *)&codelen, (char *)UserCode + 9, 8);
+		copyMem((char *)&datalen, (char *)UserCode + 17, 8);
+		ReadFromFile(fHandle, (char *) UserCode + 25, codelen - 25);
 		currentPage = UserData;
-		size = datalen;
+		size = datalen + sizeof(struct MemStruct);
 		while (size > 0)
 		{
-			AllocAndCreatePTE(++currentPage, currentTask->pid, RW | US | P);
+			AllocAndCreatePTE(currentPage, currentTask->pid, RW | US | P);
 			size -= PageSize;
+			currentPage += PageSize;
 		}
 		ReadFromFile(fHandle, (char *) UserData, datalen);
 		data = (long *) (UserData + datalen);
 		data[0] = 0;
-		data[1] = PageSize - datalen - 0x10;
+		data[1] = PageSize - datalen - sizeof(struct MemStruct);
 		currentTask->firstfreemem = UserData + datalen;
 
 		//Close file
@@ -229,7 +234,7 @@ NewKernelTask(void *TaskCode)
 	LinkTask(task);
 	data = (long *) TempUserData;
 	data[0] = 0;
-	data[1] = 0xFE8;
+	data[1] = PageSize - sizeof(struct MemStruct);
 	task->firstfreemem = UserData;
 	task->environment = (void *) 0;
 	task->parentPort = (void *) 0;
@@ -266,8 +271,8 @@ void KillTask(void)
 		DeallocMem(m);
 	}
 
-	DeallocMem(task->environment);
-	DeallocMem(task->argv);
+	if (task->environment) DeallocMem(task->environment);
+	if (task->argv) DeallocMem(task->argv);
 
 	//Don't want to task switch whilst destroying task
 	asm("cli");

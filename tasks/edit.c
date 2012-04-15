@@ -10,6 +10,8 @@
 #define ctrl(x) x - 0x40
 #define ESC	27
 #define CLRBUFF	for (count = 0; count < 80; count++) currentLineBuffer[count] = 0
+#define Overwrite	0
+#define Insert		1
 
 struct line
 {
@@ -69,8 +71,8 @@ int main(int argc, char **argv)
 	int column = 0;
 	struct line *currline;
 	char currentLineBuffer[80];
-	int currentLineLength = 0;
 	int count;
+	char mode = Insert;
 
 	// Clear the screen
 	printf("%c[2J", ESC);
@@ -91,7 +93,6 @@ int main(int argc, char **argv)
 		}
 		else
 		{
-			file = creat(argv[1]);
 			lines = malloc(sizeof(struct line));
 			lines->next = 0;
 			lines->prev = 0;
@@ -99,22 +100,39 @@ int main(int argc, char **argv)
 			lines->line = malloc(80);
 		}
 		currline = lines;
-		printf("%c[0;0H", ESC);
 	}
 	int done = 0;
 
+	printf("%c[24;0H%c[?5h^Q Quit  ^I Insert toggle  Insert on", ESC, ESC);
+	printf("%c[%d;%dH%c[?5l", ESC, line, column, ESC);
+
+	CLRBUFF;
 	char c;
 	if (currline->line)
 		strcpy(currentLineBuffer, currline->line);
-	else
-		currentLineBuffer[0] = 0;
 
-	currentLineLength = strlen(currentLineBuffer);
 	while (!done)
 	{
 		c = getchar();
 		if (c == ctrl('Q'))
 			done = 1;
+		else if (c == ctrl('I'))
+		{
+			if (mode == Insert)
+			{
+				mode = Overwrite;
+				printf("%c[24;0H%c[?5h^Q Quit  ^I Insert toggle  Insert off",
+						ESC, ESC);
+				printf("%c[%d;%dH%c[?5l", ESC, line, column, ESC);
+			}
+			else
+			{
+				mode = Insert;
+				printf("%c[24;0H%c[?5h^Q Quit  ^I Insert toggle  Insert on",
+						ESC, ESC);
+				printf("%c[%d;%dH%c[?5l", ESC, line, column, ESC);
+			}
+		}
 		else if (c == ctrl('M')) // Return
 		{
 			int linelength = strlen(currentLineBuffer);
@@ -148,7 +166,6 @@ int main(int argc, char **argv)
 			column = 0;
 			line++;
 			currline = currline->next;
-			currentLineLength = strlen(currentLineBuffer);
 			// Repaint whole screen
 			printf("%c[2J", ESC);
 			printf("%c[0;0H", ESC);
@@ -210,17 +227,31 @@ int main(int argc, char **argv)
 				printf("%c[1C", ESC);
 			}
 		}
+		else if (c == 8) // BackSpace
+		{
+			if (column)
+			{
+				int i;
+				for (i = column; i < 80; i++)
+					currentLineBuffer[i - 1] = currentLineBuffer[i];
+				column--;
+				printf("%s", currentLineBuffer + column);
+				printf("%c[%d;%dH", ESC, line, column);
+			}
+		}
 		else
 		{
-			printf("%c", c);
+			if (mode == Insert)
+			{
+				int i;
+				for (i = 80; i > column; i--)
+					currentLineBuffer[i] = currentLineBuffer[i - 1];
+			}
 			currentLineBuffer[column] = c;
+			printf("%s", currentLineBuffer + column);
 			if (column < 80)
 				column++;
-			if (column == currentLineLength)
-			{
-				currentLineBuffer[column] = 0;
-				currentLineLength++;
-			}
+			printf("%c[%d;%dH", ESC, line, column);
 		}
 	}
 	free(currline->line);
@@ -233,21 +264,21 @@ int main(int argc, char **argv)
 	{
 		close(file);
 		unlink(argv[1]);
-		file = creat(argv[1]);
-		currline = lines;
-		if (file)
+	}
+	file = creat(argv[1]);
+	currline = lines;
+	if (file)
+	{
+		while (currline)
 		{
-			while (currline)
+			if (currline->line)
 			{
-				if (currline->line)
-				{
-					write(file, currline->line, strlen(currline->line));
-					write(file, "\n", 1);
-				}
-				currline = currline->next;
+				write(file, currline->line, strlen(currline->line));
+				write(file, "\n", 1);
 			}
-			close(file);
+			currline = currline->next;
 		}
+		close(file);
 	}
 	free(lines->line);
 	free(lines);

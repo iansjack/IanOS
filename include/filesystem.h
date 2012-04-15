@@ -25,7 +25,4 @@ struct FileInfo {
 	long Length;
 };
 
-unsigned char *DiskBuffer;
-unsigned short *FAT;
-
 #endif
