@@ -419,11 +419,11 @@ extern void fsTaskCode(void);
 void StartTasks()
 {
 	NewLowPriTask(dummyTask);
-	GoToSleep(100);
+	GoToSleep(10);
 	NewKernelTask(kbTaskCode);
-	GoToSleep(100);
+	GoToSleep(10);
 	NewKernelTask(consoleTaskCode);
-	GoToSleep(100);
+	GoToSleep(10);
 	NewKernelTask(fsTaskCode);
-	GoToSleep(100);
+	GoToSleep(10);
 }
