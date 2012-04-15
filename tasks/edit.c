@@ -22,6 +22,12 @@ struct line
 };
 
 struct line *lines;
+int line;
+int column;
+char mode;
+int count;
+int windowstart;
+int windowend;
 
 void ReadFile(FD file)
 {
@@ -62,17 +68,57 @@ void ReadFile(FD file)
 	}
 }
 
+void PrintStatusLine()
+{
+	if (mode == Insert)
+	{
+		printf(
+				"%c[24;1H%c[?5h^Q Quit  ^I Insert toggle  Insert on                                          ",
+				ESC, ESC);
+		printf("%c[%d;%dH%c[?5l", ESC, line, column, ESC);
+	}
+	else
+	{
+		// Print status line
+		printf(
+				"%c[24;1H%c[?5h^Q Quit  ^I Insert toggle  Insert off                                          ",
+				ESC, ESC);
+		printf("%c[%d;%dH%c[?5l", ESC, line, column, ESC);
+
+	}
+}
+
+void RedrawScreen()
+{
+	struct line *tempcurrline = lines;
+	for (count = 0; count < windowstart; count++)
+		tempcurrline = tempcurrline->next;
+	printf("%c[2J", ESC);
+	for (count = windowstart; count <= windowend; count++)
+	{
+		if (tempcurrline->line)
+			printf("%s\n", tempcurrline->line);
+		if (!tempcurrline->next)
+			break;
+		tempcurrline = tempcurrline->next;
+	}
+	PrintStatusLine();
+}
+
 int main(int argc, char **argv)
 {
 	lines = 0;
 
 	FD file;
-	int line = 0;
-	int column = 0;
+	line = 0;
+	column = 0;
 	struct line *currline;
+	struct line *startLine = lines;
 	char currentLineBuffer[80];
 	int count;
-	char mode = Insert;
+	mode = Insert;
+	windowstart = 0;
+	windowend = 19;
 
 	// Clear the screen
 	printf("%c[2J", ESC);
@@ -83,13 +129,7 @@ int main(int argc, char **argv)
 		if (file != -1)
 		{
 			ReadFile(file);
-			currline = lines;
-			while (currline)
-			{
-				if (currline->line)
-					printf("%s\n", currline->line);
-				currline = currline->next;
-			}
+			RedrawScreen();
 		}
 		else
 		{
@@ -102,10 +142,7 @@ int main(int argc, char **argv)
 		currline = lines;
 	}
 	int done = 0;
-
-	printf("%c[24;0H%c[?5h^Q Quit  ^I Insert toggle  Insert on", ESC, ESC);
-	printf("%c[%d;%dH%c[?5l", ESC, line, column, ESC);
-
+	PrintStatusLine();
 	CLRBUFF;
 	char c;
 	if (currline->line)
@@ -114,27 +151,20 @@ int main(int argc, char **argv)
 	while (!done)
 	{
 		c = getchar();
-		if (c == ctrl('Q'))
+		switch (c)
+		{
+		case ctrl('Q'):
 			done = 1;
-		else if (c == ctrl('I'))
-		{
+			break;
+		case ctrl('I'):
 			if (mode == Insert)
-			{
 				mode = Overwrite;
-				printf("%c[24;0H%c[?5h^Q Quit  ^I Insert toggle  Insert off",
-						ESC, ESC);
-				printf("%c[%d;%dH%c[?5l", ESC, line, column, ESC);
-			}
 			else
-			{
 				mode = Insert;
-				printf("%c[24;0H%c[?5h^Q Quit  ^I Insert toggle  Insert on",
-						ESC, ESC);
-				printf("%c[%d;%dH%c[?5l", ESC, line, column, ESC);
-			}
-		}
-		else if (c == ctrl('M')) // Return
-		{
+			PrintStatusLine();
+			break;
+		case ctrl('M'): // Return
+			;
 			int linelength = strlen(currentLineBuffer);
 			currentLineBuffer[column] = 0;
 			// Copy the line up to cursor back to currline->line
@@ -166,21 +196,9 @@ int main(int argc, char **argv)
 			column = 0;
 			line++;
 			currline = currline->next;
-			// Repaint whole screen
-			printf("%c[2J", ESC);
-			printf("%c[0;0H", ESC);
-			struct line *temp2 = lines;
-			while (temp2)
-			{
-				if (temp2->line)
-					printf("%s\n", temp2->line);
-				temp2 = temp2->next;
-			}
-			// Reset the cursor
-			printf("%c[%d;0H", ESC, line);
-		}
-		else if (c == ctrl('U')) // Up Arrow
-		{
+			RedrawScreen();
+			break;
+		case ctrl('U'): // Up Arrow
 			if (line)
 			{
 				line--;
@@ -194,9 +212,8 @@ int main(int argc, char **argv)
 					column = strlen(currentLineBuffer);
 				printf("%c[%d;%dH", ESC, line, column);
 			}
-		}
-		else if (c == ctrl('D')) // Down Arrow
-		{
+			break;
+		case ctrl('D'): // Down Arrow
 			if (currline->next)
 			{
 				line++;
@@ -209,38 +226,42 @@ int main(int argc, char **argv)
 				if (column > strlen(currentLineBuffer))
 					column = strlen(currentLineBuffer);
 				printf("%c[%d;%dH", ESC, line, column);
+				if (line > windowend - windowstart)
+				{
+					windowstart++;
+					windowend++;
+					line--;
+					RedrawScreen();
+				}
 			}
-		}
-		else if (c == ctrl('L')) // Left Arrow
-		{
+			break;
+		case ctrl('L'): // Left Arrow
 			if (column)
 			{
 				printf("%c[1D", ESC);
 				column--;
 			}
-		}
-		else if (c == ctrl('R')) // Right Arrow
-		{
+			break;
+		case ctrl('R'): // Right Arrow
 			if (column < 80 && column < strlen(currentLineBuffer))
 			{
 				column++;
 				printf("%c[1C", ESC);
 			}
-		}
-		else if (c == 8) // BackSpace
-		{
+			break;
+		case 8: // BackSpace
 			if (column)
 			{
 				int i;
 				for (i = column; i < 80; i++)
 					currentLineBuffer[i - 1] = currentLineBuffer[i];
 				column--;
+				printf("%c[1D", ESC);
 				printf("%s", currentLineBuffer + column);
 				printf("%c[%d;%dH", ESC, line, column);
 			}
-		}
-		else
-		{
+			break;
+		default:
 			if (mode == Insert)
 			{
 				int i;
@@ -252,6 +273,7 @@ int main(int argc, char **argv)
 			if (column < 80)
 				column++;
 			printf("%c[%d;%dH", ESC, line, column);
+			break;
 		}
 	}
 	free(currline->line);
