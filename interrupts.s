@@ -224,6 +224,29 @@ gpf:
 	jmp intrr
 
 pf:
+	PUSH_ALL
+	mov %cr2, %rax
+	push %rax
+	cmp $6, 0x40(%rsp)		# Test the error code for write to non-present page
+	jne notnp
+	sub %rax, %rbp			# Test to see if the faulting address is
+	cmp $0, %rbp			# withing a page of the stack pointer
+	jl notnp
+	cmp $0x1000, %rbp
+	jg notnp
+	mov %rax, %rdi
+	mov  currentTask, %r15
+	movw TS.pid(%r15), %rsi
+	mov $7, %rdx
+	call AllocAndCreatePTE	# Allocate a new page
+	invlpg 0(%rsp)			# We'll get another page fault if we don't do this
+	pop %rax
+	POP_ALL
+	add $0x8, %rsp			# Get rid of the pushed error code
+	iretq
+notnp:
+	pop %rax
+	POP_ALL
 	KWRITE_STRING $PFmessage, $0, $0
 	KWRITE_STRING $error, $6, $60
 	KWRITE_DOUBLE 0x20(%rsp), $6, $68

@@ -1,6 +1,6 @@
 OUTPUT_FORMAT("elf64-x86-64")
 ENTRY(_start)
-STARTUP(inittask2.o)
+STARTUP(inittask.o)
 SEARCH_DIR(.)
 SECTIONS
 {
@@ -9,12 +9,19 @@ SECTIONS
 		*(.text) 
 		
 	}
+	.rodata :
+	{
+		*(.rodata)
+	}
 	CodeLength = . - phys;
 	.data 0x600000 : AT (ADDR (.text) + SIZEOF (.text) )
 	{ 
 		*(.data)
-		*(.rodata*)
 	}
-	DataLength = SIZEOF (.data);
-	.eh_frame : { *(.eh_frame) }
+	.bss : 
+	{
+		*(.bss)
+	}
+	
+	DataLength = SIZEOF (.data) + SIZEOF (.bss);
 }

@@ -54,10 +54,10 @@ CAT: cat.o inittask.o $(LIBS)
 cat.o: cat.c
 
 EDIT: edit.o inittask.o $(LIBS)
-	ld -s --print-map -Tlink.ld edit.o $(LIBS) -oEDIT>linkmap
+	ld -Tlink.ld edit.o $(LIBS) -oEDIT
 	mcopy -o EDIT c:/BIN
 	
-edit: edit.o inittask2.o $(LIBS)
+edit: edit.o inittask.o $(LIBS)
 	ld -Tlink2.ld edit.o $(LIBS) -oedit
  
 

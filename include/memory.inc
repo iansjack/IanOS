@@ -13,8 +13,8 @@ TempUStack   	= 0x0000000000098000
 PageMap      	= 0x0000000000100000
 UserCode     	= 0x0000000000400000
 UserData     	= 0x0000000000600000
-KernelStack  	= 0x0000000000800000
-UserStack    	= 0x0000000000a00000
+KernelStack  	= 0x00000000009ff000
+UserStack    	= 0x0000000000bff000
 
 PageSize	= 0x1000
 KbdPort		= StaticPort + MP.size

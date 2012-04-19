@@ -1,8 +1,9 @@
 #include "syscalls.h"
 
-int main(void)
+int main(int argc, char **argv)
 {
-	unsigned char *cwd = getcwd();
+	unsigned char *cwd;
+	cwd = getcwd();
 	printf("%s\n", cwd);
 	free(cwd);
 	exit();

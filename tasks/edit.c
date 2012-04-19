@@ -12,6 +12,7 @@
 #define CLRBUFF	for (count = 0; count < 80; count++) currentLineBuffer[count] = 0
 #define Overwrite	0
 #define Insert		1
+#define WINDOWSIZE	20
 
 struct line
 {
@@ -22,12 +23,11 @@ struct line
 };
 
 struct line *lines;
+struct line *windowStart;
 int line;
 int column;
 char mode;
 int count;
-int windowstart;
-int windowend;
 
 void ReadFile(FD file)
 {
@@ -91,10 +91,10 @@ void PrintStatusLine()
 void RedrawScreen()
 {
 	struct line *tempcurrline = lines;
-	for (count = 0; count < windowstart; count++)
-		tempcurrline = tempcurrline->next;
 	printf("%c[2J", ESC);
-	for (count = windowstart; count <= windowend; count++)
+	tempcurrline = windowStart;
+	if (!windowStart) return;
+	for (count = 0; count <= WINDOWSIZE; count++)
 	{
 		if (tempcurrline->line)
 			printf("%s\n", tempcurrline->line);
@@ -113,12 +113,9 @@ int main(int argc, char **argv)
 	line = 0;
 	column = 0;
 	struct line *currline;
-	struct line *startLine = lines;
 	char currentLineBuffer[80];
 	int count;
 	mode = Insert;
-	windowstart = 0;
-	windowend = 19;
 
 	// Clear the screen
 	printf("%c[2J", ESC);
@@ -129,6 +126,7 @@ int main(int argc, char **argv)
 		if (file != -1)
 		{
 			ReadFile(file);
+			windowStart = lines;
 			RedrawScreen();
 		}
 		else
@@ -196,10 +194,10 @@ int main(int argc, char **argv)
 			column = 0;
 			line++;
 			currline = currline->next;
-			RedrawScreen();
+			RedrawScreen(windowStart);
 			break;
 		case ctrl('U'): // Up Arrow
-			if (line)
+			if (currline->prev)
 			{
 				line--;
 				free(currline->line);
@@ -207,29 +205,36 @@ int main(int argc, char **argv)
 				strcpy(currline->line, currentLineBuffer);
 				currline = currline->prev;
 				CLRBUFF;
-				strcpy(currentLineBuffer, currline->line);
+				if (currline->line)
+					strcpy(currentLineBuffer, currline->line);
 				if (column > strlen(currentLineBuffer))
 					column = strlen(currentLineBuffer);
 				printf("%c[%d;%dH", ESC, line, column);
+				if (line < 0)
+				{
+					windowStart = windowStart->prev;
+					line++;
+					RedrawScreen();
+				}
 			}
 			break;
 		case ctrl('D'): // Down Arrow
 			if (currline->next)
-			{
+				{
 				line++;
 				free(currline->line);
 				currline->line = malloc(strlen(currentLineBuffer) + 1);
 				strcpy(currline->line, currentLineBuffer);
 				currline = currline->next;
 				CLRBUFF;
-				strcpy(currentLineBuffer, currline->line);
+				if (currline->line)
+					strcpy(currentLineBuffer, currline->line);
 				if (column > strlen(currentLineBuffer))
 					column = strlen(currentLineBuffer);
 				printf("%c[%d;%dH", ESC, line, column);
-				if (line > windowend - windowstart)
+				if (line > WINDOWSIZE)
 				{
-					windowstart++;
-					windowend++;
+					windowStart = windowStart->next;
 					line--;
 					RedrawScreen();
 				}

@@ -19,8 +19,8 @@
 #define PageMap         0x0000000000100000L
 #define UserCode        0x0000000000400000L
 #define UserData        0x0000000000600000L
-#define KernelStack     0x0000000000800000L
-#define UserStack       0x0000000000a00000L
+#define KernelStack     0x00000000009ff000L
+#define UserStack       0x0000000000bff000L
 #define VAddr			0x0000008000000000L
 
 // Free                 0x0000000000C00000 - 0x0000007FFFFFFFFF
