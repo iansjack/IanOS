@@ -18,7 +18,6 @@ int currentFATSector;
 unsigned char *DiskBuffer;
 unsigned short *FAT;
 
-
 //===============================
 // Convert a cluster to a sector
 //===============================
@@ -552,34 +551,30 @@ struct FCB *OpenFile(unsigned char *name, unsigned short pid)
 void CloseFile(struct FCB *fHandle)
 {
 	int offset;
-	unsigned char *filename = DirNameToName(fHandle->dirEntry->name);
-
 	if (fHandle->bufIsDirty)
 	{
 		WriteSector(
 				ClusterToSector(fHandle->currentCluster)
 						+ fHandle->sectorInCluster - 1);
 	}
-	if (fHandle->deviceType == FILE || fHandle->deviceType == DIR)
+	if (fHandle->dirEntry) // No dirEntry, so it must be the root directory.
 	{
-		if (!fHandle->dirEntry) // No dirEntry so it must be the root directory
-		{
-		}
-		else
+		unsigned char *filename = DirNameToName(fHandle->dirEntry->name);
+
+		if (fHandle->deviceType == FILE) // || fHandle->deviceType == DIR)
 		{
 			int sector = 0;
 			struct DirEntry *buffer;
 			buffer = FindFileDirectorySector(filename, fHandle->dir, &sector,
 					&offset);
-			DeallocUMem(filename);
 			struct DirEntry *temp = buffer + offset;
-			// SaveDir(); We need to write values to the directory
 			if (fHandle->deviceType == FILE)
 			{
 				temp->fileSize = fHandle->length;
 				WriteSector(sector);
 			}
 		}
+		DeallocUMem(filename);
 	}
 	DeallocMem(fHandle);
 	FlushSectorBuffers(sectorBuffers);
@@ -662,6 +657,7 @@ long ReadFile(struct FCB *fHandle, char *buffer, long noBytes)
 				WriteSector(
 						ClusterToSector(fHandle->currentCluster)
 								+ fHandle->sectorInCluster - 1);
+				FlushSectorBuffers(sectorBuffers);
 			}
 			if (fHandle->sectorInCluster++ == SectorsPerCluster)
 			{
@@ -674,7 +670,6 @@ long ReadFile(struct FCB *fHandle, char *buffer, long noBytes)
 			fHandle->nextSector++;
 		}
 	}
-	FlushSectorBuffers(sectorBuffers);
 	return (bytesRead);
 }
 

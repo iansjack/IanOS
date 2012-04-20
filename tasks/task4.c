@@ -1,20 +1,56 @@
+#include "kstructs.h"
 #include "syscalls.h"
 #include "lib.h"
-#include "console.h"
-#include "filesystem.h"
-
-int factorial(int n)
-{
-	if (n == 1) return 1;
-	return factorial(n-1);
-}
+#include "fat.h"
 
 int main(int argc, char **argv)
 {
-	int x;
+	struct DirEntry entry;
+	int ret;
+	int count1, count2;
+	unsigned char buffer[13];
+	unsigned char *cwd;
 
-	x = factorial(100000);
-//	printf("%d\n", factorial(500));
+	FD file;
+//	if (argc == 2)
+//		file = open(argv[1]);
+//	else
+//	{
+//		cwd = getcwd();
+//		file = open(cwd);
+//		free(cwd);
+//	}
+	file = open("/");
+	if (file != -1)
+	{
+//		for (count1 = 0; count1 < 40; count1++)
+//		{
+//			ret = read(file, (char *) &entry, sizeof(struct DirEntry));
+//			if (entry.attribute != 0x08)	// Volume lable, not really a directory entry
+//			{
+//				if (entry.name[0])
+//				{
+//					if (entry.name[0] != 0xE5)
+//					{
+//						for (count2 = 0; count2 < 11; count2++)
+//							buffer[count2] = entry.name[count2];
+//						buffer[12] = 0;
+//						printf("%s", buffer);
+//						if (entry.attribute & 0x10)
+//							printf(" <DIR> ");
+//						else
+//							printf("       ");
+//						buffer[8] = 0;
+//						intToAsc(entry.fileSize, buffer, 8);
+//						printf("%s\n", buffer);
+//					}
+//				}
+//				else
+//					break;
+//			}
+//		}
+		close(file);
+	}
 	exit();
 	return (0);
 }

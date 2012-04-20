@@ -9,5 +9,6 @@ SECTIONS
 	{ 
 	*(.data) 
 	*(.rodata)
+	*(.bssdata)
 	}
 }

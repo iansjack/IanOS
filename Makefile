@@ -14,6 +14,10 @@ library/liblib.a:
 library/libsyscalls.a:
 	cd library; make all; cd ..
 
+%.o : %.c
+	$(CC) $(CFLAGS) -c $*.c
+	objcopy --remove-section .eh_frame $*.o
+
 IanOS.o: $(OBJS) library/liblib.a library/libsyscalls.a
 	ld -Tlink2.ld $(OBJS) library/liblib.a library/libsyscalls.a -oIanOS.o 
 
@@ -27,7 +31,7 @@ bootdisk: bootsect.bin 32sect IanOS.bin
 	qemu-img convert IanOS.fdd -O raw IanOS.vfd
 
 bootsect.bin: boot.o
-	ld -Tbootlink.ld boot.o -obootsect.bin
+	ld -s -Tbootlink.ld boot.o -obootsect.bin
 
 boot.o: boot.s $(INC)/memory.inc
 	as boot.s -o boot.o
@@ -42,12 +46,14 @@ mem32.o: mem32.c $(INC)/memory.h
 	cat code32.s mem32.s >tmem32.s
 	as tmem32.s -o mem32.o
 	rm tmem32.s mem32.s
+	objcopy --remove-section .eh_frame mem32.o
 
 ptab32.o: ptab32.c $(INC)/memory.h
 	gcc -m32 -D CODE_32 -fno-stack-protector -ffixed-r15 -g -I $(INC) -S ptab32.c
 	cat code32.s ptab32.s >tptab32.s
 	as tptab32.s -o ptab32.o
 	rm tptab32.s ptab32.s
+	objcopy --remove-section .eh_frame ptab32.o
 	
 hwsetup.o: hwsetup.s hwhelp.s
 	as  hwsetup.s -o hwsetup.o

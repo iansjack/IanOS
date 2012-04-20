@@ -17,10 +17,7 @@ SECTIONS
 	.data 0x600000 : AT (ADDR (.text) + SIZEOF (.text) )
 	{ 
 		*(.data)
-	}
-	.bss : 
-	{
-		*(.bss)
+		*(.bssdata)
 	}
 	
 	DataLength = SIZEOF (.data) + SIZEOF (.bss);

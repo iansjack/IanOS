@@ -5,6 +5,10 @@ TASKS = TASK1 TASK2 TASK3 TASK4 PWD LS CAT EDIT
 
 all: $(TASKS) 
 
+%.o : %.c
+	$(CC) $(CFLAGS) -c $*.c
+	objcopy --remove-section .eh_frame $*.o
+
 inittask.o: inittask.s
 	as inittask.s -o inittask.o
 
@@ -54,7 +58,7 @@ CAT: cat.o inittask.o $(LIBS)
 cat.o: cat.c
 
 EDIT: edit.o inittask.o $(LIBS)
-	ld -Tlink.ld edit.o $(LIBS) -oEDIT
+	ld -s --print-map -Tlink.ld edit.o $(LIBS) -oEDIT>linkmap
 	mcopy -o EDIT c:/BIN
 	
 edit: edit.o inittask.o $(LIBS)

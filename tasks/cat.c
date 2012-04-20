@@ -9,7 +9,7 @@ int main(int argc, char **argv)
 	FD InFile = open(argv[1]);
 	if (InFile != -1) {
 		struct FileInfo inf;
-		stat(InFile, &inf);
+		fstat(InFile, &inf);
 
 		char *buffer = malloc(inf.Length + 1);
 		ret = read(InFile, buffer, inf.Length);

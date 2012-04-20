@@ -2,7 +2,7 @@
 #include "kernel.h"
 #include "tasklist.h"
 
-//#define DEBUG
+// #define DEBUG
 
 #ifdef DEBUG
 struct MemoryAllocation
@@ -132,6 +132,7 @@ void *AllocMem(long sizeRequested, struct MemStruct *list)
 #ifdef DEBUG
 	NoOfAllocations++;
 	KWriteHex(NoOfAllocations, 24);
+//#ifdef DEBUG
 	if (debugging == 1)
 	{
 		allocations[count].size = sizeRequested;

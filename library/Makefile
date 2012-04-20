@@ -6,6 +6,10 @@ LIBOBJS = printf.o string.o \
 	getchar.o convert.o
 SYSCALLSOBJS = syscalls.o killtask.o getticks.o
 
+%.o : %.c
+	$(CC) $(CFLAGS) -c $*.c
+	objcopy --remove-section .eh_frame $*.o
+
 all: liblib.a libsyscalls.a
 
 liblib.a: $(LIBOBJS)
@@ -23,18 +27,10 @@ syscalls.o: syscalls.s $(INC)/syscalls.inc
 
 string.o: string.c 
 
-#allocmem.o: allocmem.s $(INC)/syscalls.inc
-
-#deallocmem.o: deallocmem.s $(INC)/syscalls.inc
-
-#allocsharedmem.o: allocsharedmem.s $(INC)/syscalls.inc
-
 killtask.o: killtask.s $(INC)/syscalls.inc
 
 getcommandline.o: getcommandline.s $(INC)/syscalls.inc
 
 getticks.o: getticks.s $(INC)/syscalls.inc
-
-#sleep.o: sleep.s $(INC)/syscalls.inc
 
 convert.o: convert.c
