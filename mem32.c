@@ -1,4 +1,4 @@
-#include "memory.h"
+#include <memory.h>
 
 extern long long memorySemaphore;
 extern long long nPagesFree;
@@ -89,7 +89,7 @@ void *AllocPage32(unsigned short int PID)
 	unsigned short int *PMap = (unsigned short int *)PageMap;
 	int count;
 
-	unsigned char *mem = (unsigned char *)(firstFreePage << 12);
+	unsigned char *mem = (unsigned char *)((long)(firstFreePage << 12));
 	PMap[firstFreePage] = PID;
 	while (PMap[++firstFreePage]) ;
 	nPagesFree--;

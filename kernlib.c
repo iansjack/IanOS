@@ -1,9 +1,11 @@
-#include "kernel.h"
-#include "memory.h"
-#include "filesystem.h"
-#include "console.h"
+#include <kernel.h>
+#include <filesystem.h>
+#include <console.h>
 
 extern struct Task *currentTask;
+extern struct MessagePort *FSPort;
+extern struct MessagePort *KbdPort;
+extern struct MessagePort *ConsolePort;
 
 //================================================
 // Read noBytes into buffer from the file fHandle

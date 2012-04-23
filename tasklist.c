@@ -1,5 +1,5 @@
-#include "memory.h"
-#include "tasklist.h"
+#include <memory.h>
+#include <tasklist.h>
 
 extern long canSwitch;
 extern struct TaskList *runnableTasks;

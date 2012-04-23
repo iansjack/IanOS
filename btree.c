@@ -4,8 +4,8 @@
  *      Author: ian
  */
 
-#include "btree.h"
-#include "memory.h"
+#include <btree.h>
+#include <memory.h>
 
 extern long Ticks;
 

@@ -1,4 +1,4 @@
-#include "syscalls.h"
+#include <syscalls.h>
 
 char getchar()
 {

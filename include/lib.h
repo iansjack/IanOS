@@ -1,8 +1,9 @@
 #ifndef LIB_H
 #define LIB_H
 
-#include "kstructs.h"
-#include "filesystem.h"
+#include <kstructs.h>
+#include <filesystem.h>
+#include <syscalls.h>
 
 char getchar();
 void send(struct Message *msg);

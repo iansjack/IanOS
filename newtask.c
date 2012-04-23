@@ -1,9 +1,5 @@
-#include "kstructs.h"
-#include "kernel.h"
-#include "memory.h"
-#include "filesystem.h"
-#include "fat.h"
-#include "tasklist.h"
+#include <kernel.h>
+#include <filesystem.h>
 
 struct Task *
 NewKernelTask(void *TaskCode);
@@ -22,6 +18,7 @@ long pass;
 extern unsigned short int *PMap;
 extern long nPagesFree;
 extern long nPages;
+extern struct MessagePort *FSPort;
 
 long nextpid;
 
@@ -131,7 +128,7 @@ long DoExec(char *name, char *environment)
 	FSMsg->byte = OPENFILE;
 	FSMsg->quad = (long) kname;
 	FSMsg->quad2 = (long) fHandle;
-	SendReceiveMessage((struct MessagePort *) FSPort, FSMsg);
+	SendReceiveMessage(FSPort, FSMsg);
 
 	fHandle = (struct FCB *) FSMsg->quad;
 	if (fHandle)
@@ -170,7 +167,7 @@ long DoExec(char *name, char *environment)
 		FSMsg->nextMessage = 0;
 		FSMsg->byte = CLOSEFILE;
 		FSMsg->quad = (long) fHandle;
-		SendReceiveMessage((struct MessagePort *) FSPort, FSMsg);
+		SendReceiveMessage(FSPort, FSMsg);
 		DeallocMem(kname);
 		DeallocMem(FSMsg);
 		char *newenv = AllocMem(81,
@@ -370,10 +367,12 @@ void dummyTask()
 					nPagesFree++;
 				}
 			}
+#ifdef DEBUG
 			int free = 0;
 			for (count = 0; count <nPages; count++)
 				if (!PMap[count]) free++;
 			kprintf(24, 0, "%d %d", free, nPagesFree);
+#endif
 		}
 		else
 			asm("hlt");

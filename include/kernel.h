@@ -1,7 +1,13 @@
 #ifndef KERNEL_H
 #define KERNEL_H
 
-#include "kstructs.h"
+// #define DEBUG
+
+#include <kstructs.h>
+#include <memory.h>
+#include <pagetab.h>
+#include <lib.h>
+#include <tasklist.h>
 
 void SendMessage(struct MessagePort *MP, struct Message *Msg);
 void ReceiveMessage(struct MessagePort *MP, struct Message *Msg);
@@ -20,7 +26,6 @@ void SetSem(long *semaphore);
 void ClearSem(long *semaphore);
 void KWriteString(char *str, int row, int col);
 struct Task *PidToTask(long pid);
-unsigned char *strchr(unsigned char *, char);
 unsigned char *NameToFullPath(unsigned char *name);
 
 #define ALLOCMSG (struct Message *)AllocKMem(sizeof(struct Message))

@@ -1,7 +1,5 @@
-#include "memory.h"
-#include "kernel.h"
-#include "console.h"
-//#include <sys/io.h>
+#include <kernel.h>
+#include <console.h>
 
 //====================================================
 // This is the task that listens for console requests.
@@ -10,6 +8,7 @@
 extern unsigned char currentBuffer;
 extern struct Console consoles[8];
 extern long canSwitch;
+extern struct MessagePort *ConsolePort;
 
 unsigned char *VideoBuffer;
 unsigned char *ConsoleBuffer;
@@ -294,15 +293,16 @@ void consoleTaskCode()
 {
 	kprintf(2, 0, "Starting Console Task");
 	Mode = NORMAL_MODE;
+	ConsolePort = AllocMessagePort();
 
 	VideoBuffer = (char *) 0xB8000;
-	((struct MessagePort *) ConsolePort)->waitingProc = (struct Task *) -1L;
-	((struct MessagePort *) ConsolePort)->msgQueue = 0;
+	ConsolePort->waitingProc = (struct Task *) -1L;
+	ConsolePort->msgQueue = 0;
 
 	int i;
 	for (i = 0; i < 4; i++)
 	{
-		consoles[i].ConsoleBuffer = AllocUMem(4096);
+		consoles[i].ConsoleBuffer = AllocKMem(4096);
 		consoles[i].column = consoles[i].row = 0;
 		consoles[i].colour = NORMAL;
 	}
@@ -314,7 +314,7 @@ void consoleTaskCode()
 		short row;
 		short column;
 
-		ReceiveMessage((struct MessagePort *) ConsolePort, &ConsoleMsg);
+		ReceiveMessage(ConsolePort, &ConsoleMsg);
 		long console = ConsoleMsg.quad2;
 		currCons = &(consoles[console]);
 		ConsoleBuffer = currCons->ConsoleBuffer;

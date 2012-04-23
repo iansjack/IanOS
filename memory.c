@@ -1,8 +1,4 @@
-#include "memory.h"
-#include "kernel.h"
-#include "tasklist.h"
-
-// #define DEBUG
+#include <kernel.h>
 
 #ifdef DEBUG
 struct MemoryAllocation
@@ -23,21 +19,21 @@ extern struct TaskList *deadTasks;
 extern long canSwitch;
 extern long pass;
 extern long nextpid;
-
 unsigned char *oMemMax;
 long nPagesFree;
 long nPages;
 long firstFreePage;
 struct MemStruct *firstFreeKMem;
-/*static*/
 long nextKPage;
 unsigned short int *PMap;
 long memorySemaphore;
 
+struct MessagePort *KbdPort;
+struct MessagePort *ConsolePort;
+struct MessagePort *FSPort;
+
 #ifdef DEBUG
 long NoOfAllocations;
-struct MemoryAllocation allocations[32];
-int count;
 #endif
 long debugging;
 
@@ -62,15 +58,6 @@ void InitMem64(void)
 
 #ifdef DEBUG
 	NoOfAllocations = 0;
-	for (count = 0; count < 32; count++)
-	{
-		allocations[count].memory =
-		allocations[count].size =
-		allocations[count].allocated =
-		allocations[count].deallocated = 0;
-	}
-	count = 0;
-	debugging = 0;
 #endif
 	memorySemaphore = 0;
 	canSwitch = 0;
@@ -83,7 +70,7 @@ void InitMem64(void)
 //=========================================================================================
 void *AllocMem(long sizeRequested, struct MemStruct *list)
 {
-	ASSERT(list & sizeRequested > 0);
+	ASSERT((long)list & (long)sizeRequested > 0);
 	unsigned char kernel = 0;
 	if (list == firstFreeKMem)
 		kernel = 1;
@@ -139,24 +126,14 @@ void *AllocMem(long sizeRequested, struct MemStruct *list)
 	ClearSem(&memorySemaphore);
 #ifdef DEBUG
 	NoOfAllocations++;
-	KWriteHex(NoOfAllocations, 24);
-//#ifdef DEBUG
-	if (debugging == 1)
-	{
-		allocations[count].size = sizeRequested;
-		allocations[count].memory = list + 1;
-		allocations[count].allocated = 1;
-		count++;
-		if (count == 32)
-		debugging = 0;
-	}
+	KWriteHex(NoOfAllocations, 23);
 #endif
 	return (list + 1);
 }
 
 DeallocUMem(void *list)
 {
-	ASSERT(list >= UserData & list < KernelStack);
+	ASSERT((long)list >= UserData & (long)list < KernelStack);
 	DeallocMem(list);
 }
 
@@ -177,18 +154,7 @@ void DeallocMem(void *list)
 		l->size = (long) l->next - (long) l - sizeof(struct MemStruct);
 #ifdef DEBUG
 		NoOfAllocations--;
-		KWriteHex(NoOfAllocations, 24);
-		if (debugging == 1)
-		{
-			int i;
-			for (i = 0; i < 32; i++)
-			if (allocations[i].memory == list &&
-					allocations[i].deallocated == 0)
-			{
-				allocations[i].deallocated = 1;
-				break;
-			}
-		}
+		KWriteHex(NoOfAllocations, 23);
 #endif
 	}
 	ClearSem(&memorySemaphore);

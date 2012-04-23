@@ -1,9 +1,5 @@
-#include "memory.h"
-#include "kstructs.h"
-#include "kernel.h"
-#include "fat.h"
-#include "filesystem.h"
-#include "btree.h"
+#include <kernel.h>
+#include <filesystem.h>
 
 struct DirEntry *FindFile(unsigned char *name);
 struct DirEntry *FindFileDirectorySector(unsigned char *filename,
@@ -17,6 +13,7 @@ unsigned short *currentFATBuffer;
 int currentFATSector;
 unsigned char *DiskBuffer;
 unsigned short *FAT;
+extern struct MessagePort *FSPort;
 
 //===============================
 // Convert a cluster to a sector
@@ -896,6 +893,8 @@ void fsTaskCode(void)
 {
 	kprintf(3, 0, "Starting Filesystem Task");
 
+	FSPort = AllocMessagePort();
+
 	struct Message *FSMsg;
 	struct MessagePort *tempPort;
 
@@ -904,8 +903,8 @@ void fsTaskCode(void)
 	int result;
 	struct FCB *fcb;
 
-	((struct MessagePort *) FSPort)->waitingProc = (struct Task *) -1L;
-	((struct MessagePort *) FSPort)->msgQueue = 0;
+	FSPort->waitingProc = (struct Task *) -1L;
+	FSPort->msgQueue = 0;
 
 	sectorBuffers = 0;
 	buffersRead = 0;
@@ -913,13 +912,13 @@ void fsTaskCode(void)
 
 	while (1)
 	{
-		ReceiveMessage((struct MessagePort *) FSPort, FSMsg);
+		ReceiveMessage(FSPort, FSMsg);
+		tempPort = FSMsg->tempPort;
 		switch (FSMsg->byte)
 		{
 		case CREATEFILE:
 			;
 			struct FCB *fcb = CreateFile((char *) FSMsg->quad, FSMsg->pid);
-			tempPort = (struct MessagePort *) FSMsg->tempPort;
 			if (!fcb)
 				FSMsg->quad = 0;
 			else
@@ -932,7 +931,6 @@ void fsTaskCode(void)
 
 		case OPENFILE:
 			fcb = OpenFile((unsigned char *) FSMsg->quad, FSMsg->pid);
-			tempPort = (struct MessagePort *) FSMsg->tempPort;
 			if (!fcb)
 				FSMsg->quad = 0;
 			else
@@ -946,14 +944,12 @@ void fsTaskCode(void)
 		case CLOSEFILE:
 			CloseFile((struct FCB *) FSMsg->quad);
 			DeallocMem((void *) FSMsg->quad);
-			tempPort = (struct MessagePort *) FSMsg->tempPort;
 			SendMessage(tempPort, FSMsg);
 			break;
 
 		case READFILE:
 			result = ReadFile((struct FCB *) FSMsg->quad, (char *) FSMsg->quad2,
 					FSMsg->quad3);
-			tempPort = (struct MessagePort *) FSMsg->tempPort;
 			FSMsg->quad = result;
 			SendMessage(tempPort, FSMsg);
 			break;
@@ -961,14 +957,12 @@ void fsTaskCode(void)
 		case WRITEFILE:
 			result = WriteFile((struct FCB *) FSMsg->quad,
 					(char *) FSMsg->quad2, FSMsg->quad3);
-			tempPort = (struct MessagePort *) FSMsg->tempPort;
 			FSMsg->quad = result;
 			SendMessage(tempPort, FSMsg);
 			break;
 
 		case DELETEFILE:
 			result = DeleteFile((char *) FSMsg->quad, FSMsg->pid);
-			tempPort = (struct MessagePort *) FSMsg->tempPort;
 			SendMessage(tempPort, FSMsg);
 			break;
 
@@ -982,7 +976,6 @@ void fsTaskCode(void)
 					result = 1;
 			}
 
-			tempPort = (struct MessagePort *) FSMsg->tempPort;
 			FSMsg->quad = result;
 			SendMessage(tempPort, FSMsg);
 			break;
@@ -992,16 +985,12 @@ void fsTaskCode(void)
 			struct FileInfo info;
 			fcb = (struct FCB *) FSMsg->quad;
 			info.Length = fcb->length;
-			int count;
-			for (count = 0; count < sizeof(struct FileInfo); count++)
-				((char *) FSMsg->quad2)[count] = ((char *) (&info))[count];
-			tempPort = (struct MessagePort *) FSMsg->tempPort;
+			copyMem((char *)FSMsg->quad, (char *)(&info), sizeof (struct FileInfo));
 			SendMessage(tempPort, FSMsg);
 			break;
 
 		case CREATEDIR:
 			result = CreateDir((char *) FSMsg->quad, FSMsg->pid);
-			tempPort = (struct MessagePort *) FSMsg->tempPort;
 			FSMsg->quad = result;
 			SendMessage(tempPort, FSMsg);
 			break;
@@ -1009,7 +998,6 @@ void fsTaskCode(void)
 		case SEEK:
 			result = Seek((struct FCB *) FSMsg->quad, FSMsg->quad2,
 					FSMsg->quad3);
-			tempPort = (struct MessagePort *) FSMsg->tempPort;
 			FSMsg->quad = result;
 			SendMessage(tempPort, FSMsg);
 			break;

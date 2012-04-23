@@ -11,7 +11,6 @@
 #define IDT             0x0000000000000800L
 #define OSCode          0x0000000000001000L
 #define OSData          0x0000000000010000L
-#define StaticPort      0x000000000006F000L
 #define TaskStruct      0x0000000000080000L
 #define TempUserCode    0x0000000000095000L
 #define TempUserData    0x0000000000096000L
@@ -26,10 +25,6 @@
 // Free                 0x0000000000C00000 - 0x0000007FFFFFFFFF
 
 #define PageSize		0x1000
-
-#define KbdPort			(struct MessagePort *)0x6F010L
-#define ConsolePort		(struct MessagePort *)0x6F020L
-#define FSPort			(struct MessagePort *)0x6F030L
 
 #define OsCodeSeg		0x8
 #define OsDataSeg		0x10

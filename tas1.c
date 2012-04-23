@@ -1,5 +1,5 @@
-#include "memory.h"
-#include "syscalls.h"
+#include <memory.h>
+#include <syscalls.h>
 
 // This task is just here to start the ball rolling
 
@@ -12,9 +12,7 @@ void tas1(void)
 	if (!pid)
 		execve("TASK1", "TASK1 0");
 	pid = fork();
-//	nanosleep(10);
 	if (!pid)
 		execve("TASK1", "TASK1 1");
-//	pid = Sys_Fork();
 	exit();
 }

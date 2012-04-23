@@ -1,6 +1,4 @@
-#include "kstructs.h"
-#include "memory.h"
-#include "pagetab.h"
+#include <kernel.h>
 
 #define VIRT(type, name) ((struct type *) ((long) name + VAddr))
 
@@ -179,9 +177,9 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 					pid, US | RW | P);
 			// Copy the physical memory
 			copyMem(
-					((VIRT(PT, currentPT)->entries[i].value) & 0xFFFFF000)
+					(void *)((VIRT(PT, currentPT)->entries[i].value) & 0xFFFFF000)
 							+ VAddr,
-					((VIRT(PT, pt)->entries[i].value) & 0xFFFFF000) + VAddr,
+					(void *)((VIRT(PT, pt)->entries[i].value) & 0xFFFFF000) + VAddr,
 					PageSize);
 			i++;
 		}
@@ -198,9 +196,9 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 					pid, US | RW | P);
 			// Copy the physical memory
 			copyMem(
-					((VIRT(PT, currentPT)->entries[i].value) & 0xFFFFF000)
+					(void *)((VIRT(PT, currentPT)->entries[i].value) & 0xFFFFF000)
 							+ VAddr,
-					((VIRT(PT, pt)->entries[i].value) & 0xFFFFF000) + VAddr,
+					(void *)((VIRT(PT, pt)->entries[i].value) & 0xFFFFF000) + VAddr,
 					PageSize);
 			i++;
 		}
@@ -217,9 +215,9 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 					pid, US | RW | P);
 			// Copy the physical memory
 			copyMem(
-					((VIRT(PT, currentPT)->entries[i].value) & 0xFFFFF000)
+					(void *)((VIRT(PT, currentPT)->entries[i].value) & 0xFFFFF000)
 							+ VAddr,
-					((VIRT(PT, pt)->entries[i].value) & 0xFFFFF000) + VAddr,
+					(void *)((VIRT(PT, pt)->entries[i].value) & 0xFFFFF000) + VAddr,
 					PageSize);
 			i--;
 		}
@@ -236,9 +234,9 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 					pid, US | RW | P);
 			// Copy the physical memory
 			copyMem(
-					((VIRT(PT, currentPT)->entries[i].value) & 0xFFFFF000)
+					(void *)((VIRT(PT, currentPT)->entries[i].value) & 0xFFFFF000)
 							+ VAddr,
-					((VIRT(PT, pt)->entries[i].value) & 0xFFFFF000) + VAddr,
+					(void *)((VIRT(PT, pt)->entries[i].value) & 0xFFFFF000) + VAddr,
 					PageSize);
 			i--;
 		}
@@ -299,6 +297,7 @@ void ClearUserMemory(void)
 	while (VIRT(PT, pt)->entries[i].value)
 	{
 		PMap[VIRT(PT,pt)->entries[i].value >> 12] = 0;
+		nPagesFree++;
 		VIRT(PT,pt)->entries[i++].value = 0;
 	}
 
@@ -309,6 +308,7 @@ void ClearUserMemory(void)
 	while (VIRT(PT, pt)->entries[i].value)
 	{
 		PMap[VIRT(PT,pt)->entries[i].value >> 12] = 0;
+		nPagesFree++;
 		VIRT(PT,pt)->entries[i++].value = 0;
 	}
 

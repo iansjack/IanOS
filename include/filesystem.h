@@ -1,6 +1,9 @@
 #ifndef FILESYSTEM_H
 #define FILESYSTEM_H
 
+#include <fat.h>
+#include <btree.h>
+
 #define CREATEFILE  1
 #define OPENFILE    2
 #define CLOSEFILE   3

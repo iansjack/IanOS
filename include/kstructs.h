@@ -58,7 +58,7 @@ struct Message {
 	long quad;
 	long quad2;
 	long quad3;
-	long tempPort;
+	struct MessagePort *tempPort;
 	long pid;
 };
 

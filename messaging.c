@@ -1,5 +1,4 @@
-#include "kernel.h"
-#include "memory.h"
+#include <kernel.h>
 
 extern struct Task *currentTask;
 
@@ -75,9 +74,8 @@ void SendReceiveMessage(struct MessagePort *MP, struct Message *Msg)
 {
 	struct MessagePort *tempMP = AllocMessagePort();
 
-	Msg->tempPort = (long)tempMP;
-//	tempMP->waitingProc = currentTask; // Do we need this or not?
+	Msg->tempPort = tempMP;
 	SendMessage(MP, Msg);
 	ReceiveMessage(tempMP, Msg);
-//	DeallocMem(tempMP);
+	DeallocMem(tempMP);
 }

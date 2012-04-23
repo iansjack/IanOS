@@ -1,5 +1,5 @@
-#include "memory.h"
-#include "kernel.h"
+#include <memory.h>
+#include <kernel.h>
 
 #define KBDINT       1
 
@@ -27,6 +27,7 @@
 #define ALTED       8
 
 extern void switchConsole(long console);
+extern struct MessagePort *KbdPort;
 
 long kbBufStart;
 long kbBufCurrent;
@@ -99,7 +100,7 @@ void keyPressed()
 
 	kbdMsg->nextMessage = 0;
 	kbdMsg->byte = KEYPRESS;
-	SendMessage((struct MessagePort *) KbdPort, kbdMsg);
+	SendMessage(KbdPort, kbdMsg);
 	DeallocMem(kbdMsg);
 }
 
@@ -120,8 +121,7 @@ void ProcessMsgQueue(struct Console *console)
 		// There should be no other requests, so anything else is discarded
 		if (tempMsg->byte == GETCHAR)
 		{
-			struct MessagePort *tempPort =
-					(struct MessagePort *) tempMsg->tempPort;
+			struct MessagePort *tempPort = tempMsg->tempPort;
 			tempMsg->nextMessage = 0;
 			tempMsg->quad = 0L;
 			tempMsg->byte = temp;
@@ -145,6 +145,8 @@ void kbTaskCode()
 	struct Console *currentCons;
 	struct Message *tempMsg;
 
+	KbdPort = AllocMessagePort();
+
 	int i;
 	for (i = 0; i < 4; i++)
 	{
@@ -163,12 +165,12 @@ void kbTaskCode()
 	asm("mov $0b11111000, %al");
 	asm("out %al, $0x21");
 
-	((struct MessagePort *) KbdPort)->waitingProc = (struct Task *) -1L;
-	((struct MessagePort *) KbdPort)->msgQueue = 0;
+	KbdPort->waitingProc = (struct Task *) -1L;
+	KbdPort->msgQueue = 0;
 	while (1)
 	{
 		KbdMsg = (struct Message *) ALLOCMSG;
-		ReceiveMessage((struct MessagePort *) KbdPort, KbdMsg);
+		ReceiveMessage(KbdPort, KbdMsg);
 		switch (KbdMsg->byte)
 		{
 		case GETCHAR:

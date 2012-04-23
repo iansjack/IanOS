@@ -1,7 +1,4 @@
-#include "kstructs.h"
-#include "syscalls.h"
-#include "lib.h"
-#include "fat.h"
+#include <lib.h>
 
 int main(int argc, char **argv)
 {
