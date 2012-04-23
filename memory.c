@@ -40,12 +40,17 @@ long debugging;
 void InitMem64(void)
 {
 	PMap = (unsigned short int *) PageMap;
-	firstFreeKMem = (struct MemStruct *) 0x11000;
-	firstFreeKMem->next = 0;
-	firstFreeKMem->size = PageSize - sizeof(struct MemStruct);
+	// We can't call AllocKMem until currentTask is valid.
+	// But we want to allocat memory for currentTask.
+	// So we have to do it manually
+	firstFreeKMem = (struct MemStruct *)0x11000;
+	firstFreeKMem->next = (struct MemStruct *)((long)firstFreeKMem + sizeof(struct Task) + sizeof(struct MemStruct));
+	firstFreeKMem->size = 0;
+	currentTask = (struct Task *)0x11018;
+	firstFreeKMem->next->next = 0;
+	firstFreeKMem->next->size = PageSize - 2 * sizeof(struct MemStruct) - sizeof(struct Task);
 	nextKPage = 0x12;
 	nextpid = 3;
-	currentTask = (struct Task *) TaskStruct;
 	runnableTasks = (struct TaskList *) AllocKMem(sizeof(struct TaskList));
 	runnableTasks->next = 0L;
 	runnableTasks->task = currentTask;

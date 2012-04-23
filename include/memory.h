@@ -11,7 +11,7 @@
 #define IDT             0x0000000000000800L
 #define OSCode          0x0000000000001000L
 #define OSData          0x0000000000010000L
-#define TaskStruct      0x0000000000080000L
+#define OSHeap			0x0000000000011000L
 #define TempUserCode    0x0000000000095000L
 #define TempUserData    0x0000000000096000L
 #define TempUStack      0x0000000000098000L

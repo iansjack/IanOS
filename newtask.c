@@ -22,19 +22,6 @@ extern struct MessagePort *FSPort;
 
 long nextpid;
 
-//============================================
-//  Find the next free entry in the task table
-//============================================
-struct Task *
-nextfreetss()
-{
-	struct Task *temp = (struct Task *) TaskStruct;
-
-	while (temp->pid != 0)
-		temp++;
-	return (temp);
-}
-
 //===============================
 // Link task into the task table
 //===============================
@@ -53,7 +40,7 @@ void LinkTask(struct Task *task)
 long DoFork()
 {
 	// Copy task structure, with adjustments
-	struct Task *task = nextfreetss();
+	struct Task *task = (struct Task *)AllocKMem(sizeof (struct Task));
 	copyMem((unsigned char *) currentTask, (unsigned char *) task,
 			sizeof(struct Task));
 	int pid = task->pid = nextpid++;
@@ -210,7 +197,7 @@ struct Task *
 NewKernelTask(void *TaskCode)
 {
 	long *stack;
-	struct Task *task = nextfreetss();
+	struct Task *task = (struct Task *)AllocKMem(sizeof (struct Task));
 	long *data;
 
 	task->pid = nextpid++;
@@ -357,7 +344,8 @@ void dummyTask()
 			deadTasks = deadTasks->next;
 			pid = t->task->pid;
 			// Mark task table entry as free
-			t->task->pid = 0;
+//			t->task->pid = 0;
+			DeallocMem(t->task);
 			DeallocMem(t);
 			for (count = 0; count < nPages; count++)
 			{

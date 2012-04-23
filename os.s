@@ -39,14 +39,7 @@ start64:
 
 # Final preparations before starting tasking
 	call InitMem64
-	mov $0xFFF, %rcx                   # Zero page of memory locations for task structures
-	mov $0, %rax
-	mov $0x200, %rcx
-	mov $TaskStruct, %rdi
-	cld
-	rep stosq
-	
-	mov $TaskStruct, %r15              # Set up skeleton task structure for first task
+	mov currentTask, %r15
 	movq $0, TS.nexttask(%r15)
 	movq %r15, TS.r15(%r15)
 	movb $0, TS.waiting(%r15)          # We don't want task1 to be waiting when it starts
