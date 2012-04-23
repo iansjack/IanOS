@@ -5,6 +5,7 @@
 #define VIRT(type, name) ((struct type *) ((long) name + VAddr))
 
 extern long nPagesFree;
+extern long firstFreePage;
 extern unsigned short int *PMap;
 long kernelPT;
 long virtualPDP;
@@ -321,13 +322,11 @@ void ClearUserMemory(void)
 //=========================================
 void * AllocPage(unsigned short int PID)
 {
-	long i = 0;
+	void *mem = (void *)(firstFreePage << 12);
 
-	while (PMap[i] != 0)
-		i++;
-	PMap[i] = PID;
-	i = i << 12;
+	PMap[firstFreePage] = PID;
+	while (PMap[++firstFreePage]) ;
 	nPagesFree--;
 
-	return ((void *) i);
+	return (mem);
 }

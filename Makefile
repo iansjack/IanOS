@@ -16,7 +16,7 @@ library/libsyscalls.a:
 
 %.o : %.c
 	$(CC) $(CFLAGS) -c $*.c
-	objcopy --remove-section .eh_frame $*.o
+#	objcopy --remove-section .eh_frame $*.o
 
 IanOS.o: $(OBJS) library/liblib.a library/libsyscalls.a
 	ld -Tlink2.ld $(OBJS) library/liblib.a library/libsyscalls.a -oIanOS.o 

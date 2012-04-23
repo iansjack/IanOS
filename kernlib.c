@@ -10,6 +10,9 @@ extern struct Task *currentTask;
 //================================================
 long ReadFromFile(struct FCB *fHandle, char *buffer, long noBytes)
 {
+	if (noBytes == 0)
+		return 0;
+
 	long retval;
 
 	struct Message *FSMsg = ALLOCMSG;
@@ -446,7 +449,7 @@ int Do_Seek(FD fileDescriptor, int offset, int whence)
 unsigned char *NameToFullPath(unsigned char *name)
 {
 	char *S = AllocKMem(strlen(name) + strlen(currentTask->currentDirName) + 3);
-	Debug();
+
 	// "." is a very special case. It changes nothing.
 	if (!strcmp(name, "."))
 	{

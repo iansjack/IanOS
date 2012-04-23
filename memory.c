@@ -22,10 +22,12 @@ extern struct Task *lowPriTask;
 extern struct TaskList *deadTasks;
 extern long canSwitch;
 extern long pass;
+extern long nextpid;
 
 unsigned char *oMemMax;
 long nPagesFree;
 long nPages;
+long firstFreePage;
 struct MemStruct *firstFreeKMem;
 /*static*/
 long nextKPage;
@@ -44,8 +46,9 @@ void InitMem64(void)
 	PMap = (unsigned short int *) PageMap;
 	firstFreeKMem = (struct MemStruct *) 0x11000;
 	firstFreeKMem->next = 0;
-	firstFreeKMem->size = 0xFE0;
+	firstFreeKMem->size = PageSize - sizeof(struct MemStruct);
 	nextKPage = 0x12;
+	nextpid = 3;
 	currentTask = (struct Task *) TaskStruct;
 	runnableTasks = (struct TaskList *) AllocKMem(sizeof(struct TaskList));
 	runnableTasks->next = 0L;
@@ -86,13 +89,21 @@ void *AllocMem(long sizeRequested, struct MemStruct *list)
 		kernel = 1;
 	// We want the memory allocation to be atomic, so set a semaphore before proceeding
 	SetSem(&memorySemaphore);
-	while (list->size < sizeRequested + sizeof(struct MemStruct))
+
+	while (list->next)
 	{
-		if (list->next == 0)
-		// Not enough memory available. Allocate another page.
+		if (list->size >= sizeRequested)
+			break;
+		list = list->next;
+	}
+
+	if (!list->next)
+	{
+		// End of list. Enough memory available? If not allocate new pages until there is.
+		while (list->size < sizeRequested + sizeof(struct MemStruct))
 		{
 			long temp = (long) list >> 12;
-			while (list->size < sizeRequested + sizeof(struct MemStruct))
+			while (list->size < sizeRequested + 2 * sizeof(struct MemStruct))
 			{
 				if (kernel)
 					AllocAndCreatePTE(++temp << 12, 1, RW | G | P);
@@ -102,10 +113,6 @@ void *AllocMem(long sizeRequested, struct MemStruct *list)
 				list->size += PageSize;
 			}
 		}
-		else
-		{
-			list = list->next;
-		}
 	}
 
 	// We now have found a free memory block with enough (or more space)
@@ -114,6 +121,7 @@ void *AllocMem(long sizeRequested, struct MemStruct *list)
 	{
 		// No. Just allocate the whole block
 		list->size = 0;
+		list->pid = currentTask->pid;
 	}
 	else
 	{

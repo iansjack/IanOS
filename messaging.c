@@ -76,7 +76,8 @@ void SendReceiveMessage(struct MessagePort *MP, struct Message *Msg)
 	struct MessagePort *tempMP = AllocMessagePort();
 
 	Msg->tempPort = (long)tempMP;
+//	tempMP->waitingProc = currentTask; // Do we need this or not?
 	SendMessage(MP, Msg);
 	ReceiveMessage(tempMP, Msg);
-	DeallocMem(tempMP);
+//	DeallocMem(tempMP);
 }

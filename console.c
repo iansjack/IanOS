@@ -302,7 +302,7 @@ void consoleTaskCode()
 	int i;
 	for (i = 0; i < 4; i++)
 	{
-		consoles[i].ConsoleBuffer = AllocKMem(4096);
+		consoles[i].ConsoleBuffer = AllocUMem(4096);
 		consoles[i].column = consoles[i].row = 0;
 		consoles[i].colour = NORMAL;
 	}

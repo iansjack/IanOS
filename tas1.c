@@ -12,6 +12,7 @@ void tas1(void)
 	if (!pid)
 		execve("TASK1", "TASK1 0");
 	pid = fork();
+//	nanosleep(10);
 	if (!pid)
 		execve("TASK1", "TASK1 1");
 //	pid = Sys_Fork();

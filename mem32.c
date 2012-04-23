@@ -3,6 +3,7 @@
 extern long long memorySemaphore;
 extern long long nPagesFree;
 extern long long nPages;
+extern long long firstFreePage;
 
 //========================================
 // Find out how much memory is present.
@@ -42,6 +43,8 @@ void InitMemManagement()
 		PMap[count] = 1;
 		nPagesFree--;
 	}
+
+	firstFreePage = 0x12;
 
 	// Static Message Ports
 	PMap[0x6F] = 1;
@@ -84,12 +87,12 @@ void ZeroMem()
 void *AllocPage32(unsigned short int PID)
 {
 	unsigned short int *PMap = (unsigned short int *)PageMap;
-	int count = 0;
+	int count;
 
-	while (PMap[++count]) ;
-	PMap[count] = PID;
+	unsigned char *mem = (unsigned char *)(firstFreePage << 12);
+	PMap[firstFreePage] = PID;
+	while (PMap[++firstFreePage]) ;
 	nPagesFree--;
-	unsigned char *mem = (unsigned char *)(count << 12);
 	for (count = 0; count < PageSize; count++)
 		mem[count] = 0;
 	return (void *)mem;

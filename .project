@@ -7,7 +7,6 @@
 	<buildSpec>
 		<buildCommand>
 			<name>org.eclipse.cdt.managedbuilder.core.genmakebuilder</name>
-			<triggers>clean,full,incremental,</triggers>
 			<arguments>
 				<dictionary>
 					<key>?name?</key>
@@ -64,18 +63,7 @@
 			</arguments>
 		</buildCommand>
 		<buildCommand>
-			<name>org.eclipse.ui.externaltools.ExternalToolBuilder</name>
-			<triggers>full,incremental,</triggers>
-			<arguments>
-				<dictionary>
-					<key>LaunchConfigHandle</key>
-					<value>&lt;project&gt;/.externalToolBuilders/Make-Builder.launch</value>
-				</dictionary>
-			</arguments>
-		</buildCommand>
-		<buildCommand>
 			<name>org.eclipse.cdt.managedbuilder.core.ScannerConfigBuilder</name>
-			<triggers>full,incremental,</triggers>
 			<arguments>
 			</arguments>
 		</buildCommand>
@@ -87,7 +75,7 @@
 	</natures>
 	<filteredResources>
 		<filter>
-			<id>1332777328950</id>
+			<id>1334995751541</id>
 			<name></name>
 			<type>22</type>
 			<matcher>
@@ -96,7 +84,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1332777328951</id>
+			<id>1334995751565</id>
 			<name></name>
 			<type>22</type>
 			<matcher>
@@ -105,7 +93,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1332777328952</id>
+			<id>1334995751568</id>
 			<name></name>
 			<type>6</type>
 			<matcher>
@@ -114,7 +102,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1332777328953</id>
+			<id>1334995751573</id>
 			<name></name>
 			<type>22</type>
 			<matcher>
@@ -123,16 +111,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1332777328954</id>
-			<name></name>
-			<type>6</type>
-			<matcher>
-				<id>org.eclipse.ui.ide.multiFilter</id>
-				<arguments>1.0-name-matches-false-false-c.hdd</arguments>
-			</matcher>
-		</filter>
-		<filter>
-			<id>1332777328956</id>
+			<id>1334995751575</id>
 			<name></name>
 			<type>22</type>
 			<matcher>
@@ -141,7 +120,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1332777329037</id>
+			<id>1334995751575</id>
 			<name></name>
 			<type>6</type>
 			<matcher>
@@ -150,7 +129,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1332777329039</id>
+			<id>1334995751589</id>
 			<name></name>
 			<type>6</type>
 			<matcher>
@@ -159,7 +138,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1332777329041</id>
+			<id>1334995751591</id>
 			<name></name>
 			<type>22</type>
 			<matcher>
@@ -168,7 +147,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1332777329042</id>
+			<id>1334995751591</id>
 			<name></name>
 			<type>6</type>
 			<matcher>
@@ -177,25 +156,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1332777329043</id>
-			<name></name>
-			<type>22</type>
-			<matcher>
-				<id>org.eclipse.ui.ide.multiFilter</id>
-				<arguments>1.0-name-matches-false-false-LS</arguments>
-			</matcher>
-		</filter>
-		<filter>
-			<id>1332777329045</id>
-			<name></name>
-			<type>22</type>
-			<matcher>
-				<id>org.eclipse.ui.ide.multiFilter</id>
-				<arguments>1.0-name-matches-false-false-TASK?</arguments>
-			</matcher>
-		</filter>
-		<filter>
-			<id>1332777329046</id>
+			<id>1334995751592</id>
 			<name></name>
 			<type>5</type>
 			<matcher>
@@ -204,16 +165,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1332777329064</id>
-			<name></name>
-			<type>6</type>
-			<matcher>
-				<id>org.eclipse.ui.ide.multiFilter</id>
-				<arguments>1.0-name-matches-true-false-G*</arguments>
-			</matcher>
-		</filter>
-		<filter>
-			<id>1332777329071</id>
+			<id>1334995751593</id>
 			<name></name>
 			<type>6</type>
 			<matcher>
@@ -222,12 +174,30 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1332777329137</id>
+			<id>1334995751594</id>
 			<name></name>
 			<type>6</type>
 			<matcher>
 				<id>org.eclipse.ui.ide.multiFilter</id>
 				<arguments>1.0-name-matches-false-false-*hdd*</arguments>
+			</matcher>
+		</filter>
+		<filter>
+			<id>1334995751595</id>
+			<name></name>
+			<type>22</type>
+			<matcher>
+				<id>org.eclipse.ui.ide.multiFilter</id>
+				<arguments>1.0-name-matches-true-true-^[A-Z][A-Z](.)*</arguments>
+			</matcher>
+		</filter>
+		<filter>
+			<id>1334995751596</id>
+			<name></name>
+			<type>22</type>
+			<matcher>
+				<id>org.eclipse.ui.ide.multiFilter</id>
+				<arguments>1.0-name-matches-true-true-(\_)*gmsl</arguments>
 			</matcher>
 		</filter>
 	</filteredResources>

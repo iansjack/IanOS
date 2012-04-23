@@ -19,13 +19,11 @@ struct TaskList *deadTasks;
 long canSwitch;
 long pass;
 
-//extern long *tempstack;
-//extern long *tempstack0;
 extern unsigned short int *PMap;
 extern long nPagesFree;
 extern long nPages;
 
-static long nextpid = 3;
+long nextpid;
 
 //============================================
 //  Find the next free entry in the task table
@@ -302,7 +300,7 @@ void KillTask(void)
 	// Remove task from allTasks queue;
 	allTasks = RemoveFromTaskList(allTasks, currentTask);
 
-	task->pid = 0;
+//	task->pid = 0;
 	SWTASKS;
 }
 
@@ -361,6 +359,8 @@ void dummyTask()
 			t = deadTasks;
 			deadTasks = deadTasks->next;
 			pid = t->task->pid;
+			// Mark task table entry as free
+			t->task->pid = 0;
 			DeallocMem(t);
 			for (count = 0; count < nPages; count++)
 			{
@@ -370,6 +370,10 @@ void dummyTask()
 					nPagesFree++;
 				}
 			}
+			int free = 0;
+			for (count = 0; count <nPages; count++)
+				if (!PMap[count]) free++;
+			kprintf(24, 0, "%d %d", free, nPagesFree);
 		}
 		else
 			asm("hlt");
