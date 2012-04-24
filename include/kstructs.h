@@ -70,7 +70,6 @@ struct MessagePort {
 struct MemStruct {
 	struct MemStruct *next;
 	long size;
-//	long pid;
 };
 
 struct clusterListEntry {
@@ -89,7 +88,7 @@ struct FCB {
 	unsigned short startCluster;
 	unsigned long fileCursor;
 	unsigned short bufCursor;
-	unsigned char bufIsDirty;	// 0 = clean, 1 = dirty
+	unsigned char bufIsDirty;		// 0 = clean, 1 = dirty
 	unsigned char deviceType;
 	unsigned char *filebuf;
 	FD fileDescriptor;
@@ -109,8 +108,8 @@ struct Console {
 	short colour;
 };
 
-#define SWTASKS      asm ("int $20")
-#define SWTASKS15    asm ("mov %rdi, %r15"); asm ("int $22")
+#define SWTASKS		asm ("int $20")
+#define SWTASKS15	asm ("mov %rdi, %r15"); asm ("int $22")
 #define CLI			asm ("pushf"); asm("cli")
 #define STI			asm ("popf")
 
