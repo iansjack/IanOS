@@ -196,7 +196,7 @@ int DoFStat(FD fileDescriptor, struct FileInfo *info)
 	int retval = -1;
 
 	struct FCB *temp = currentTask->fcbList;
-	while (temp->nextFCB)
+	while (temp) //->nextFCB)
 	{
 		if (temp->fileDescriptor == fileDescriptor)
 			break;

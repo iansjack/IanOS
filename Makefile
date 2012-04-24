@@ -67,6 +67,6 @@ ptab32.o: ptab32.c $(INC)/memory.h
 -include $(OBJS:.o=.d)
 
 clean:
-	rm -f linkmap $(OBJS) *.d *.bin boot.o *~
+	rm -f linkmap *.o *.d *.bin *~
 	cd library; make clean
 	cd tasks; make clean

@@ -985,7 +985,7 @@ void fsTaskCode(void)
 			struct FileInfo info;
 			fcb = (struct FCB *) FSMsg->quad;
 			info.Length = fcb->length;
-			copyMem((char *)FSMsg->quad, (char *)(&info), sizeof (struct FileInfo));
+			copyMem((char *)(&info), (char *)FSMsg->quad2, sizeof (struct FileInfo));
 			SendMessage(tempPort, FSMsg);
 			break;
 

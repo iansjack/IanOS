@@ -70,7 +70,7 @@ struct MessagePort {
 struct MemStruct {
 	struct MemStruct *next;
 	long size;
-	long pid;
+//	long pid;
 };
 
 struct clusterListEntry {

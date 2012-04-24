@@ -37,24 +37,26 @@ long NoOfAllocations;
 #endif
 long debugging;
 
-void InitMem64(void)
-{
+void InitMem64(void) {
 	PMap = (unsigned short int *) PageMap;
 	// We can't call AllocKMem until currentTask is valid.
 	// But we want to allocat memory for currentTask.
 	// So we have to do it manually
-	firstFreeKMem = (struct MemStruct *)0x11000;
-	firstFreeKMem->next = (struct MemStruct *)((long)firstFreeKMem + sizeof(struct Task) + sizeof(struct MemStruct));
-	firstFreeKMem->size = 0;
-	currentTask = (struct Task *)0x11018;
-	firstFreeKMem->next->next = 0;
-	firstFreeKMem->next->size = PageSize - 2 * sizeof(struct MemStruct) - sizeof(struct Task);
+	firstFreeKMem = (struct MemStruct *) OSHeap; //0x11000;
+	/*	firstFreeKMem->next = (struct MemStruct *)((long)firstFreeKMem + sizeof(struct Task) + sizeof(struct MemStruct));
+	 firstFreeKMem->size = 0;
+	 currentTask = (struct Task *)0x11018;
+	 firstFreeKMem->next->next = 0;
+	 firstFreeKMem->next->size = PageSize - 2 * sizeof(struct MemStruct) - sizeof(struct Task);
+	 */
+	firstFreeKMem->size = PageSize - sizeof(struct MemStruct);
+	currentTask = (struct Task *)AllocKMem(sizeof(struct Task));
 	nextKPage = 0x12;
 	nextpid = 3;
-	runnableTasks = (struct TaskList *) AllocKMem(sizeof(struct TaskList));
+	runnableTasks = (struct TaskList *)AllocKMem(sizeof(struct TaskList));
 	runnableTasks->next = 0L;
 	runnableTasks->task = currentTask;
-	allTasks = (struct TaskList *) AllocKMem(sizeof(struct TaskList));
+	allTasks = (struct TaskList *)AllocKMem(sizeof(struct TaskList));
 	allTasks->task = currentTask;
 	allTasks->next = 0;
 	deadTasks = 0;
@@ -73,8 +75,7 @@ void InitMem64(void)
 // Searches the linked list pointed to by list for a block of memory of size sizeRequested
 // Allocates the memory and returns its address in RAX
 //=========================================================================================
-void *AllocMem(long sizeRequested, struct MemStruct *list)
-{
+void *AllocMem(long sizeRequested, struct MemStruct *list) {
 	ASSERT((long)list & (long)sizeRequested > 0);
 	unsigned char kernel = 0;
 	if (list == firstFreeKMem)
@@ -82,21 +83,17 @@ void *AllocMem(long sizeRequested, struct MemStruct *list)
 	// We want the memory allocation to be atomic, so set a semaphore before proceeding
 	SetSem(&memorySemaphore);
 
-	while (list->next)
-	{
+	while (list->next) {
 		if (list->size >= sizeRequested)
 			break;
 		list = list->next;
 	}
 
-	if (!list->next)
-	{
+	if (!list->next) {
 		// End of list. Enough memory available? If not allocate new pages until there is.
-		while (list->size < sizeRequested + sizeof(struct MemStruct))
-		{
+		while (list->size < sizeRequested + sizeof(struct MemStruct)) {
 			long temp = (long) list >> 12;
-			while (list->size < sizeRequested + 2 * sizeof(struct MemStruct))
-			{
+			while (list->size < sizeRequested + 2 * sizeof(struct MemStruct)) {
 				if (kernel)
 					AllocAndCreatePTE(++temp << 12, 1, RW | G | P);
 				else
@@ -109,14 +106,11 @@ void *AllocMem(long sizeRequested, struct MemStruct *list)
 
 	// We now have found a free memory block with enough (or more space)
 	// Is there enough space for another link?
-	if (list->size <= sizeRequested + sizeof(struct MemStruct))
-	{
+	if (list->size <= sizeRequested + sizeof(struct MemStruct)) {
 		// No. Just allocate the whole block
 		list->size = 0;
-		list->pid = currentTask->pid;
-	}
-	else
-	{
+//		list->pid = currentTask->pid;
+	} else {
 		// Yes, so create the new link
 		void *temp = (void *) list;
 		temp += sizeRequested;
@@ -126,7 +120,7 @@ void *AllocMem(long sizeRequested, struct MemStruct *list)
 		list->next->size = list->size - sizeRequested
 				- sizeof(struct MemStruct);
 		list->size = 0;
-		list->pid = currentTask->pid;
+//		list->pid = currentTask->pid;
 	}
 	ClearSem(&memorySemaphore);
 #ifdef DEBUG
@@ -136,8 +130,7 @@ void *AllocMem(long sizeRequested, struct MemStruct *list)
 	return (list + 1);
 }
 
-DeallocUMem(void *list)
-{
+DeallocUMem(void *list) {
 	ASSERT((long)list >= UserData & (long)list < KernelStack);
 	DeallocMem(list);
 }
@@ -146,16 +139,14 @@ DeallocUMem(void *list)
 // Deallocate the memory at location list.
 // This will deallocate both user and kernel memory
 //==================================================
-void DeallocMem(void *list)
-{
+void DeallocMem(void *list) {
 	ASSERT(list);
 	struct MemStruct *l = (struct MemStruct *) list;
 
 	// We want the memory deallocation to be atomic, so set a semaphore before proceeding
 	SetSem(&memorySemaphore);
 	l--;
-	if (!l->size)
-	{
+	if (!l->size) {
 		l->size = (long) l->next - (long) l - sizeof(struct MemStruct);
 #ifdef DEBUG
 		NoOfAllocations--;
@@ -169,8 +160,7 @@ void DeallocMem(void *list)
 // Allocate some kernel memory from the heap. sizeRequested = amount to allocate
 // Returns in RAX address of allocated memory.
 //===============================================================================
-void *AllocKMem(long sizeRequested)
-{
+void *AllocKMem(long sizeRequested) {
 	return (AllocMem(sizeRequested, firstFreeKMem));
 }
 
@@ -178,7 +168,6 @@ void *AllocKMem(long sizeRequested)
 // Allocate some user memory from the heap. sizeRequested = amount to allocate
 // Returns in RAX address of allocated memory.
 //===============================================================================
-void *AllocUMem(long sizeRequested)
-{
+void *AllocUMem(long sizeRequested) {
 	return (AllocMem(sizeRequested, (void *) currentTask->firstfreemem));
 }

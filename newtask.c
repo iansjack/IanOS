@@ -52,7 +52,7 @@ long DoFork()
 	task->cr3 = (long) VCreatePageDir(pid, currentTask->pid);
 	task->forking = 1;
 
-	// Create FCB for STDI, STDOUT, and STDERR
+	// Create FCBs for STDI, STDOUT, and STDERR
 
 	// STDIN
 	struct FCB *fcbin = (struct FCB *) AllocKMem(sizeof(struct FCB));
