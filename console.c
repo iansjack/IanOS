@@ -295,7 +295,7 @@ void consoleTaskCode()
 	Mode = NORMAL_MODE;
 	ConsolePort = AllocMessagePort();
 
-	VideoBuffer = (char *) 0xB8000;
+	VideoBuffer = (char *)0x80000B8000;
 	ConsolePort->waitingProc = (struct Task *) -1L;
 	ConsolePort->msgQueue = 0;
 

@@ -208,7 +208,7 @@ Sys_LSeek:
 	pop %rcx
 	sysretq
 
-
+/*
 #========================================================
 # Print [EDX] as string at position row BH col BL
 # Affects RAX, RBX, RDX
@@ -223,7 +223,7 @@ PrintString:
 	mov (%edx), %ah
 	cmp $0, %ah
 	je .done
-	mov %ah, 0xB8000(%ebx)
+	mov %ah, 0x80000B8000(%ebx)
 	add $2, %bx
 	inc %edx
 	jmp .isItStringEnd
@@ -250,7 +250,7 @@ PrintDouble:
 	jle .under10
 	add $7, %al
 .under10:
-	mov  %al, 0xB8000(%ebx)
+	mov  %al, 0x80000B8000(%ebx)
 	add  $2, %bx
 	loop .stillCounting
 	pop  %rcx
@@ -268,9 +268,9 @@ PrintChar:
 	shl  $1, %bx
 	add  %ax, %bx
 	pop  %ax
-	mov  %ah, 0xB8000(%ebx)
+	mov  %ah, 0x80000B8000(%ebx)
 	sysretq
-
+*/
 
 #=============================================================================
 # Return in RAX the number of (10ms) clock ticks since the system was started

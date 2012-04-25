@@ -256,10 +256,11 @@ notnp:
 	jmp intrr
 
 itf:
-	movb $'f, 0xB8000
+#	movb $'f, 0x80000B8000
 	jmp intr
 
-ig:	movb $'g, 0xB8000
+ig:
+#	movb $'g, 0x80000B8000
 	jmp intr
 
 Pd:	mov $160, %ax
@@ -277,7 +278,9 @@ Pd:	mov $160, %ax
 	jle .under10
 	add $7, %al
 .under10:
-	mov %al, 0xB8000(%ebx)
+	mov $0x8000000000, %r14
+	add %r14, %rbx
+	mov %al, 0xB8000(%rbx)
 	add $2, %bx
 	loop .stillCounting
 	ret
@@ -291,7 +294,9 @@ Ps:	mov $160, %ax
 	mov (%edx), %ah
 	cmp $0, %ah
 	je .done3
-	mov %ah, 0xB8000(%ebx)
+	mov $0x8000000000, %r14
+	add %r14, %rbx
+	mov %ah, 0xB8000(%rbx)
 	add $2, %bx
 	inc %edx
 	jmp .isItStringEnd
@@ -336,7 +341,7 @@ ClearSem:
 	movw $0, (%rdi)
 	ret
 
-	.data
+	.bss
 
 	.global Ticks
 	.global Timer.active

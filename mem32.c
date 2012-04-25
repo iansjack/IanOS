@@ -46,18 +46,6 @@ void InitMemManagement()
 
 	firstFreePage = 0x12;
 
-	// Static Message Ports
-	PMap[0x6F] = 1;
-	nPagesFree--;
-
-	// DiskBuffer
-	PMap[0x70] = 1;
-	nPagesFree--;
-
-	// TaskStructs
-	PMap[0x80] = 1;
-	nPagesFree--;
-
 	// EBDA
 	PMap[0x9E] = PMap[0x9F] = 1;
 	nPagesFree -= 2;

@@ -57,7 +57,7 @@ void copyMem(unsigned char *source, unsigned char *dest, long size)
 //===========================================================================
 void KWriteString(char *str, int row, int col)
 {
-	char *VideoBuffer = (char *) 0xB8000;
+	char *VideoBuffer = (char *) 0x80000B8000;
 
 	int temp = 160 * row + 2 * col;
 	int i = 0;
@@ -73,7 +73,7 @@ void KWriteString(char *str, int row, int col)
 //==========================================================================
 void KWriteHex(long c, int row) //, int col)
 {
-	char *VideoBuffer = (char *) 0xB8000;
+	char *VideoBuffer = (char *) 0x80000B8000;
 
 	int i;
 	for (i = 0; i < 8; i++)

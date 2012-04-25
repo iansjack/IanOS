@@ -50,7 +50,15 @@ void CreatePT164(struct PT * pt)
 		pt->entries[count].Hi = 0;
 		pt->entries[count].Lo = (count << 12) | P | RW | G;
 	}
-	for (count = 0x10; count < 0x200; count++)
+	// Kernel initialized datadata
+	for (count = 0x10; count < 0x20; count++)
+		if (PMap[count] == 1)
+		{
+			pt->entries[count].Hi = 0;
+			pt->entries[count].Lo = (count << 12) | P | RW | G;
+		}
+	// PageTab
+	for (count = 0x100; count < 0x200; count++)
 		if (PMap[count] == 1)
 		{
 			pt->entries[count].Hi = 0;

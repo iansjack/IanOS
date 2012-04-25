@@ -12,9 +12,9 @@
 #define OSCode          0x0000000000001000L
 #define OSData          0x0000000000010000L
 #define OSHeap			0x0000000000011000L
-#define TempUserCode    0x0000000000095000L
-#define TempUserData    0x0000000000096000L
-#define TempUStack      0x0000000000098000L
+#define TempUserCode    0x00000000000FD000L
+#define TempUserData    0x00000000000FE000L
+#define TempUStack      0x00000000000FF000L
 #define PageMap         0x0000000000100000L
 #define UserCode        0x0000000000400000L
 #define UserData        0x0000000000600000L
