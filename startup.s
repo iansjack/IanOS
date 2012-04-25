@@ -20,42 +20,34 @@ _start:
 here:
 	mov $OsDataSeg, %eax
 	mov %eax, %ds
+	mov %eax, %es
 	mov %eax, %ss
 	mov $tempstack, %esp
 # Zero .bss data
-	mov $startofbss, %eax
-	mov $PageSize, %ecx
-again3:
-	movb $0, (%eax)
-	add $1, %eax
-	sub $1, %ecx
-	cmp $0, %ecx
-	jne again3
+	cld
+	mov $startofbss, %edi
+	mov $PageSize  / 2, %ecx
+	mov $0, %eax
+	rep stosw
 	call InitMemManagement
 # Zero unused pages
 	mov nPages, %edx
 	mov $0, %ebx
-	mov $PageMap, %eax
+	mov $PageMap, %esi
+	mov $0, %eax
 again:
-	movw (%eax), %bx
+	movw (%esi), %bx
 	cmpw $0, %bx
 	jne nextpage
-	mov %eax, %edi
-	sub $PageMap,%eax
-	sal $11,%eax 
-	mov $1000, %ecx
-again2:
-	movb $0, (%eax)
-	add $1, %eax
-	sub $1, %ecx
-	cmp $0, %ecx
-	jne again2
-	mov %edi, %eax
+	mov %esi, %edi
+	sub $PageMap,%edi
+	sal $11,%edi
+	mov PageSize / 2, %ecx
+	rep stosw
 nextpage:
 	sub $1, %edx
-	cmp $0, %edx
-	je  finished
-	add $2, %eax
+	jz  finished
+	add $2, %esi
 	jmp again
 finished:
 	call HwSetup

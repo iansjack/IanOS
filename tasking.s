@@ -5,8 +5,8 @@
 
 	.global TaskSwitch
 	.global SpecificTaskSwitch
-#	.global CreateKernelTask
 	.global SaveRegisters
+	.global ZeroPage
 
 #===================================================================================================
 # Save the current task, restore the next ready one (if there is one!), and initiate a task switch.
@@ -126,6 +126,23 @@ SaveRegisters:
 	mov  %rdi,%cr3
 	sub  $0x8,%rsp
 	pop  %r15
+	ret
+
+#===========================================================================
+# Zero the contents of memory page %rdi
+#===========================================================================
+ZeroPage:
+	push %rcx
+	push %rbx
+	mov $PageSize / 8, %rcx
+	rol $12, %rdi
+	mov $0x0000008000000000, %rbx
+	add %rbx, %rdi
+	cld
+	mov $0, %rax
+	rep stosq
+	pop %rbx
+	pop %rcx
 	ret
 	
 	.data

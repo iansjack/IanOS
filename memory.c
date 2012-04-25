@@ -39,16 +39,7 @@ long debugging;
 
 void InitMem64(void) {
 	PMap = (unsigned short int *) PageMap;
-	// We can't call AllocKMem until currentTask is valid.
-	// But we want to allocat memory for currentTask.
-	// So we have to do it manually
-	firstFreeKMem = (struct MemStruct *) OSHeap; //0x11000;
-	/*	firstFreeKMem->next = (struct MemStruct *)((long)firstFreeKMem + sizeof(struct Task) + sizeof(struct MemStruct));
-	 firstFreeKMem->size = 0;
-	 currentTask = (struct Task *)0x11018;
-	 firstFreeKMem->next->next = 0;
-	 firstFreeKMem->next->size = PageSize - 2 * sizeof(struct MemStruct) - sizeof(struct Task);
-	 */
+	firstFreeKMem = (struct MemStruct *) OSHeap;
 	firstFreeKMem->size = PageSize - sizeof(struct MemStruct);
 	currentTask = (struct Task *)AllocKMem(sizeof(struct Task));
 	nextKPage = 0x12;
@@ -62,7 +53,6 @@ void InitMem64(void) {
 	deadTasks = 0;
 	lowPriTask = 0L;
 	blockedTasks = 0L;
-
 #ifdef DEBUG
 	NoOfAllocations = 0;
 #endif
@@ -109,7 +99,6 @@ void *AllocMem(long sizeRequested, struct MemStruct *list) {
 	if (list->size <= sizeRequested + sizeof(struct MemStruct)) {
 		// No. Just allocate the whole block
 		list->size = 0;
-//		list->pid = currentTask->pid;
 	} else {
 		// Yes, so create the new link
 		void *temp = (void *) list;
@@ -120,7 +109,6 @@ void *AllocMem(long sizeRequested, struct MemStruct *list) {
 		list->next->size = list->size - sizeRequested
 				- sizeof(struct MemStruct);
 		list->size = 0;
-//		list->pid = currentTask->pid;
 	}
 	ClearSem(&memorySemaphore);
 #ifdef DEBUG

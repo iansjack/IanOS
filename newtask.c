@@ -18,6 +18,7 @@ long pass;
 extern unsigned short int *PMap;
 extern long nPagesFree;
 extern long nPages;
+extern long firstFreePage;
 extern struct MessagePort *FSPort;
 
 long nextpid;
@@ -25,8 +26,7 @@ long nextpid;
 //===============================
 // Link task into the task table
 //===============================
-void LinkTask(struct Task *task)
-{
+void LinkTask(struct Task *task) {
 	asm("cli");
 	allTasks = AddToTailOfTaskList(allTasks, task);
 	runnableTasks = AddToTailOfTaskList(runnableTasks, task);
@@ -37,10 +37,9 @@ void LinkTask(struct Task *task)
 // Fork the current process.
 // Return the pid of the new process
 //=========================================================================
-long DoFork()
-{
+long DoFork() {
 	// Copy task structure, with adjustments
-	struct Task *task = (struct Task *)AllocKMem(sizeof (struct Task));
+	struct Task *task = (struct Task *) AllocKMem(sizeof(struct Task));
 	copyMem((unsigned char *) currentTask, (unsigned char *) task,
 			sizeof(struct Task));
 	int pid = task->pid = nextpid++;
@@ -92,8 +91,7 @@ long DoFork()
 //===============================================================================
 // This loads the program "name" into memory, if it exists.
 //===============================================================================
-long DoExec(char *name, char *environment)
-{
+long DoExec(char *name, char *environment) {
 	struct FCB *fHandle;
 	long codelen, datalen;
 	char header[9];
@@ -118,28 +116,25 @@ long DoExec(char *name, char *environment)
 	SendReceiveMessage(FSPort, FSMsg);
 
 	fHandle = (struct FCB *) FSMsg->quad;
-	if (fHandle)
-	{
+	if (fHandle) {
 		ReadFromFile(fHandle, header, 9);
 		ReadFromFile(fHandle, (char *) &codelen, 8);
 		ReadFromFile(fHandle, (char *) &datalen, 8);
 		currentPage = UserCode;
 		size = codelen;
 		ClearUserMemory();
-		while (size > 0)
-		{
+		while (size > 0) {
 			AllocAndCreatePTE(currentPage, currentTask->pid, RW | US | P);
 			size -= PageSize;
 			currentPage += PageSize;
 		}
-		copyMem((char *)header, (char *)UserCode, 9);
-		copyMem((char *)&codelen, (char *)UserCode + 9, 8);
-		copyMem((char *)&datalen, (char *)UserCode + 17, 8);
+		copyMem((char *) header, (char *) UserCode, 9);
+		copyMem((char *) &codelen, (char *) UserCode + 9, 8);
+		copyMem((char *) &datalen, (char *) UserCode + 17, 8);
 		ReadFromFile(fHandle, (char *) UserCode + 25, codelen - 25);
 		currentPage = UserData;
 		size = datalen + sizeof(struct MemStruct);
-		while (size > 0)
-		{
+		while (size > 0) {
 			AllocAndCreatePTE(currentPage, currentTask->pid, RW | US | P);
 			size -= PageSize;
 			currentPage += PageSize;
@@ -166,9 +161,7 @@ long DoExec(char *name, char *environment)
 		asm("mov %0,%%rdi;" "mov %1,%%rsi":
 				: "r"(argc), "r"(argv):"%rax", "%rdi");
 		return 0;
-	}
-	else
-	{
+	} else {
 		DeallocMem(kname);
 		DeallocMem(FSMsg);
 		return 1;
@@ -178,8 +171,7 @@ long DoExec(char *name, char *environment)
 //==================================================================
 // Set current task to wait for process pid to end
 ///=================================================================
-void Do_Wait(unsigned short pid)
-{
+void Do_Wait(unsigned short pid) {
 	struct Task *task = PidToTask(pid);
 	struct MessagePort *parentPort = AllocMessagePort();
 	struct Message *message = ALLOCMSG;
@@ -194,10 +186,9 @@ void Do_Wait(unsigned short pid)
 // Create a new Kernel task
 //==========================
 struct Task *
-NewKernelTask(void *TaskCode)
-{
+NewKernelTask(void *TaskCode) {
 	long *stack;
-	struct Task *task = (struct Task *)AllocKMem(sizeof (struct Task));
+	struct Task *task = (struct Task *) AllocKMem(sizeof(struct Task));
 	long *data;
 
 	task->pid = nextpid++;
@@ -230,8 +221,7 @@ NewKernelTask(void *TaskCode)
 //=============================
 // Create the low-priority task
 //=============================
-void NewLowPriTask(void *TaskCode)
-{
+void NewLowPriTask(void *TaskCode) {
 	lowPriTask = NewKernelTask(TaskCode);
 	runnableTasks = RemoveFromTaskList(runnableTasks, lowPriTask);
 	lowPriTask->nexttask = (struct Task *) 0;
@@ -240,21 +230,21 @@ void NewLowPriTask(void *TaskCode)
 //=======================
 // Kill the current task
 //=======================
-void KillTask(void)
-{
+void KillTask(void) {
 	struct Task *task = currentTask;
 
 	// Is there a task waiting for this one to finish? Send it a message.
-	if (task->parentPort)
-	{
+	if (task->parentPort) {
 		struct Message *m = ALLOCMSG;
 		m->quad = 0;
 		SendMessage(task->parentPort, m);
 		DeallocMem(m);
 	}
 
-	if (task->environment) DeallocMem(task->environment);
-	if (task->argv) DeallocMem(task->argv);
+	if (task->environment)
+		DeallocMem(task->environment);
+	if (task->argv)
+		DeallocMem(task->argv);
 
 	//Don't want to task switch whilst destroying task
 	asm("cli");
@@ -264,8 +254,7 @@ void KillTask(void)
 
 	// Deallocate FCBs
 	struct FCB *temp;
-	while (task->fcbList)
-	{
+	while (task->fcbList) {
 		temp = task->fcbList->nextFCB;
 		if (task->fcbList->deviceType == FILE)
 			KCloseFile(task->fcbList);
@@ -291,8 +280,7 @@ void KillTask(void)
 //===============================================
 // Move task from runnable queue to blocked queue
 //===============================================
-void BlockTask(struct Task *task)
-{
+void BlockTask(struct Task *task) {
 	canSwitch++;
 	runnableTasks = RemoveFromTaskList(runnableTasks, task);
 	blockedTasks = AddToTailOfTaskList(blockedTasks, task);
@@ -302,8 +290,7 @@ void BlockTask(struct Task *task)
 //===============================================
 // Move task from blocked queue to runnable queue
 //===============================================
-void UnBlockTask(struct Task *task)
-{
+void UnBlockTask(struct Task *task) {
 	canSwitch++;
 	blockedTasks = RemoveFromTaskList(blockedTasks, task);
 	runnableTasks = AddToTailOfTaskList(runnableTasks, task);
@@ -314,12 +301,10 @@ void UnBlockTask(struct Task *task)
 // Returns the task structure with PID pid
 //=========================================
 struct Task *
-PidToTask(long pid)
-{
+PidToTask(long pid) {
 	struct TaskList *tempTask = allTasks;
 
-	while (tempTask)
-	{
+	while (tempTask) {
 		if (tempTask->task->pid == pid)
 			break;
 		tempTask = tempTask->next;
@@ -330,39 +315,35 @@ PidToTask(long pid)
 //=====================================
 // The one task that is always runnable
 //=====================================
-void dummyTask()
-{
+void dummyTask() {
 	unsigned short int pid;
 	struct TaskList *t;
-	int count;
+	long count;
 
-	while (1)
-	{
-		if (deadTasks)
-		{
+	while (1) {
+		if (deadTasks) {
 			t = deadTasks;
 			deadTasks = deadTasks->next;
 			pid = t->task->pid;
-			// Mark task table entry as free
-//			t->task->pid = 0;
 			DeallocMem(t->task);
 			DeallocMem(t);
-			for (count = 0; count < nPages; count++)
-			{
-				if (PMap[count] == pid)
-				{
+			for (count = 0; count < nPages; count++) {
+				if (PMap[count] == pid) {
 					PMap[count] = 0;
+					Debug();
+					ZeroPage(count);
+					if (count < firstFreePage)
+						firstFreePage = count;
 					nPagesFree++;
 				}
 			}
 #ifdef DEBUG
 			int free = 0;
 			for (count = 0; count <nPages; count++)
-				if (!PMap[count]) free++;
+			if (!PMap[count]) free++;
 			kprintf(24, 0, "%d %d", free, nPagesFree);
 #endif
-		}
-		else
+		} else
 			asm("hlt");
 	}
 }
@@ -371,8 +352,7 @@ void dummyTask()
 // Parses argv[][] from the environment string.
 // Returns argc.
 //======================================================================
-long ParseEnvironmentString(long *l)
-{
+long ParseEnvironmentString(long *l) {
 	long argc = 0;
 	int count = 0;
 
@@ -381,15 +361,12 @@ long ParseEnvironmentString(long *l)
 	*l = (long) AllocMem(80, (struct MemStruct *) currentTask->firstfreemem);
 	long *argv = (long *) *l;
 	argv[0] = (long) env;
-	while (env[count])
-	{
-		while (env[count] && env[count] != ' ')
-		{
+	while (env[count]) {
+		while (env[count] && env[count] != ' ') {
 			count++;
 		}
 		argc++;
-		if (env[count])
-		{
+		if (env[count]) {
 			env[count] = 0;
 			argv[argc] = (long) env + ++count;
 		}
@@ -407,8 +384,7 @@ extern void fsTaskCode(void);
 // Sleep after each task to give it time to initialize itself
 // I'm hoping this will improve system stability
 //===================================================================
-void StartTasks()
-{
+void StartTasks() {
 	NewLowPriTask(dummyTask);
 	GoToSleep(10);
 	NewKernelTask(kbTaskCode);

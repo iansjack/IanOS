@@ -322,10 +322,11 @@ void ClearUserMemory(void)
 //=========================================
 void * AllocPage(unsigned short int PID)
 {
-	void *mem = (void *)(firstFreePage << 12);
+	long count = firstFreePage;
 
-	PMap[firstFreePage] = PID;
-	while (PMap[++firstFreePage]) ;
+	while (PMap[count ]) count++;
+	PMap[count] = PID;
+	void *mem = (void *)(count << 12);
 	nPagesFree--;
 
 	return (mem);
