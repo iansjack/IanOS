@@ -1,0 +1,17 @@
+# Ignore object files
+*.o
+*.d
+*.a
+*~
+linkmap
+*.bin
+*.fdd
+*.hdd
+*.vfd
+tasks/task?
+tasks/cat
+tasks/pwd
+tasks/ls
+tasks/edit
+
+

@@ -22,6 +22,15 @@ here:
 	mov %eax, %ds
 	mov %eax, %ss
 	mov $tempstack, %esp
+# Zero .bss data
+	mov $startofbss, %eax
+	mov $PageSize, %ecx
+again3:
+	movb $0, (%eax)
+	add $1, %eax
+	sub $1, %ecx
+	cmp $0, %ecx
+	jne again3
 	call InitMemManagement
 # Zero unused pages
 	mov nPages, %edx
@@ -72,3 +81,9 @@ finished:
 	mov %eax, %cr0
 
 	jmp $code64, $start64
+
+		.bss
+
+		.global startofbss
+
+startofbss:
