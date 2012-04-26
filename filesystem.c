@@ -985,6 +985,7 @@ void fsTaskCode(void)
 			struct FileInfo info;
 			fcb = (struct FCB *) FSMsg->quad;
 			info.Length = fcb->length;
+			info.modifiedDate = fcb->dirEntry->modifiedDate;
 			copyMem((char *)(&info), (char *)FSMsg->quad2, sizeof (struct FileInfo));
 			SendMessage(tempPort, FSMsg);
 			break;

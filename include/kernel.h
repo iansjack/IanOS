@@ -27,6 +27,7 @@ void ClearSem(long *semaphore);
 void KWriteString(char *str, int row, int col);
 struct Task *PidToTask(long pid);
 unsigned char *NameToFullPath(unsigned char *name);
+int kprintf(int row, int column, unsigned char *s, ...);
 
 #define ALLOCMSG (struct Message *)AllocKMem(sizeof(struct Message))
 #define ASSERT(expr) if (!expr){kprintf(24, 1, "Assertion failed - System halted.");asm("cli");asm("hlt");}

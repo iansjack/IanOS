@@ -26,6 +26,8 @@ struct DirectoryBuffer {
 
 struct FileInfo {
 	long Length;
+	short modifiedDate;
+	short modifiedTime;
 };
 
 #endif

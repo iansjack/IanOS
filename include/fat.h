@@ -5,7 +5,8 @@ struct DirEntry {
 	unsigned char name[11];
 	unsigned char attribute;
 	unsigned char reserved[10];
-	unsigned char date[4];
+	unsigned short modifiedTime;
+	unsigned short modifiedDate;
 	short int startingCluster;
 	int fileSize;
 };

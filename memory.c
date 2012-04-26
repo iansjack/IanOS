@@ -28,6 +28,8 @@ long nextKPage;
 unsigned short int *PMap;
 long memorySemaphore;
 
+long sec, min, hour, day, month, year;
+
 struct MessagePort *KbdPort;
 struct MessagePort *ConsolePort;
 struct MessagePort *FSPort;
