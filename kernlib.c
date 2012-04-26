@@ -7,6 +7,8 @@ extern struct MessagePort *FSPort;
 extern struct MessagePort *KbdPort;
 extern struct MessagePort *ConsolePort;
 
+extern long sec, min, hour, day, month, year;
+
 //================================================
 // Read noBytes into buffer from the file fHandle
 //================================================
@@ -221,6 +223,8 @@ int DoFStat(FD fileDescriptor, struct FileInfo *info)
 }
 long DoRead(FD fileDescriptor, char *buffer, long noBytes)
 {
+	gettime();
+	kprintf(0, 64, "%d/%d/%d %d:%d:%d", day, month, year, hour, min, sec);
 	if (!noBytes)
 		return 0;
 
@@ -241,7 +245,7 @@ long DoRead(FD fileDescriptor, char *buffer, long noBytes)
 
 			kbdMsg = ALLOCMSG;
 			kbdMsg->nextMessage = 0;
-			kbdMsg->byte = 1;			// GETCHAR message
+			kbdMsg->byte = 1; // GETCHAR message
 			kbdMsg->quad = currentTask->console;
 			SendReceiveMessage(KbdPort, kbdMsg);
 			char c = kbdMsg->byte;
@@ -523,14 +527,21 @@ int kprintf(int row, int column, unsigned char *s, ...)
 	int i = 0;
 	int j = 0;
 	int k = 0;
-	while (s[i]) {
-		if (s[i] != '%') {
+	for (i = 0; i < 256; i++) sprocessed[i] = 0;
+	i = 0;
+	while (s[i])
+	{
+		if (s[i] != '%')
+		{
 			sprocessed[j] = s[i];
 			i++;
 			j++;
-		} else {
+		}
+		else
+		{
 			i++;
-			switch (s[i]) {
+			switch (s[i])
+			{
 			case 'c':
 				;
 				int c = va_arg(ap, int);
