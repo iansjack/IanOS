@@ -31,7 +31,7 @@ void InitMemManagement()
 	nPages = nPagesFree;
 
 	int count;
-	for (count = 0; count++; count < nPages)
+	for (count = 0; count < nPages; count++)
 		PMap[count] = 0;
 
 	// GDT and IDT
