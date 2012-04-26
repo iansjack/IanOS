@@ -136,8 +136,7 @@ ZeroPage:
 	push %rbx
 	mov $PageSize / 8, %rcx
 	rol $12, %rdi
-	mov $0x0000008000000000, %rbx
-	add %rbx, %rdi
+	bts $Vaddr, %rdi
 	cld
 	mov $0, %rax
 	rep stosq

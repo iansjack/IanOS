@@ -16,6 +16,7 @@ KernelStack  	= 0x00000000009ff000
 UserStack    	= 0x0000000000bff000
 
 PageSize	= 0x1000
+Vaddr 		= 39	# The bit position to set to add 0x8000000000
 
 OsCodeSeg 	= 0x8
 OsDataSeg 	= 0x10
