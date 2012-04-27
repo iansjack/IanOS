@@ -223,7 +223,7 @@ int DoFStat(FD fileDescriptor, struct FileInfo *info)
 }
 long DoRead(FD fileDescriptor, char *buffer, long noBytes)
 {
-	gettime();
+//	gettime();
 	kprintf(0, 64, "%d/%d/%d %d:%d:%d", day, month, year, hour, min, sec);
 	if (!noBytes)
 		return 0;

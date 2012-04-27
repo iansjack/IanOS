@@ -84,13 +84,28 @@ TimerInt:
 .notimer:
 	decb TimeSliceCount
 	jnz  .tdone
+	incb tenths
+	cmp $ 10, tenths
+	jne noupdate
+	movb $0, tenths
+	incb sec
+	cmp $60, sec
+	jne noupdate
+	movb $0, sec
+	incb min
+	cmp $60, min
+	jne noupdate
+	incb hour
+	cmp $24, hour
+	jne noupdate
+	call gettime
+noupdate:
 	movb $10, TimeSliceCount
 	cmp $0, canSwitch
 	jnz .tdone
 	SWITCH_TASKS
 .tdone:
 	POP_ALL
-//	SWITCH_TASKS
 	iretq
 
 #=====================

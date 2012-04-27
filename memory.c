@@ -28,7 +28,7 @@ long nextKPage;
 unsigned short int *PMap;
 long memorySemaphore;
 
-long sec, min, hour, day, month, year;
+long sec, min, hour, day, month, year, tenths;
 
 struct MessagePort *KbdPort;
 struct MessagePort *ConsolePort;
@@ -60,6 +60,7 @@ void InitMem64(void) {
 #endif
 	memorySemaphore = 0;
 	canSwitch = 0;
+	tenths = 0;
 	pass = 0;
 }
 
