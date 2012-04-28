@@ -86,20 +86,23 @@ TimerInt:
 	jnz  .tdone
 	incb tenths
 	cmp $ 10, tenths
-	jne noupdate
+	jne nosecupdate
 	movb $0, tenths
 	incb sec
 	cmp $60, sec
-	jne noupdate
+	jl noupdate
 	movb $0, sec
 	incb min
 	cmp $60, min
-	jne noupdate
+	jl noupdate
+	movb $0, min
 	incb hour
 	cmp $24, hour
-	jne noupdate
+	jl noupdate
 	call gettime
 noupdate:
+	call PrintClock
+nosecupdate:
 	movb $10, TimeSliceCount
 	cmp $0, canSwitch
 	jnz .tdone
@@ -152,24 +155,24 @@ SpecificSwitchTasks:		# int 22
 intr:
 	KWRITE_STRING $Unknown_message, $1, $0
 intrr:
-	KWRITE_STRING $rax, $9, $60
-	KWRITE_DOUBLE %rax, $9, $68
-	KWRITE_STRING $rbx, $10, $60
-	KWRITE_DOUBLE %rbx, $10, $68
-	KWRITE_STRING $rcx, $11, $60
-	KWRITE_DOUBLE %rcx, $11, $68
-	KWRITE_STRING $rdx, $12, $60
-	KWRITE_DOUBLE %rdx, $12,$68
-	KWRITE_STRING $rip, $0, $60
-	KWRITE_DOUBLE 0x20(%rsp), $0, $68
-	KWRITE_STRING $cs, $1, $60
-	KWRITE_DOUBLE 0x28(%rsp), $1, $68
-	KWRITE_STRING $flags, $2, $60
-	KWRITE_DOUBLE 0x30(%rsp), $2, $68
-	KWRITE_STRING $rsp, $3, $60
-	KWRITE_DOUBLE 0x38(%rsp), $3, $68
-	KWRITE_STRING $ss, $4, $60
-	KWRITE_DOUBLE 0x40(%rsp), $4, $68
+	KWRITE_STRING $rax, $10, $60
+	KWRITE_DOUBLE %rax, $10, $68
+	KWRITE_STRING $rbx, $11, $60
+	KWRITE_DOUBLE %rbx, $11, $68
+	KWRITE_STRING $rcx, $12, $60
+	KWRITE_DOUBLE %rcx, $12, $68
+	KWRITE_STRING $rdx, $13, $60
+	KWRITE_DOUBLE %rdx, $13,$68
+	KWRITE_STRING $rip, $1, $60
+	KWRITE_DOUBLE 0x20(%rsp), $1, $68
+	KWRITE_STRING $cs, $2, $60
+	KWRITE_DOUBLE 0x28(%rsp), $2, $68
+	KWRITE_STRING $flags, $3, $60
+	KWRITE_DOUBLE 0x30(%rsp), $3, $68
+	KWRITE_STRING $rsp, $4, $60
+	KWRITE_DOUBLE 0x38(%rsp), $4, $68
+	KWRITE_STRING $ss, $5, $60
+	KWRITE_DOUBLE 0x40(%rsp), $5, $68
 #	cmpl $UserCode, 0x20(%rsp)
 #	jge kcode
 #	KWRITE_STRING $usererror, $14, $58
@@ -293,9 +296,9 @@ Pd:	mov $160, %ax
 	jle .under10
 	add $7, %al
 .under10:
-	mov $0x8000000000, %r14
-	add %r14, %rbx
+	bts $Vaddr, %rbx
 	mov %al, 0xB8000(%rbx)
+	and $0xFFFF, %rbx
 	add $2, %bx
 	loop .stillCounting
 	ret
@@ -309,9 +312,9 @@ Ps:	mov $160, %ax
 	mov (%edx), %ah
 	cmp $0, %ah
 	je .done3
-	mov $0x8000000000, %r14
-	add %r14, %rbx
+	bts $Vaddr, %rbx
 	mov %ah, 0xB8000(%rbx)
+	and $0xFFFF, %rbx
 	add $2, %bx
 	inc %edx
 	jmp .isItStringEnd
