@@ -9,6 +9,12 @@ extern struct MessagePort *ConsolePort;
 
 extern long sec, min, hour, day, month, year;
 
+void PrintClock()
+{
+	kprintf(0, 63, "                 ");
+	kprintf(0, 63, "%2d/%02d/%02d %2d:%02d:%02d", day, month, year, hour, min, sec);
+}
+
 //================================================
 // Read noBytes into buffer from the file fHandle
 //================================================
@@ -223,8 +229,6 @@ int DoFStat(FD fileDescriptor, struct FileInfo *info)
 }
 long DoRead(FD fileDescriptor, char *buffer, long noBytes)
 {
-//	gettime();
-	kprintf(0, 64, "%d/%d/%d %d:%d:%d", day, month, year, hour, min, sec);
 	if (!noBytes)
 		return 0;
 
@@ -527,10 +531,17 @@ int kprintf(int row, int column, unsigned char *s, ...)
 	int i = 0;
 	int j = 0;
 	int k = 0;
-	for (i = 0; i < 256; i++) sprocessed[i] = 0;
-	i = 0;
+	short minwidth = 0;
+	short zeropadding = 0;
+	short indicator = 0;
+
 	while (s[i])
 	{
+		minwidth = 0;
+		zeropadding = 0;
+		indicator= 0;
+		k = 0;
+
 		if (s[i] != '%')
 		{
 			sprocessed[j] = s[i];
@@ -540,36 +551,76 @@ int kprintf(int row, int column, unsigned char *s, ...)
 		else
 		{
 			i++;
+			if (s[i] == '#')
+			{
+				indicator = 1;
+				i++;
+			}
+			if (s[i] == '0')
+			{
+				zeropadding = 1;
+				i++;
+			}
+			if ('0' < s[i] && s[i] <= '9') // A width specifier
+			{
+				minwidth = s[i] - '0';
+				i++;
+			}
 			switch (s[i])
 			{
 			case 'c':
-				;
+				while (minwidth-- > 1)
+					sprocessed[j++] = ' ';
 				int c = va_arg(ap, int);
 				sprocessed[j++] = c;
 				break;
 			case 's':
 				;
 				unsigned char *s1 = va_arg(ap, unsigned char *);
+				while (minwidth-- > strlen(s1))
+					sprocessed[j++] = ' ';
 				while (s1[k])
 					sprocessed[j++] = s1[k++];
 				break;
 			case 'd':
 				;
-				char buffer[8];
+				char buffer[20];
 				int number = va_arg(ap, int);
-				intToAsc(number, buffer, 8);
-				for (k = 0; k < 8; k++)
-					if (buffer[k] != ' ')
+				intToAsc(number, buffer, 20);
+				for (k = 0; k < 20; k++)
+					if (20 - k > minwidth)
+					{
+						if (buffer[k] != ' ')
+							sprocessed[j++] = buffer[k];
+					}
+					else
+					{
+						if (zeropadding && buffer[k] == ' ')
+							buffer[k] = '0';
 						sprocessed[j++] = buffer[k];
+					}
 				break;
 			case 'x':
 				;
 				number = va_arg(ap, int);
-				intToHAsc(number, buffer, 8);
-				sprocessed[j++] = '0';
-				sprocessed[j++] = 'x';
-				for (k = 0; k < 8; k++)
-					sprocessed[j++] = buffer[k];
+				intToHAsc(number, buffer, 20);
+				if (indicator)
+				{
+					sprocessed[j++] = '0';
+					sprocessed[j++] = 'x';
+				}
+				for (k = 0; k < 20; k++)
+					if (20 - k > minwidth)
+					{
+						if (buffer[k] != ' ')
+							sprocessed[j++] = buffer[k];
+					}
+					else
+					{
+						if (zeropadding && buffer[k] == ' ')
+							buffer[k] = '0';
+						sprocessed[j++] = buffer[k];
+					}
 				break;
 			default:
 				break;

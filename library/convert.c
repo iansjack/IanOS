@@ -27,7 +27,7 @@ int intToHAsc(int i, char *buffer, int len)
 	int count;
 
 	for (count = 0; count < len; count++)
-		buffer[count] = '0';
+		buffer[count] = ' ';
 	count = len - 1;
 	do {
 		int mod;
