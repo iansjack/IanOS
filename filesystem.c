@@ -15,6 +15,8 @@ unsigned char *DiskBuffer;
 unsigned short *FAT;
 extern struct MessagePort *FSPort;
 
+extern long sec, min, hour, day, month, year;
+
 //===============================
 // Convert a cluster to a sector
 //===============================
@@ -29,6 +31,30 @@ unsigned int ClusterToSector(int cluster)
 unsigned int SectorToCluster(int sector)
 {
 	return (sector - DataStart) / SectorsPerCluster + 2;
+}
+
+//===============================================
+// Convert the current time to a filetime format
+//===============================================
+short ClockToFileTime()
+{
+	short retval = 0;
+	retval += sec;
+	retval += min << 5;
+	retval += hour << 11;
+	return retval;
+}
+
+//===============================================
+// Convert the current date to a filedate format
+//===============================================
+short ClockToFileDate()
+{
+	short retval = 0;
+	retval += day;
+	retval += month << 5;
+	retval += (year + 20) << 9;
+	return retval;
 }
 
 //===================================================================
@@ -459,6 +485,8 @@ struct FCB *CreateFile(unsigned char *name, unsigned short pid)
 
 		entry->startingCluster = FindFreeCluster();
 		entry->attribute = 0x20;
+		entry->modifiedDate = ClockToFileDate();
+		entry->modifiedTime = ClockToFileTime();
 
 		// Mark the cluster as in use
 		PutFATEntry(entry->startingCluster, 0xFFFF);
@@ -554,11 +582,11 @@ void CloseFile(struct FCB *fHandle)
 				ClusterToSector(fHandle->currentCluster)
 						+ fHandle->sectorInCluster - 1);
 	}
-	if (fHandle->dirEntry) // No dirEntry, so it must be the root directory.
+	if (fHandle->dirEntry) // If no dirEntry it must be the root directory.
 	{
 		unsigned char *filename = DirNameToName(fHandle->dirEntry->name);
 
-		if (fHandle->deviceType == FILE) // || fHandle->deviceType == DIR)
+		if (fHandle->deviceType == FILE && fHandle->bufIsDirty)
 		{
 			int sector = 0;
 			struct DirEntry *buffer;
@@ -568,6 +596,8 @@ void CloseFile(struct FCB *fHandle)
 			if (fHandle->deviceType == FILE)
 			{
 				temp->fileSize = fHandle->length;
+				temp->modifiedDate = ClockToFileDate();
+				temp->modifiedTime = ClockToFileTime();
 				WriteSector(sector);
 			}
 		}
@@ -795,6 +825,8 @@ long CreateDir(unsigned char *name, unsigned short pid)
 		entry->name[0] = entry->name[1] = '.';
 		entry->attribute = 0x10;
 		entry->startingCluster = startingCluster;
+		entry->modifiedDate = ClockToFileDate();
+		entry->modifiedTime = ClockToFileTime();
 		WriteSector(sector);
 		for (count = 0; count < SectorsPerCluster - 1; count++)
 		{
@@ -986,6 +1018,7 @@ void fsTaskCode(void)
 			fcb = (struct FCB *) FSMsg->quad;
 			info.Length = fcb->length;
 			info.modifiedDate = fcb->dirEntry->modifiedDate;
+			info.modifiedTime = fcb->dirEntry->modifiedTime;
 			copyMem((char *)(&info), (char *)FSMsg->quad2, sizeof (struct FileInfo));
 			SendMessage(tempPort, FSMsg);
 			break;
