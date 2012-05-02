@@ -11,4 +11,8 @@ SECTIONS
 		*(.rodata)
 		*(.bssdata)
 	}
+	/DISCARD/ :
+	{
+		*(.comment)
+	}
 }

@@ -17,14 +17,13 @@ library/libsyscalls.a:
 %.o : %.c
 	$(CC) $(CFLAGS) -c $*.c
 	gcc -MM $(CFLAGS) $*.c > $*.d
-#	objcopy --remove-section .eh_frame $*.o
 
 IanOS.o: $(OBJS) library/liblib.a library/libsyscalls.a
-	ld -Tlink2.ld $(OBJS) library/liblib.a library/libsyscalls.a -oIanOS.o 
+	ld -Tlink2.ld $(OBJS) library/liblib.a library/libsyscalls.a
 
 IanOS.bin: $(OBJS) library/liblib.a library/libsyscalls.a
 	ld -s --print-map -Tlink.ld $(OBJS) library/liblib.a library/libsyscalls.a -oIanOS.bin>linkmap 
-
+	
 bootdisk: bootsect.bin 32sect IanOS.bin
 	cat bootsect.bin 32sect IanOS.bin floppy >I.fdd
 	dd if=I.fdd of=IanOS.fdd count=2880
@@ -55,14 +54,12 @@ mem32.o: mem32.c $(INC)/memory.h
 	cat code32.s mem32.s >tmem32.s
 	as tmem32.s -o mem32.o
 	rm tmem32.s mem32.s
-#	objcopy --remove-section .eh_frame mem32.o
 
 ptab32.o: ptab32.c $(INC)/memory.h
 	gcc -m32 -D CODE_32 -fno-stack-protector -ffixed-r15 -g -I $(INC) -S ptab32.c
 	cat code32.s ptab32.s >tptab32.s
 	as tptab32.s -o ptab32.o
 	rm tptab32.s ptab32.s
-#	objcopy --remove-section .eh_frame ptab32.o
 
 -include $(OBJS:.o=.d)
 
