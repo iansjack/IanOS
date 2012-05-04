@@ -60,12 +60,4 @@ struct DirSects {
 	struct vDirNode *directory;
 };
 
-unsigned long FirstFAT;
-unsigned long RootDir;
-unsigned long DataStart;
-unsigned long FATLength;
-unsigned short BytesPerSector;
-unsigned char SectorsPerCluster;
-unsigned short RootDirectoryEntries;
-
 #endif

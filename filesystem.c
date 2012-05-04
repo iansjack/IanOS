@@ -13,8 +13,16 @@ unsigned short *currentFATBuffer;
 int currentFATSector;
 unsigned char *DiskBuffer;
 unsigned short *FAT;
-extern struct MessagePort *FSPort;
 
+unsigned long FirstFAT;
+unsigned long RootDir;
+unsigned long DataStart;
+unsigned long FATLength;
+unsigned short BytesPerSector;
+unsigned char SectorsPerCluster;
+unsigned short RootDirectoryEntries;
+
+extern struct MessagePort *FSPort;
 extern long sec, min, hour, day, month, year;
 
 //===============================
