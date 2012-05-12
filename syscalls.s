@@ -30,7 +30,7 @@ CallNo:
 	.quad	Unimplemented	#Unused
 	.quad	Sys_Stat
 	.quad	Sys_LSeek
-	.quad	Unimplemented	#Sys_GetPid
+	.quad	GetPid
 	.quad	Unimplemented	#Sys_Mount
 	.quad	Unimplemented	#Sys_Umount
 	.quad	Unimplemented	#Sys_SetUID
@@ -49,9 +49,24 @@ CallNo:
 	.quad	GetCurrentConsole
 	.quad 	Sys_Getcwd
 	.quad	Sys_MkDir
+	.quad	Alloc_Page
 
 SysCalls:
-	jmp *(CallNo - 8)(,%r9, 8)	
+	jmp *(CallNo - 8)(,%r9, 8)
+
+Alloc_Page:
+	push %rcx
+	mov  currentTask, %r15
+	mov  TS.pid(%r15), %rsi
+	mov	 $7, %rdx
+	call AllocAndCreatePTE
+	pop %rcx
+	sysretq
+
+GetPid:
+	mov currentTask, %r15
+	mov TS.pid(%r15), %rax
+	sysretq
 
 #=========================================================
 # Kill the current task, freeing all memory owned by task
@@ -284,12 +299,14 @@ GetTicks:
 #=====================================================
 Sys_Nanosleep:	
 	push %rcx
+	push %r15
 	mov currentTask, %r15
 	movb $SLEEPINT, TS.waiting(%r15)
 	mov %rdi, TS.timer(%r15)
 	mov %r15, %rdi
 	call BlockTask
 	SWITCH_TASKS		       # The current task is no longer runnable
+	pop %r15
 	pop %rcx
 	sysretq
 
@@ -299,9 +316,11 @@ Sys_Nanosleep:
 #==============================================================
 Alloc_Mem:
 	push %rcx
+	push %r15
 	mov  currentTask, %r15
 	mov  TS.firstfreemem(%r15), %rsi
 	call AllocMem
+	pop %r15
 	pop  %rcx
 	sysretq
 
@@ -352,8 +371,10 @@ Send_Receive:
 # Returns the console (0 - 3) of the current task
 #=================================================
 GetCurrentConsole:
+	push %r15
 	mov currentTask, %r15
 	mov TS.console(%r15), %rax
+	pop %r15
 	sysretq
 
 #===================================================
@@ -380,11 +401,13 @@ Sys_MkDir:
 #========================================================
 GoToSleep:
 	push %rdx
+	push %r15
 	mov currentTask, %r15
 	movb $SLEEPINT, TS.waiting(%r15)
 	mov %rdi, TS.timer(%r15)
 	mov %r15, %rdi
 	call BlockTask
+	pop %r15
 	pop %rdx
 	SWITCH_TASKS		       # The current task is no longer runnable
 	ret

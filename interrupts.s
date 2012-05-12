@@ -114,7 +114,7 @@ nosecupdate:
 #=====================
 # Hard Disk interrupt
 #=====================
-HdInt:	push %rax
+HdInt:	PUSH_ALL
 .istaskwaiting:
 	mov  $0x20, %al
 	out  %al, $0x20
@@ -135,7 +135,7 @@ HdInt:	push %rax
 	cmpq $0, %r15
 	jne  .again2
 .done2:
-	pop  %rax
+	POP_ALL
 	iretq
 
 #===========================================================================================================
@@ -245,10 +245,10 @@ pf:
 	PUSH_ALL
 	mov %cr2, %rax
 	push %rax
-	cmp $6, 0x40(%rsp)		# Test the error code for write to non-present page
-	jne notnp
+	and $2, 0x40(%rsp)		# Test the error code for write to non-present page
+	jz notnp
 	sub %rax, %rbp			# Test to see if the faulting address is
-	cmp $0, %rbp			# withing a page of the stack pointer
+	cmp $0, %rbp			# within a page of the stack pointer
 	jl notnp
 	cmp $0x1000, %rbp
 	jg notnp

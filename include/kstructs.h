@@ -8,13 +8,12 @@ typedef int FD;
 #define FILE	3
 #define DIR		4
 
-#define STDIN	1
-#define STDOUT	2
-#define STDERR	3
+#define STDIN	0
+#define STDOUT	1
+#define STDERR	2
 
 struct Task {
 	struct Task *nexttask;
-	unsigned char waiting;
 	long rax;
 	long rbx;
 	long rcx;
@@ -32,34 +31,35 @@ struct Task {
 	long r14;
 	long r15;
 	long rflags;
-	short int ds;
-	short int es;
-	short int fs;
-	short int gs;
-	short int ss;
 	long cr3;
 	long firstdata;
 	long firstfreemem;
 	long nextpage;
-	unsigned short pid;
 	long timer;
 	char *environment;
 	struct MessagePort *parentPort;
 	unsigned char *currentDirName;
 	unsigned char **argv;
 	long console;
+        struct FCB *fcbList;
+        unsigned short pid;
+        short int ds;
+        short int es;
+        short int fs;
+        short int gs;
+        short int ss;
 	unsigned char forking;
-	struct FCB *fcbList;
+        unsigned char waiting;
 };
 
 struct Message {
 	struct Message *nextMessage;
-	unsigned char byte;
 	long quad;
 	long quad2;
 	long quad3;
 	struct MessagePort *tempPort;
 	long pid;
+        unsigned char byte;
 };
 
 struct MessagePort {
@@ -80,29 +80,29 @@ struct clusterListEntry {
 struct FCB {
 	struct DirEntry *dirEntry;		// A pointer to the directory entry for this file
 	struct vDirNode *dir;			// A pointer to the vDirNode of the directory this file is in
-	unsigned int length;
 	unsigned long startSector;
 	unsigned long nextSector;
 	unsigned long sectorInCluster;
 	unsigned short currentCluster;
 	unsigned short startCluster;
 	unsigned long fileCursor;
-	unsigned short bufCursor;
-	unsigned char bufIsDirty;		// 0 = clean, 1 = dirty
-	unsigned char deviceType;
-	unsigned char *filebuf;
+        unsigned char *filebuf;
 	FD fileDescriptor;
 	long pid;
+        unsigned int length;
 	struct FCB *nextFCB;
+        unsigned short bufCursor;
+        unsigned char bufIsDirty;               // 0 = clean, 1 = dirty
+        unsigned char deviceType;
 };
 
 struct Console {
 	unsigned char *kbBuffer;
-	short kbBufStart;
-	short kbBufCurrent;
-	short kbBufCount;
 	struct Message *MsgQueue;
 	unsigned char *ConsoleBuffer;
+        short kbBufStart;
+        short kbBufCurrent;
+        short kbBufCount;
 	short row;
 	short column;
 	short colour;

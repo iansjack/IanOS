@@ -36,7 +36,7 @@ struct Gate {
 	unsigned short offsetmid;	//    : 16;
 	unsigned int offsethi;	//       : 32;
 	unsigned int reserved;	//       : 32;
-};
+}__attribute__((packed));
 
 struct TSSDescriptor {
 	unsigned short limitlo;
@@ -54,7 +54,7 @@ struct TSSDescriptor {
 	unsigned basemid2:8;
 	unsigned int basehi;
 	unsigned:32;
-};
+}__attribute__((packed));
 
 void CreateTrapGate(short selector, long offset, long intNo, unsigned char ist)
 {

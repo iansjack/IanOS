@@ -29,7 +29,7 @@
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.base.1684977313" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base">
 								<option id="gnu.c.compiler.option.include.paths.1097934719" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/IanOS/include}&quot;"/>
-									<listOptionValue builtIn="false" value="/usr/lib/gcc/x86_64-redhat-linux/4.6.3/include"/>
+									<listOptionValue builtIn="false" value="/usr/local/cross/x86_64-elf/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1869188685" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>

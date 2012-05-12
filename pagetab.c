@@ -134,8 +134,8 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 	VIRT(PD,pd)->entries[GetPDIndex(0)].value = kernelPT | P | RW; // Kernel entries
 
 	if (parentPid == 0) // Just create some default PTEs
-						// We need these two entries so that NewKernelTask can
-						// access the data and stack pages of the new process.
+			    // We need these two entries so that NewKernelTask can
+			    // access the data and stack pages of the new process.
 	{
 		long c;
 		struct PT *pt = GetPT(pml4, UserData, pid);
@@ -147,7 +147,11 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 				:"m"(*(char *)TempUserData)
 		);
 
-		pt = GetPT(pml4, UserStack, pid);
+                pt = GetPT(pml4, KernelStack, pid);
+                VIRT(PT,pt)->entries[GetPTIndex(KernelStack)].value =
+                                AllocAndCreatePTE(TempUStack, pid, RW | P);
+
+                pt = GetPT(pml4, UserStack, pid);
 		VIRT(PT,pt)->entries[GetPTIndex(UserStack)].value =
 				AllocAndCreatePTE(TempUStack, pid, RW | P);
 		c = TempUStack;
