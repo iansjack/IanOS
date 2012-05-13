@@ -1,4 +1,6 @@
-#include <lib.h>
+#include <stdio.h>
+#include "fat.h"
+#include "syscalls.h"
 
 int main(int argc, char **argv)
 {
@@ -8,14 +10,14 @@ int main(int argc, char **argv)
 	unsigned char buffer[13];
 	unsigned char *cwd;
 
-	FD file;
+	int file;
 	if (argc == 2)
 		file = open(argv[1]);
 	else
 	{
 		cwd = getcwd();
 		file = open(cwd);
-		free(cwd);
+		// free(cwd);
 	}
 	if (file != -1)
 	{
@@ -37,8 +39,7 @@ int main(int argc, char **argv)
 						else
 							printf("       ");
 						buffer[8] = 0;
-						intToAsc(entry.fileSize, buffer, 8);
-						printf("%s ", buffer);
+						printf("%8d ", entry.fileSize);
 						int day = entry.modifiedDate & 0x001F;
 						int month = (entry.modifiedDate & 0x01E0) >> 5;
 						int year = ((entry.modifiedDate & 0xFE00) >>9) + 1980;
@@ -54,6 +55,5 @@ int main(int argc, char **argv)
 		}
 		close(file);
 	}
-	exit();
 	return (0);
 }

@@ -1,8 +1,6 @@
-//#include "kstructs.h"
-//#include "syscalls.h"
-//#include "lib.h"
 #include <sys/stat.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 int main(int argc, char **argv)
 {

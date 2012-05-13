@@ -6,6 +6,7 @@
  */
 #include <stdio.h>
 #include <sys/stat.h>
+#include <stdlib.h>
 
 #define ctrl(x) x - 0x40
 #define ESC	27
@@ -13,7 +14,6 @@
 #define Overwrite	0
 #define Insert		1
 #define WINDOWSIZE	20
-typedef int FD;
 
 struct line
 {
@@ -30,7 +30,7 @@ int column;
 char mode;
 int count;
 
-void ReadFile(FD file)
+void ReadFile(int file)
 {
 	struct line *firstline = lines;
 	struct line *currline;
@@ -106,7 +106,7 @@ int main(int argc, char **argv)
 {
 	lines = 0;
 
-	FD file;
+	int file;
 	line = 0;
 	column = 0;
 	struct line *currline;
@@ -283,7 +283,7 @@ int main(int argc, char **argv)
 	strcpy(currline->line, currentLineBuffer);
 
 // Clear the screen
-	printf("%c[2J", ESC);
+	printf("%c[2J\n", ESC);
 	if (file != -1)
 	{
 		close(file);
