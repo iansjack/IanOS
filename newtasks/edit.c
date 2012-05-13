@@ -19,8 +19,8 @@ struct line
 {
 	struct line *next;
 	struct line *prev;
-	int lineno;
 	unsigned char *line;
+	int lineno;
 };
 
 struct line *lines;
@@ -73,13 +73,17 @@ void PrintStatusLine()
 {
 	if (mode == Insert)
 	{
-		printf("%c[24;1H%c[?5h^Q Quit  ^I Insert toggle  Insert on                                          ", ESC, ESC);
+		printf(
+				"%c[24;1H%c[?5h^Q Quit  ^I Insert toggle  Insert on                                          ",
+				ESC, ESC);
 		printf("%c[%d;%dH%c[?5l", ESC, line, column, ESC);
 	}
 	else
 	{
 		// Print status line
-		printf("%c[24;1H%c[?5h^Q Quit  ^I Insert toggle  Insert off                                          ", ESC, ESC);
+		printf(
+				"%c[24;1H%c[?5h^Q Quit  ^I Insert toggle  Insert off                                          ",
+				ESC, ESC);
 		printf("%c[%d;%dH%c[?5l", ESC, line, column, ESC);
 
 	}
@@ -90,7 +94,8 @@ void RedrawScreen()
 	struct line *tempcurrline = lines;
 	printf("%c[2J", ESC);
 	tempcurrline = windowStart;
-	if (!windowStart) return;
+	if (!windowStart)
+		return;
 	for (count = 0; count <= WINDOWSIZE; count++)
 	{
 		if (tempcurrline->line)
@@ -217,7 +222,7 @@ int main(int argc, char **argv)
 			break;
 		case ctrl('D'): // Down Arrow
 			if (currline->next)
-				{
+			{
 				line++;
 				free(currline->line);
 				currline->line = malloc(strlen(currentLineBuffer) + 1);
@@ -283,7 +288,8 @@ int main(int argc, char **argv)
 	strcpy(currline->line, currentLineBuffer);
 
 // Clear the screen
-	printf("%c[2J\n", ESC);
+	printf("%c[2J", ESC);
+	fflush(stdout);
 	if (file != -1)
 	{
 		close(file);
