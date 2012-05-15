@@ -269,7 +269,7 @@ void KillTask(void)
     {
       temp = task->fcbList->nextFCB;
       if (task->fcbList->deviceType == FILE)
-        KCloseFile(task->fcbList);
+        DoClose(task->fcbList);
       else
         DeallocMem(task->fcbList);
       task->fcbList = temp;

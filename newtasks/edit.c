@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define ctrl(x) x - 0x40
 #define ESC	27
@@ -49,24 +50,20 @@ void ReadFile(int file)
 	lines->lineno = 0;
 	currline = lines;
 
-	int i;
-	while (filesize)
+	char *line = strtok(buffer, "\n");
+	while (line)
 	{
-		while (buffer[i] != 0x0a && i < filesize)
-			i++;
-		buffer[i] = 0;
-		currline->line = malloc(i + 1);
-		strcpy(currline->line, buffer);
-		buffer = buffer + i + 1;
-		filesize -= i + 1;
-		if (filesize)
+		currline->line = malloc(strlen(line));
+		strcpy(currline->line, line);
+		line = strtok(NULL, "\n");
+		if (line)
 		{
-			i = 0;
 			currline->next = malloc(sizeof(struct line));
 			currline->next->prev = currline;
 			currline = currline->next;
 		}
 	}
+	free(buffer);
 }
 
 void PrintStatusLine()

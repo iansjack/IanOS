@@ -6,8 +6,8 @@
 int main(int argc, char **argv)
 {
 	int column = 0;
-	char commandline[81]; // = malloc(81);;
-	char environment[81]; // = malloc(81);
+	char commandline[81];
+	char environment[81];
 
 	printf("%c[2J", ESC);
 	printf("IanOS Version 0.1.3 - 2012  Improved Shell\n#>");
@@ -36,19 +36,19 @@ int main(int argc, char **argv)
 
 			// Convert name[] to upper case.
 			strupr(name);
-//printf("\n%s\n", name);
-//printf("%s\n", environment);
-
 			printf("\n");
 
 			// Process "CD" command;
 			if (!strcmp(name, "CD"))
 			{
 				char *directory = strtok(NULL, " ");
-				int dir = chdir(directory);
-				if (dir == -1)
+				if (chdir(directory) == -1)
 					printf("Directory not found!\n");
 			}
+
+			// Process "EXIT" command
+			else if (!strcmp(name, "EXIT"))
+				return 0;
 			else
 			{
 				int pid = fork();

@@ -120,7 +120,7 @@ Sys_Write:
 #=========================================================
 Sys_Open:
 	push %rcx
-	call KOpenFile
+	call DoOpen
 	pop %rcx
 	sysretq
 	
@@ -129,7 +129,7 @@ Sys_Open:
 #=========================================================
 Sys_Close:
 	push %rcx
-	call KCloseFile
+	call DoClose
 	pop %rcx
 	sysretq				
 

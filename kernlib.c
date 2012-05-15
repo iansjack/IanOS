@@ -1,6 +1,7 @@
 #include <kernel.h>
 #include <filesystem.h>
 #include <console.h>
+#include <sys/errno.h>
 
 extern struct Task *currentTask;
 extern struct MessagePort *FSPort;
@@ -109,7 +110,7 @@ void KWriteHex(long c, int row) //, int col)
 //  Opens the file s.
 //  Returns a FD for the file in RAX
 //=========================================================
-FD KOpenFile(unsigned char *s)
+FD DoOpen(unsigned char *s, int flags)
 {
 	struct FCB *fcb = 0;
 
@@ -136,13 +137,13 @@ FD KOpenFile(unsigned char *s)
 		temp->nextFCB = fcb;
 		return tempID;
 	}
-	return -1;
+	return -ENOENT;
 }
 
 //=========================================================
 // 
 //=========================================================
-int KCloseFile(FD fileDescriptor)
+int DoClose(FD fileDescriptor)
 {
 	struct FCB *temp = currentTask->fcbList;
 	struct FCB *temp2;
