@@ -169,7 +169,7 @@ int DoClose(FD fileDescriptor)
 		DeallocMem(msg);
 		return 0;
 	}
-	return -1;
+	return -EBADF;
 }
 
 int DoStat(FD fileDescriptor, struct FileInfo *info) // *** No - this should take a filename!!!
@@ -268,23 +268,7 @@ long DoRead(FD fileDescriptor, char *buffer, long noBytes)
 			return (1);
 		}
 		else
-		{
-			struct Message *FSMsg;
-
-			FSMsg = ALLOCMSG;
-			char *buff = AllocKMem(noBytes);
-
-			FSMsg->nextMessage = 0;
-			FSMsg->byte = READFILE;
-			FSMsg->quad = (long) temp;
-			FSMsg->quad2 = (long) buff;
-			FSMsg->quad3 = noBytes;
-			SendReceiveMessage(FSPort, FSMsg);
-			copyMem(buff, buffer, noBytes);
-			DeallocMem(buff);
-			retval = FSMsg->quad;
-			DeallocMem(FSMsg);
-		}
+			ReadFromFile(temp, buffer, noBytes);
 	}
 	return (retval);
 }

@@ -135,7 +135,22 @@ long DoExec(char *name, char *environment)
       copyMem((char *) header, (char *) UserCode, 14);
       copyMem((char *) &codelen, (char *) UserCode + 14, 8);
       copyMem((char *) &datalen, (char *) UserCode + 22, 8);
-      ReadFromFile(fHandle, (char *) UserCode + 30, codelen - 30);
+      size = codelen - 30;
+      char *location = (char *)UserCode + 30;
+      while (size > 0)
+      {
+    	  if (size < PageSize)
+    	  {
+    		  ReadFromFile(fHandle, location, size);
+    		  size = 0;
+    	  }
+    	  else
+    	  {
+    		  ReadFromFile(fHandle, location, PageSize);
+    		  size -= PageSize;
+    		  location += PageSize;
+    	  }
+      }
       currentPage = UserData;
       size = datalen + sizeof(struct MemStruct);
       while (size > 0)

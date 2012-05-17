@@ -10,7 +10,7 @@ int main(int argc, char **argv)
 	char environment[81];
 
 	printf("%c[2J", ESC);
-	printf("IanOS Version 0.1.3 - 2012  Improved Shell\n#>");
+	printf("IanOS Version 0.1.4 - 2012  Improved Shell\n#>");
 	environment[80] = 0;
 	memset(commandline, ' ', 80);
 	while (1)

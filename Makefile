@@ -6,7 +6,7 @@ OBJS = startup.o os.o mem32.o ptab32.o hwsetup.o gates.o messages.o memory.o pag
 
 all: bootdisk IanOS.o
 	cd library; make all; cd ..
-	cd tasks; make all; cd ..
+	cd tasks; make all; make install; cd ..
 
 library/liblib.a:
 	cd library; make all; cd ..
@@ -19,7 +19,7 @@ library/libsyscalls.a:
 	gcc -MM $(CFLAGS) $*.c > $*.d
 
 IanOS.o: $(OBJS) library/liblib.a library/libsyscalls.a
-	ld -Tlink2.ld $(OBJS) library/liblib.a library/libsyscalls.a
+	ld -Tlink2.ld $(OBJS) library/liblib.a library/libsyscalls.a -oIanOS.o
 
 IanOS.bin: $(OBJS) library/liblib.a library/libsyscalls.a
 	ld -s --print-map -Tlink.ld $(OBJS) library/liblib.a library/libsyscalls.a -oIanOS.bin>linkmap 

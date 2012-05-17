@@ -3,7 +3,7 @@ ENTRY(_start)
 SEARCH_DIR(.)
 SECTIONS
 {
-	.text 0x400000 : 
+	.text 0x4000000 : 
 	{
 		phys = _start;
 		*(.text)
@@ -13,7 +13,7 @@ SECTIONS
 		*(.rodata*)
 	}
 	CodeLength = . - phys;
-	.data 0x600000 : AT (ADDR (.text) + CodeLength)
+	.data 0x6000000 : AT (ADDR (.text) + CodeLength)
 	{ 
 		*(.data)
 		*(.bssdata)
@@ -27,6 +27,6 @@ SECTIONS
 		*(.debug*)
 	}
 	
-	DataLength = . - 0x600000;
+	DataLength = . - 0x6000000;
 	CodeEnd = .;
 }

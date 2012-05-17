@@ -12,14 +12,12 @@ void *sbrk(int size)
 	{
 		sbrk_first_time = 0;
 		sbrk_size = 0x10;
-		sbrk_curbrk = (void *)0x601FF0;
+		sbrk_curbrk = (void *)0x6001FF0;
 		return sbrk_curbrk;
 	}
 	
 	if (size <= 0) return(sbrk_curbrk);
 	while (size > sbrk_size) {
-//		errno = ENOMEM;
-//		return((void *)-1);
 	    Alloc_Page(sbrk_curbrk + sbrk_size + 10);
 	    sbrk_size += 0x1000;
 	}

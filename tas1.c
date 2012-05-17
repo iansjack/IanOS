@@ -10,9 +10,6 @@ void tas1(void)
 
 	long pid = fork();
 	if (!pid)
-		execve("TASK1", "TASK1 0");
-	pid = fork();
-	if (!pid)
-		execve("TASK1", "TASK1 1");
+		execve("SH", "SH");
 	exit();
 }

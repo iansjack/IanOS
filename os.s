@@ -38,6 +38,8 @@ start64:
 	lidt idt_64
 
 # Final preparations before starting tasking
+	mov %cr3, %rax
+	mov %rax, initialCR3
 	call InitMem64
 	mov currentTask, %r15
 	movq $0, TS.nexttask(%r15)

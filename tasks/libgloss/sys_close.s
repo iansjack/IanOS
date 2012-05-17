@@ -1,14 +1,14 @@
 	.include "../../include/syscalls.inc"
 	
-	.global sys_open
+	.global sys_close
 
 	.text
 
-sys_open:
+sys_close:
 	push %rcx
 	push %r9
 	push %r11
-	mov $SYS_OPEN, %r9
+	mov $SYS_CLOSE, %r9
 	syscall
 	pop %r11
 	pop %r9

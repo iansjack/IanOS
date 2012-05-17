@@ -11,16 +11,16 @@
 #define IDT             0x0000000000000800L
 #define OSCode          0x0000000000001000L
 #define OSData          0x0000000000010000L
-#define OSHeap		0x0000000000011000L
+#define OSHeap			0x0000000000011000L
 #define TempUserCode    0x00000000000FD000L
 #define TempUserData    0x00000000000FE000L
 #define TempUStack      0x00000000000FF000L
 #define PageMap         0x0000000000100000L
-#define UserCode        0x0000000000400000L
-#define UserData        0x0000000000600000L
-#define KernelStack     0x00000000009ff000L
-#define UserStack       0x0000000000bff000L
-#define VAddr		0x0000008000000000L
+#define UserCode        0x0000000004000000L
+#define UserData        0x0000000006000000L
+#define KernelStack     0x0000000009fff000L
+#define UserStack       0x000000000bfff000L
+#define VAddr			0x0000008000000000L
 
 // Free                 0x0000000000C00000 - 0x0000007FFFFFFFFF
 
