@@ -17,9 +17,9 @@
 #define TempUStack      0x00000000000FF000L
 #define PageMap         0x0000000000100000L
 #define UserCode        0x0000000004000000L
-#define UserData        0x0000000006000000L
-#define KernelStack     0x0000000009fff000L
-#define UserStack       0x000000000bfff000L
+#define UserData        0x0000000010000000L
+#define UserStack     	0x00000000ffffe000L
+#define KernelStack     0x00000000fffff000L
 #define VAddr			0x0000008000000000L
 
 // Free                 0x0000000000C00000 - 0x0000007FFFFFFFFF

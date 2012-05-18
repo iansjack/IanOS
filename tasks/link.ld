@@ -13,7 +13,7 @@ SECTIONS
 		*(.rodata*)
 	}
 	CodeLength = . - phys;
-	.data 0x6000000 : AT (ADDR (.text) + CodeLength)
+	.data 0x10000000 : AT (ADDR (.text) + CodeLength)
 	{ 
 		*(.data)
 		*(.bssdata)
@@ -27,6 +27,6 @@ SECTIONS
 		*(.debug*)
 	}
 	
-	DataLength = . - 0x6000000;
+	DataLength = . - 0x10000000;
 	CodeEnd = .;
 }

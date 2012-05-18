@@ -12,7 +12,8 @@ typedef int FD;
 #define STDOUT	1
 #define STDERR	2
 
-struct Task {
+struct Task
+{
 	struct Task *nexttask;
 	long rax;
 	long rbx;
@@ -41,68 +42,74 @@ struct Task {
 	unsigned char *currentDirName;
 	unsigned char **argv;
 	long console;
-        struct FCB *fcbList;
-        unsigned short pid;
-        short int ds;
-        short int es;
-        short int fs;
-        short int gs;
-        short int ss;
+	struct FCB *fcbList;
+	unsigned short pid;
+	short int ds;
+	short int es;
+	short int fs;
+	short int gs;
+	short int ss;
 	unsigned char forking;
-        unsigned char waiting;
+	unsigned char waiting;
 };
 
-struct Message {
+struct Message
+{
 	struct Message *nextMessage;
 	long quad;
 	long quad2;
 	long quad3;
 	struct MessagePort *tempPort;
 	long pid;
-        unsigned char byte;
+	unsigned char byte;
 };
 
-struct MessagePort {
+struct MessagePort
+{
 	struct Task *waitingProc;
 	struct Message *msgQueue;
 };
 
-struct MemStruct {
+struct MemStruct
+{
 	struct MemStruct *next;
 	long size;
 };
 
-struct clusterListEntry {
+struct clusterListEntry
+{
 	struct clusterListEntry *next;
 	unsigned short cluster;
 };
 
-struct FCB {
-	struct DirEntry *dirEntry;		// A pointer to the directory entry for this file
-	struct vDirNode *dir;			// A pointer to the vDirNode of the directory this file is in
+struct FCB
+{
+	struct DirEntry *dirEntry; // A pointer to the directory entry for this file
+	struct vDirNode *dir; // A pointer to the vDirNode of the directory this file is in
 	unsigned long startSector;
 	unsigned long nextSector;
 	unsigned long sectorInCluster;
 	unsigned short currentCluster;
 	unsigned short startCluster;
 	unsigned long fileCursor;
-        unsigned char *filebuf;
+	unsigned char *filebuf;
 	FD fileDescriptor;
 	long pid;
-        unsigned int length;
+	unsigned int length;
 	struct FCB *nextFCB;
-        unsigned short bufCursor;
-        unsigned char bufIsDirty;               // 0 = clean, 1 = dirty
-        unsigned char deviceType;
+	unsigned short bufCursor;
+	unsigned char bufIsDirty; // 0 = clean, 1 = dirty
+	unsigned char deviceType;
 };
 
-struct Console {
+struct Console
+{
 	unsigned char *kbBuffer;
 	struct Message *MsgQueue;
 	unsigned char *ConsoleBuffer;
-        short kbBufStart;
-        short kbBufCurrent;
-        short kbBufCount;
+	short kbBufStart;
+	short kbBufCurrent;
+	short kbBufCount;
 	short row;
 	short column;
 	short colour;

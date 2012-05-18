@@ -25,20 +25,28 @@ long ReadFromFile(struct FCB *fHandle, char *buffer, long noBytes)
 	if (noBytes == 0)
 		return 0;
 
-	long retval;
-
+	long retval = 0;
+	long bytesRead = 0;
+	char *buff = AllocKMem(PageSize);
 	struct Message *FSMsg = ALLOCMSG;
-	char *buff = AllocKMem(noBytes);
 
-	FSMsg->nextMessage = 0;
-	FSMsg->byte = READFILE;
-	FSMsg->quad = (long) fHandle;
-	FSMsg->quad2 = (long) buff;
-	FSMsg->quad3 = noBytes;
-	SendReceiveMessage(FSPort, FSMsg);
-	copyMem(buff, buffer, noBytes);
+	while (noBytes - bytesRead > 0)
+	{
+		FSMsg->nextMessage = 0;
+		FSMsg->byte = READFILE;
+		FSMsg->quad = (long) fHandle;
+		FSMsg->quad2 = (long) buff;
+		if (noBytes - bytesRead > PageSize)
+			FSMsg->quad3 = PageSize;
+		else
+			FSMsg->quad3 = noBytes - bytesRead;
+		SendReceiveMessage(FSPort, FSMsg);
+		copyMem(buff, buffer + bytesRead, FSMsg->quad);
+		bytesRead += FSMsg->quad;
+	}
+
+	retval = bytesRead;
 	DeallocMem(buff);
-	retval = FSMsg->quad;
 	DeallocMem(FSMsg);
 	return (retval);
 }

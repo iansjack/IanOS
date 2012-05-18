@@ -39,6 +39,8 @@ startup.o: startup.s $(INC)/memory.inc
 
 hwsetup.o: hwsetup.s hwhelp.s
 
+syscalls.o: $(INC)/memory.inc
+
 os.o: os.s $(INC)/memory.inc $(INC)/syscalls.inc macros.s $(INC)/kstructs.inc
 
 vga.o: vga.s

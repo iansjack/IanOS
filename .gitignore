@@ -13,4 +13,5 @@ tasks/cat
 tasks/pwd
 tasks/ls
 tasks/edit
+tasks/sh
 .settings/

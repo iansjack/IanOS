@@ -1,4 +1,5 @@
 #include <errno.h>
+#include "../../include/memory.h"
 
 extern int errno;
 
@@ -10,9 +11,10 @@ void *sbrk(int size)
 {
 	if (sbrk_first_time) 
 	{
+		long *firstfreemem = (long *)(UserCode + 22);
 		sbrk_first_time = 0;
 		sbrk_size = 0x10;
-		sbrk_curbrk = (void *)0x6001FF0;
+		sbrk_curbrk = (void *)(UserData + firstfreemem);
 		return sbrk_curbrk;
 	}
 	

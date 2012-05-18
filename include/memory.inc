@@ -11,9 +11,9 @@ TempUserData 	= 0x00000000000FE000
 TempUStack   	= 0x00000000000FF000
 PageMap      	= 0x0000000000100000
 UserCode     	= 0x0000000004000000
-UserData     	= 0x0000000006000000
-KernelStack  	= 0x0000000009fff000
-UserStack    	= 0x000000000bfff000
+UserData     	= 0x0000000010000000
+UserStack		= 0x00000000ffffe000
+KernelStack    	= 0x00000000fffff000
 
 PageSize	= 0x1000
 Vaddr 		= 39	# The bit position to set to add 0x8000000000

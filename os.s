@@ -60,8 +60,8 @@ start64:
 	mov $2, %rdx
 	mov $3, %rcx
 	call CreatePTE
-	mov $KernelStack + 0x1000, %eax
-	mov %eax, TSS64 + 36               	# Kernel stack pointer in TSS
+	movq $KernelStack + 0x1000, %rax
+	mov %rax, TSS64 + 36               	# Kernel stack pointer in TSS
 	mov $2, %rdi
 	call AllocPage                     	# Page for user stack
 	mov %rax, %rdi

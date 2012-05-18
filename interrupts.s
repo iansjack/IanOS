@@ -68,6 +68,7 @@ TimerInt:
 	cmp $0, %rbx
 	jz   .notimer
 .again:
+	mov currentTask, %r15
 	mov 8(%rbx), %r15
 	cmpb $SLEEPINT, TS.waiting(%r15)
 	jne  .next
@@ -101,7 +102,7 @@ TimerInt:
 	jl noupdate
 	call gettime
 noupdate:
-	call PrintClock
+#	call PrintClock
 nosecupdate:
 	movb $10, TimeSliceCount
 	cmp $0, canSwitch
