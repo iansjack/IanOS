@@ -170,17 +170,14 @@ long DoExec(char *name, char *environment)
 
 		// Process the arguments for argc and argv
 		// Copy environment string to user data space
-//		char *newenv = AllocMem(81,
-//				(struct MemStruct *) currentTask->firstfreemem);
-		copyMem(environment, (void *)(UserData + datalen), 81);
+		copyMem(environment, (void *) (UserData + datalen), 81);
 		currentTask->firstfreemem += 81;
-		currentTask->environment = (void *)UserData + datalen;
-		long argv = (long)currentTask->environment;
+		currentTask->environment = (void *) UserData + datalen;
+		long argv = (long) currentTask->environment;
 		argc = ParseEnvironmentString(&argv);
 		argv += 80;
-//		currentTask->argv = (unsigned char **) argv;
 		currentTask->firstfreemem += argc * sizeof(char *);
-		long *l = (long *)(UserCode + 22);
+		long *l = (long *) (UserCode + 22);
 		*l = (long) (currentTask->firstfreemem);
 		asm("mov %0,%%rdi;" "mov %1,%%rsi":
 				: "r"(argc), "r"(argv):"%rax", "%rdi");
@@ -369,7 +366,6 @@ void dummyTask()
 				if (PMap[count] == pid)
 				{
 					PMap[count] = 0;
-					Debug();
 					ZeroPage(count);
 					if (count < firstFreePage)
 						firstFreePage = count;
@@ -399,7 +395,6 @@ long ParseEnvironmentString(long *l)
 
 	char *env = currentTask->environment;
 
-//	*l = (long) AllocMem(80, (struct MemStruct *) currentTask->firstfreemem);
 	long *argv = (long *) (env + 80);
 	argv[0] = (long) env;
 	while (env[count])
@@ -416,12 +411,9 @@ long ParseEnvironmentString(long *l)
 	return argc;
 }
 
-extern void
-kbTaskCode(void);
-extern void
-consoleTaskCode(void);
-extern void
-fsTaskCode(void);
+extern void kbTaskCode(void);
+extern void consoleTaskCode(void);
+extern void fsTaskCode(void);
 
 //===================================================================
 // This starts the dummy task and the services

@@ -10,12 +10,12 @@
 
 struct BTreeNode
 {
-	void *  data;
-	struct  BTreeNode * lesser;	// Tree of nodes whose key is less than this one
-	struct  BTreeNode * greater;	// Tree of nodes whose key is greater than this one
-	int     timestamp;				// Value of Ticks when the node was created.
-        int     key;
-        unsigned char isDirty;          // Has data been written to the buffer since it was loaded?
+	void * data;
+	struct BTreeNode * lesser;	// Tree of nodes whose key is less than this one
+	struct BTreeNode * greater;	// Tree of nodes whose key is greater than this one
+	int timestamp; 				// Value of Ticks when the node was created.
+	int key;
+	unsigned char isDirty; 		// Has data been written to the buffer since it was loaded?
 };
 
 struct BTreeNode * CreateBTreeNode(int key, void * data);

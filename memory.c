@@ -70,8 +70,7 @@ void InitMem64(void)
 // Searches the linked list pointed to by list for a block of memory of size sizeRequested
 // Allocates the memory and returns its address in RAX
 //=========================================================================================
-void *
-AllocMem(long sizeRequested, struct MemStruct *list)
+void * AllocMem(long sizeRequested, struct MemStruct *list)
 {
 	ASSERT((long)list & (long)sizeRequested > 0);
 	unsigned char kernel = 0;
@@ -90,7 +89,7 @@ AllocMem(long sizeRequested, struct MemStruct *list)
 	if (!list->next)
 	{
 		// End of list. Enough memory available? If not allocate new pages until there is.
-		while (list->size < sizeRequested + sizeof(struct MemStruct))
+		while (list->size <= sizeRequested + sizeof(struct MemStruct))
 		{
 			long temp = (long) list >> 12;
 			while (list->size < sizeRequested + 2 * sizeof(struct MemStruct))
@@ -165,8 +164,7 @@ void DeallocMem(void *list)
 // Allocate some kernel memory from the heap. sizeRequested = amount to allocate
 // Returns in RAX address of allocated memory.
 //===============================================================================
-void *
-AllocKMem(long sizeRequested)
+void *AllocKMem(long sizeRequested)
 {
 	return (AllocMem(sizeRequested, firstFreeKMem));
 }
@@ -175,8 +173,7 @@ AllocKMem(long sizeRequested)
 // Allocate some user memory from the heap. sizeRequested = amount to allocate
 // Returns in RAX address of allocated memory.
 //===============================================================================
-void *
-AllocUMem(long sizeRequested)
+void *AllocUMem(long sizeRequested)
 {
 	return (AllocMem(sizeRequested, (void *) currentTask->firstfreemem));
 }
