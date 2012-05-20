@@ -85,7 +85,7 @@ unsigned char *ReadSector(unsigned int sector)
 	}
 	else
 	{
-		if (buffersRead >= 1000)
+		if (buffersRead >= 256)
 		{
 			buffersRead = 0;
 			sectorBuffers = BalanceBTree(sectorBuffers);

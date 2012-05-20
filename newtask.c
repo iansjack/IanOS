@@ -155,9 +155,6 @@ long DoExec(char *name, char *environment)
 		// Load the user data
 		ReadFromFile(fHandle, (char *) UserData, datalen);
 
-//		data = (long *) (UserData + datalen);
-//		data[0] = 0;
-//		data[1] = PageSize - datalen - sizeof(struct MemStruct);
 		currentTask->firstfreemem = UserData + datalen;
 
 		//Close file and deallocate memory for structures
@@ -178,7 +175,7 @@ long DoExec(char *name, char *environment)
 		argv += 80;
 		currentTask->firstfreemem += argc * sizeof(char *);
 		long *l = (long *) (UserCode + 22);
-		*l = (long) (currentTask->firstfreemem);
+		*l = (long) (currentTask->firstfreemem) - UserData;
 		asm("mov %0,%%rdi;" "mov %1,%%rsi":
 				: "r"(argc), "r"(argv):"%rax", "%rdi");
 		return 0;

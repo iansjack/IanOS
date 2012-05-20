@@ -265,7 +265,6 @@ long CreatePTEWithPT(struct PML4 *pml4, void *pAddress, long lAddress,
 		unsigned short pid, short flags)
 {
 	int ptIndex = GetPTIndex(lAddress);
-	;
 	struct PT *pt = GetPT(pml4, lAddress, pid);
 
 	// We don't want this function to be interrupted.
