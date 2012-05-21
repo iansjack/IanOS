@@ -27,19 +27,31 @@ long ReadFromFile(struct FCB *fHandle, char *buffer, long noBytes)
 
 	long retval = 0;
 	long bytesRead = 0;
+	char done = 0;
 	char *buff = AllocKMem(PageSize);
 	struct Message *FSMsg = ALLOCMSG;
 
-	while (noBytes - bytesRead > 0)
+	while (noBytes > PageSize)
 	{
 		FSMsg->nextMessage = 0;
 		FSMsg->byte = READFILE;
 		FSMsg->quad = (long) fHandle;
 		FSMsg->quad2 = (long) buff;
-		if (noBytes - bytesRead > PageSize)
-			FSMsg->quad3 = PageSize;
-		else
-			FSMsg->quad3 = noBytes - bytesRead;
+		FSMsg->quad3 = PageSize;
+		SendReceiveMessage(FSPort, FSMsg);
+		copyMem(buff, buffer + bytesRead, FSMsg->quad);
+		bytesRead += FSMsg->quad;
+		noBytes -= PageSize;
+		if (FSMsg->quad < PageSize)
+			done = 1;
+	}
+	if (!done)
+	{
+		FSMsg->nextMessage = 0;
+		FSMsg->byte = READFILE;
+		FSMsg->quad = (long) fHandle;
+		FSMsg->quad2 = (long) buff;
+		FSMsg->quad3 = noBytes;
 		SendReceiveMessage(FSPort, FSMsg);
 		copyMem(buff, buffer + bytesRead, FSMsg->quad);
 		bytesRead += FSMsg->quad;

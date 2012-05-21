@@ -153,7 +153,16 @@ long DoExec(char *name, char *environment)
 		}
 
 		// Load the user data
-		ReadFromFile(fHandle, (char *) UserData, datalen);
+		int bytesRead = ReadFromFile(fHandle, (char *) UserData, datalen);
+		Debug();
+
+		// Zero the rest of the data segment
+		char *temp = UserData + bytesRead;
+		while (bytesRead >= PageSize)
+			bytesRead -= PageSize;
+		int n;
+		for (n = 0; n < bytesRead; n++)
+			temp[n] = 0;
 
 		currentTask->firstfreemem = UserData + datalen;
 

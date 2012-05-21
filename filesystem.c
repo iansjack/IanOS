@@ -686,7 +686,7 @@ long ReadFile(struct FCB *fHandle, char *buffer, long noBytes)
 {
 	long bytesRead = 0;
 
-	while (bytesRead < noBytes && fHandle->bufCursor < fHandle->length)
+	while (bytesRead < noBytes && fHandle->fileCursor < fHandle->length)
 	{
 		while (fHandle->bufCursor < 512 && bytesRead < noBytes
 				&& fHandle->bufCursor < fHandle->length)
@@ -694,9 +694,12 @@ long ReadFile(struct FCB *fHandle, char *buffer, long noBytes)
 			buffer[bytesRead] = fHandle->filebuf[fHandle->bufCursor];
 			bytesRead++;
 			fHandle->bufCursor++;
+			fHandle->fileCursor++;
+			if (fHandle->fileCursor == fHandle->length)
+				break;
 		}
-		if (fHandle->bufCursor == fHandle->length)
-			break;
+		if (fHandle->fileCursor == fHandle->length)
+			return(bytesRead);
 
 		// If we have read past the end of the buffer we need to load the
 		// next sector into the buffer.

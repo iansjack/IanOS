@@ -2,6 +2,7 @@
 #include "../../include/memory.h"
 
 extern int errno;
+extern long DataLen;
 
 static char sbrk_first_time = 1;
 static int sbrk_size = 0;
@@ -11,11 +12,11 @@ void *sbrk(int size)
 {
 	if (sbrk_first_time) 
 	{
-		long *firstfreemem = (long *)(UserCode + 22);
 		sbrk_first_time = 0;
-		sbrk_size = 0x10;
-		sbrk_curbrk = (void *)(UserData + *firstfreemem);
-		return sbrk_curbrk;
+		sbrk_curbrk = (void *)(UserData + DataLen); //*firstfreemem);
+		sbrk_size = PageSize - DataLen;
+		while (sbrk_size < 0)
+			sbrk_size += PageSize;
 	}
 	
 	if (size <= 0) return(sbrk_curbrk);
@@ -25,13 +26,14 @@ void *sbrk(int size)
 	}
 	sbrk_curbrk += size;
 	sbrk_size -= size;
+	errno = 0;
 	return((void *)(sbrk_curbrk - size));
 }
 
-//void *brk(void *x)
-//{
-//	errno = ENOMEM;
-//	return((void *)-1);
-//}
+void *brk(void *x)
+{
+	errno = ENOMEM;
+	return((void *)-1);
+}
 
 

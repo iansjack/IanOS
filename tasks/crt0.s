@@ -1,6 +1,7 @@
 	.text
 
 	.global _start
+	.global DataLen
 	.extern main
 
 _start:		call main
