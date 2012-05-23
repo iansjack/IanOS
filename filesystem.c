@@ -949,6 +949,8 @@ Truncate(struct FCB *fileHandle, long length)
 	fileHandle->length = length;
 	fileHandle->bufIsDirty = 1;
 	// Handle case where file cursor is now beyond end of file
+	if (length < fileHandle->fileCursor)
+		Seek(fileHandle, length, SEEK_SET);
 }
 
 //=============================

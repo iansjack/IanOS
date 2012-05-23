@@ -3,6 +3,8 @@
 #include <console.h>
 #include <sys/errno.h>
 
+#define O_CREAT	0x0200
+
 extern struct Task *currentTask;
 extern struct MessagePort *FSPort;
 extern struct MessagePort *KbdPort;
@@ -17,6 +19,9 @@ void PrintClock()
 			sec);
 }
 
+//===============================================================
+// Convert a file descriptor for the current process to an FCB
+//===============================================================
 struct FCB *fdToFCB(FD fileDescriptor)
 {
 	struct FCB *temp = currentTask->fcbList;
@@ -154,6 +159,14 @@ FD DoOpen(unsigned char *s, int flags)
 	msg->quad = (long) S;
 	SendReceiveMessage(FSPort, msg);
 	fcb = (struct FCB *) msg->quad;
+	if (!fcb && (flags & O_CREAT))
+	{
+		msg->nextMessage = 0;
+		msg->byte = CREATEFILE;
+		msg->quad = (long) S;
+		SendReceiveMessage(FSPort, msg);
+	}
+	fcb = (struct FCB *) msg->quad;
 	DeallocMem(S);
 	DeallocMem(msg);
 	if (fcb)
@@ -181,6 +194,8 @@ int DoClose(FD fileDescriptor)
 	struct FCB *temp = fdToFCB(fileDescriptor);
 	if (temp)
 	{
+		if (temp->deviceType == KBD || temp->deviceType == CONS)
+			return 0;
 		struct Message *msg = ALLOCMSG;
 
 		msg->nextMessage = 0;
@@ -400,9 +415,10 @@ long DoChDir(unsigned char *dirName)
 	return retval;
 }
 
-unsigned char *DoGetcwd(void)
+unsigned char *DoGetcwd(char *name, long length)
 {
-	unsigned char *name = AllocUMem(strlen(currentTask->currentDirName) + 1);
+	if (length < strlen(currentTask->currentDirName))
+		return (unsigned char *)-ERANGE;
 	strcpy(name, currentTask->currentDirName);
 	return name;
 }

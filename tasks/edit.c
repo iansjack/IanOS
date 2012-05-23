@@ -288,11 +288,9 @@ int main(int argc, char **argv)
 	printf("%c[2J", ESC);
 	fflush(stdout);
 	if (file != -1)
-	{
-		close(file);
-		unlink(argv[1]);
-	}
-	file = creat(argv[1]);
+		sys_truncate(file, 0);
+	else
+		file = creat(argv[1]);
 	currline = lines;
 	if (file)
 	{
