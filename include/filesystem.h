@@ -14,6 +14,7 @@
 #define GETFILEINFO 8
 #define CREATEDIR	9
 #define SEEK		10
+#define TRUNCATE	11
 
 #define SEEK_SET	0
 #define SEEK_CUR	1

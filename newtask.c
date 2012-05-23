@@ -1,5 +1,6 @@
 #include <kernel.h>
 #include <filesystem.h>
+#include <errno.h>
 
 struct Task *
 NewKernelTask(void *TaskCode);
@@ -157,7 +158,7 @@ long DoExec(char *name, char *environment)
 		Debug();
 
 		// Zero the rest of the data segment
-		char *temp = UserData + bytesRead;
+		char *temp = (char *)(UserData + bytesRead);
 		while (bytesRead >= PageSize)
 			bytesRead -= PageSize;
 		int n;
@@ -193,7 +194,7 @@ long DoExec(char *name, char *environment)
 	{
 		DeallocMem(kname);
 		DeallocMem(FSMsg);
-		return 1;
+		return -ENOENT;
 	}
 }
 

@@ -944,6 +944,13 @@ int Seek(struct FCB *fHandle, int offset, int whence)
 	return offset;
 }
 
+Truncate(struct FCB *fileHandle, long length)
+{
+	fileHandle->length = length;
+	fileHandle->bufIsDirty = 1;
+	// Handle case where file cursor is now beyond end of file
+}
+
 //=============================
 // The actual filesystem task
 //=============================
@@ -1059,6 +1066,12 @@ void fsTaskCode(void)
 		case SEEK:
 			result = Seek((struct FCB *) FSMsg->quad, FSMsg->quad2,
 					FSMsg->quad3);
+			FSMsg->quad = result;
+			SendMessage(tempPort, FSMsg);
+			break;
+
+		case TRUNCATE:
+			result = Truncate((struct FCB*) FSMsg->quad, FSMsg->quad2);
 			FSMsg->quad = result;
 			SendMessage(tempPort, FSMsg);
 			break;

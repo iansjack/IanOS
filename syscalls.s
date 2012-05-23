@@ -50,6 +50,7 @@ CallNo:
 	.quad 	Sys_Getcwd
 	.quad	Sys_MkDir
 	.quad	Alloc_Page
+	.quad	Sys_Truncate
 
 SysCalls:
 	jmp *(CallNo - 8)(,%r9, 8)
@@ -219,73 +220,9 @@ Sys_FStat:
 #=========================================================
 Sys_LSeek:
 	push %rcx
-	call Do_Seek
+	call DoSeek
 	pop %rcx
 	sysretq
-
-/*
-#========================================================
-# Print [EDX] as string at position row BH col BL
-# Affects RAX, RBX, RDX
-#========================================================
-PrintString:
-	mov $160, %ax
-	mul %bh
-	mov $0, %bh
-	shl $1, %bx
-	add %ax, %bx
-.isItStringEnd:
-	mov (%edx), %ah
-	cmp $0, %ah
-	je .done
-	mov %ah, 0x80000B8000(%ebx)
-	add $2, %bx
-	inc %edx
-	jmp .isItStringEnd
-.done:	sysretq
-
-#========================================================
-# Print EDX as hex at position row BH col BL
-# Affects RAX, RBX, RDX
-#========================================================
-PrintDouble:
-	push %rcx
-	mov $160, %ax
-	mul %bh
-	mov $0, %bh
-	shl $1, %bx
-	add %ax, %bx
-	mov $8, %rcx
-.stillCounting:
-	shld $4, %edx, %eax
-	shl $4, %edx
-	and $0xF, %eax
-	add $'0, %al
-	cmp $'9, %al
-	jle .under10
-	add $7, %al
-.under10:
-	mov  %al, 0x80000B8000(%ebx)
-	add  $2, %bx
-	loop .stillCounting
-	pop  %rcx
-	sysretq
-
-#========================================================
-# Print character in AH at position row BH col BL
-# Affects RAX, RBX
-#========================================================
-PrintChar:
-	push %ax
-	mov  $160, %ax
-	mul  %bh
-	mov  $0, %bh
-	shl  $1, %bx
-	add  %ax, %bx
-	pop  %ax
-	mov  %ah, 0x80000B8000(%ebx)
-	sysretq
-*/
 
 #=============================================================================
 # Return in RAX the number of (10ms) clock ticks since the system was started
@@ -411,4 +348,13 @@ GoToSleep:
 	pop %rdx
 	SWITCH_TASKS		       # The current task is no longer runnable
 	ret
+
+#=========================================================
+# Truncates file RDI to length RSI
+#=========================================================
+Sys_Truncate:
+	push %rcx
+	call DoTruncate
+	pop %rcx
+	sysretq
 

@@ -17,6 +17,19 @@ void PrintClock()
 			sec);
 }
 
+struct FCB *fdToFCB(FD fileDescriptor)
+{
+	struct FCB *temp = currentTask->fcbList;
+	while (temp->nextFCB)
+	{
+		if (temp->fileDescriptor == fileDescriptor)
+			break;
+		temp = temp->nextFCB;
+	}
+	if (!temp->fileDescriptor == fileDescriptor)
+		return 0;
+	return temp;
+}
 //================================================
 // Read noBytes into buffer from the file fHandle
 //================================================
@@ -165,19 +178,7 @@ FD DoOpen(unsigned char *s, int flags)
 //=========================================================
 int DoClose(FD fileDescriptor)
 {
-	struct FCB *temp = currentTask->fcbList;
-	struct FCB *temp2;
-	while (temp->nextFCB)
-	{
-		if (temp->nextFCB->fileDescriptor == fileDescriptor)
-		{
-			temp2 = temp->nextFCB;
-			temp->nextFCB = temp->nextFCB->nextFCB;
-			temp = temp2;
-			break;
-		}
-		temp = temp->nextFCB;
-	}
+	struct FCB *temp = fdToFCB(fileDescriptor);
 	if (temp)
 	{
 		struct Message *msg = ALLOCMSG;
@@ -194,15 +195,7 @@ int DoClose(FD fileDescriptor)
 
 int DoStat(FD fileDescriptor, struct FileInfo *info) // *** No - this should take a filename!!!
 {
-	int retval = -1;
-
-	struct FCB *temp = currentTask->fcbList;
-	while (temp->nextFCB)
-	{
-		if (temp->fileDescriptor == fileDescriptor)
-			break;
-		temp = temp->nextFCB;
-	}
+	struct FCB *temp = fdToFCB(fileDescriptor);
 	if (temp)
 	{
 		struct Message *msg = ALLOCMSG;
@@ -215,23 +208,15 @@ int DoStat(FD fileDescriptor, struct FileInfo *info) // *** No - this should tak
 		SendReceiveMessage(FSPort, msg);
 		copyMem(buff, (char *) info, sizeof(struct FileInfo));
 		DeallocMem(buff);
-		retval = 0; //msg->quad;
 		DeallocMem(msg);
+		return 0;
 	}
-	return (retval);
+	return -EBADF;
 }
 
 int DoFStat(FD fileDescriptor, struct FileInfo *info)
 {
-	int retval = -1;
-
-	struct FCB *temp = currentTask->fcbList;
-	while (temp) //->nextFCB)
-	{
-		if (temp->fileDescriptor == fileDescriptor)
-			break;
-		temp = temp->nextFCB;
-	}
+	struct FCB *temp = fdToFCB(fileDescriptor);
 	if (temp)
 	{
 		if (temp->deviceType == KBD || temp->deviceType == CONS)
@@ -250,11 +235,11 @@ int DoFStat(FD fileDescriptor, struct FileInfo *info)
 			SendReceiveMessage(FSPort, msg);
 			copyMem(buff, (char *) info, sizeof(struct FileInfo));
 			DeallocMem(buff);
-			retval = 0; //msg->quad;
 			DeallocMem(msg);
+			return 0;
 		}
 	}
-	return (retval);
+	return -EBADF;
 }
 long DoRead(FD fileDescriptor, char *buffer, long noBytes)
 {
@@ -263,13 +248,7 @@ long DoRead(FD fileDescriptor, char *buffer, long noBytes)
 
 	long retval = 0;
 
-	struct FCB *temp = currentTask->fcbList;
-	while (temp->nextFCB)
-	{
-		if (temp->fileDescriptor == fileDescriptor)
-			break;
-		temp = temp->nextFCB;
-	}
+	struct FCB *temp = fdToFCB(fileDescriptor);
 	if (temp)
 	{
 		if (temp->deviceType == KBD)
@@ -300,13 +279,7 @@ long DoWrite(FD fileDescriptor, char *buffer, long noBytes)
 
 	long retval = 0;
 
-	struct FCB *temp = currentTask->fcbList;
-	while (temp->nextFCB)
-	{
-		if (temp->fileDescriptor == fileDescriptor)
-			break;
-		temp = temp->nextFCB;
-	}
+	struct FCB *temp = fdToFCB(fileDescriptor);
 	if (temp)
 	{
 		if (temp->deviceType == CONS)
@@ -373,7 +346,7 @@ FD DoCreate(unsigned char *s)
 		temp->nextFCB = fcb;
 		return tempID;
 	}
-	return -1;
+	return -ENFILE;
 }
 
 long DoMkDir(unsigned char *s)
@@ -427,29 +400,21 @@ long DoChDir(unsigned char *dirName)
 	return retval;
 }
 
-unsigned char *
-DoGetcwd(void)
+unsigned char *DoGetcwd(void)
 {
 	unsigned char *name = AllocUMem(strlen(currentTask->currentDirName) + 1);
 	strcpy(name, currentTask->currentDirName);
 	return name;
 }
 
-int Do_Seek(FD fileDescriptor, int offset, int whence)
+int DoSeek(FD fileDescriptor, int offset, int whence)
 {
-	long retval = -1;
-
-	struct FCB *temp = currentTask->fcbList;
-	while (temp->nextFCB)
-	{
-		if (temp->fileDescriptor == fileDescriptor)
-			break;
-		temp = temp->nextFCB;
-	}
+	struct FCB *temp = fdToFCB(fileDescriptor);
 	if (temp)
 	{
 		if (temp->deviceType == CONS)
 		{
+			return -EINVAL;
 		}
 		else
 		{
@@ -463,15 +428,43 @@ int Do_Seek(FD fileDescriptor, int offset, int whence)
 			FSMsg->quad2 = (long) offset;
 			FSMsg->quad3 = (long) whence;
 			SendReceiveMessage(FSPort, FSMsg);
-			retval = FSMsg->quad;
+			long retval = FSMsg->quad;
 			DeallocMem(FSMsg);
+			return retval;
 		}
 	}
-	return (retval);
+	return -EBADF;
 }
 
-unsigned char *
-NameToFullPath(unsigned char *name)
+int DoTruncate(FD fileDescriptor, long length)
+{
+	struct FCB *temp = fdToFCB(fileDescriptor);
+	if (temp)
+	{
+		if (temp->deviceType == CONS)
+		{
+			return -EINVAL;
+		}
+		else
+		{
+			struct Message *FSMsg;
+
+			FSMsg = ALLOCMSG;
+
+			FSMsg->nextMessage = 0;
+			FSMsg->byte = TRUNCATE;
+			FSMsg->quad = (long) temp;
+			FSMsg->quad2 = (long) length;
+			SendReceiveMessage(FSPort, FSMsg);
+			long retval = FSMsg->quad;
+			DeallocMem(FSMsg);
+			return retval;
+		}
+	}
+	return -EBADF;
+}
+
+unsigned char *NameToFullPath(unsigned char *name)
 {
 	char *S = AllocKMem(strlen(name) + strlen(currentTask->currentDirName) + 3);
 

@@ -1,10 +1,10 @@
 	.include "../../include/syscalls.inc"
 	
-	.global execve
+	.global sys_execve
 
 	.text
 
-execve:
+sys_execve:
 	push %rcx
 	push %r9
 	push %r11
