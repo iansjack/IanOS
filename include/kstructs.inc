@@ -27,12 +27,13 @@ TS.currentDirName 	= 200		# dq 0
 TS.argv				= 208		# dq 0
 TS.console			= 216		# dq 0
 TS.fcbList			= 224		# dq 0
-TS.pid				= 232		# dw 0
-TS.ds				= 234		# dw 0
-TS.es				= 236		# dw 0
-TS.fs				= 238		# dw 0
-TS.gs				= 240		# dw 0
-TS.ss				= 242		# dw 0
-TS.forking			= 244		# db 0
-TS.waiting			= 245		# db 0	; 0 = free to run, 1 = waiting
-TS.size				= 246
+TS.FDbitmap			= 232		# dq 0
+TS.pid				= 240		# dw 0
+TS.ds				= 242		# dw 0
+TS.es				= 244		# dw 0
+TS.fs				= 246		# dw 0
+TS.gs				= 248		# dw 0
+TS.ss				= 250		# dw 0
+TS.forking			= 252		# db 0
+TS.waiting			= 253		# db 0	; 0 = free to run, 1 = waiting
+TS.size				= 254

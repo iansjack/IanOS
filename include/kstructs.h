@@ -43,6 +43,7 @@ struct Task
 	unsigned char **argv;
 	long console;
 	struct FCB *fcbList;
+	long FDbitmap;
 	unsigned short pid;
 	short int ds;
 	short int es;

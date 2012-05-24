@@ -19,20 +19,29 @@ void PrintClock()
 			sec);
 }
 
+long FindFirstFreeFD()
+{
+	long n;
+	long bitmap = currentTask->FDbitmap;
+
+	for (n = 0; n < sizeof(long); n++)
+		if (!(bitmap & (1 << n)))
+			return n;
+	return -EMFILE;
+}
+
 //===============================================================
 // Convert a file descriptor for the current process to an FCB
 //===============================================================
 struct FCB *fdToFCB(FD fileDescriptor)
 {
 	struct FCB *temp = currentTask->fcbList;
-	while (temp->nextFCB)
+	while (temp)
 	{
 		if (temp->fileDescriptor == fileDescriptor)
 			break;
 		temp = temp->nextFCB;
 	}
-	if (!temp->fileDescriptor == fileDescriptor)
-		return 0;
 	return temp;
 }
 //================================================
@@ -165,25 +174,25 @@ FD DoOpen(unsigned char *s, int flags)
 		msg->byte = CREATEFILE;
 		msg->quad = (long) S;
 		SendReceiveMessage(FSPort, msg);
+		fcb = (struct FCB *) msg->quad;
 	}
-	fcb = (struct FCB *) msg->quad;
 	DeallocMem(S);
 	DeallocMem(msg);
 	if (fcb)
 	{
+		FD fileDescriptor = FindFirstFreeFD();
+		if (fileDescriptor == -EMFILE)
+			return -EMFILE;
+		currentTask->FDbitmap |= 1 << fileDescriptor;
+		fcb->fileDescriptor = fileDescriptor;
 		struct FCB *temp = currentTask->fcbList;
-		int tempID = 1;
-		while (temp->nextFCB && (temp->nextFCB->fileDescriptor == tempID))
-		{
+		while (temp->nextFCB)
 			temp = temp->nextFCB;
-			tempID++;
-		}
-		fcb->nextFCB = temp->nextFCB;
-		fcb->fileDescriptor = tempID;
 		temp->nextFCB = fcb;
-		return tempID;
+		return fileDescriptor;
 	}
-	return -ENOENT;
+	else
+		return -ENOENT;
 }
 
 //=========================================================
@@ -194,13 +203,23 @@ int DoClose(FD fileDescriptor)
 	struct FCB *temp = fdToFCB(fileDescriptor);
 	if (temp)
 	{
+		currentTask->FDbitmap &= ~(1 << temp->fileDescriptor);
+		struct FCB *temp2 = currentTask->fcbList;
+		if (temp2 == temp)
+			currentTask->fcbList = currentTask->fcbList->nextFCB;
+		else
+		{
+			while (temp2->nextFCB != temp)
+				temp2 = temp2->nextFCB;
+			temp2->nextFCB = temp->nextFCB;
+		}
 		if (temp->deviceType == KBD || temp->deviceType == CONS)
 			return 0;
 		struct Message *msg = ALLOCMSG;
 
 		msg->nextMessage = 0;
 		msg->byte = CLOSEFILE;
-		msg->quad = (long) temp /*fHandle */;
+		msg->quad = (long) temp;
 		SendReceiveMessage(FSPort, msg);
 		DeallocMem(msg);
 		return 0;
@@ -348,18 +367,16 @@ FD DoCreate(unsigned char *s)
 	struct FCB *fcb = (struct FCB *) retval;
 	if (fcb)
 	{
+		FD fileDescriptor = FindFirstFreeFD();
+		if (fileDescriptor == -EMFILE)
+			return -EMFILE;
+		currentTask->FDbitmap |= 1 << fileDescriptor;
+		fcb->fileDescriptor = fileDescriptor;
 		struct FCB *temp = currentTask->fcbList;
-		int tempID = 1;
-		while (temp->nextFCB && (temp->nextFCB->fileDescriptor == tempID))
-		{
+		while (temp->nextFCB)
 			temp = temp->nextFCB;
-			tempID++;
-		}
-		fcb->nextFCB = temp->nextFCB;
-		fcb->fileDescriptor = tempID;
-		fcb->deviceType = FILE;
 		temp->nextFCB = fcb;
-		return tempID;
+		return fileDescriptor;
 	}
 	return -ENFILE;
 }
@@ -418,7 +435,7 @@ long DoChDir(unsigned char *dirName)
 unsigned char *DoGetcwd(char *name, long length)
 {
 	if (length < strlen(currentTask->currentDirName))
-		return (unsigned char *)-ERANGE;
+		return (unsigned char *) -ERANGE;
 	strcpy(name, currentTask->currentDirName);
 	return name;
 }

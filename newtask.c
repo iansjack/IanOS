@@ -74,6 +74,7 @@ long DoFork()
 	fcberr->deviceType = CONS;
 	fcbout->nextFCB = fcberr;
 	fcberr->nextFCB = 0;
+	task->FDbitmap = 7;
 
 	// Run the forked process
 	asm("cli");

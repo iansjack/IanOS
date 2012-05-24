@@ -5,15 +5,15 @@
 
 int main(int argc, char **argv)
 {
-//	int test = open("TEST.TXT", O_RDWR);
-//	printf("%d\n", test);
-//	if (test != -1)
-//	{
-//		printf("Truncating file.\n");
-//		sys_truncate(test, 10);
-//		close(test);
-//	}
-	int test = open("newfile", O_RDWR | O_CREAT);
+	int test = open("TEST.TXT", O_RDWR);
+	printf("%d\n", test);
+	if (test != -1)
+	{
+		printf("Truncating file.\n");
+		sys_truncate(test, 10);
+		close(test);
+	}
+	test = open("newfile", O_RDWR | O_CREAT);
 	printf("%d\n", test);
 	if (test == -1)
 		printf("%d\n", errno);
