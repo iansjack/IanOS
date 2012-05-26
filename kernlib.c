@@ -301,7 +301,7 @@ long DoRead(FD fileDescriptor, char *buffer, long noBytes)
 			return (1);
 		}
 		else
-			ReadFromFile(temp, buffer, noBytes);
+			retval = ReadFromFile(temp, buffer, noBytes);
 	}
 	return (retval);
 }

@@ -254,8 +254,7 @@ void CreateVDirectory(void)
 // Given a full path return a pointer to the name part
 // Note that this function does not allocate any memory
 //============================================================
-unsigned char *
-GetFilename(unsigned char *fullpath)
+unsigned char *GetFilename(unsigned char *fullpath)
 {
 	int i = strlen(fullpath);
 	while (fullpath[i] != '/')
@@ -298,8 +297,7 @@ int NameToDirName(char *name, char *dirname)
 // Convert filename as Directory Entry form to a string
 //      Returns a pointer to the string
 //==========================================================
-unsigned char *
-DirNameToName(unsigned char dirname[11])
+unsigned char *DirNameToName(unsigned char dirname[11])
 {
 	char name[12];
 	short int i = 0;
@@ -487,8 +485,7 @@ FindEmptyDirectorySlot(struct DirEntry *directory, struct vDirNode *dir)
 // Returns 1 on success
 //       0 if file cannot be created
 //======================================
-struct FCB *
-CreateFile(unsigned char *name, unsigned short pid)
+struct FCB *CreateFile(unsigned char *name, unsigned short pid)
 {
 	// If the file already exist, exit
 	if (FindFile(name))
@@ -525,6 +522,7 @@ CreateFile(unsigned char *name, unsigned short pid)
 		fHandle->fileCursor = fHandle->bufCursor = fHandle->bufIsDirty = 0;
 		fHandle->length = 0;
 		fHandle->filebuf = ReadSector(fHandle->startSector);
+		fHandle->nextSector = fHandle->startSector + 1;
 		fHandle->sectorInCluster = 1;
 		return (fHandle);
 	}
@@ -537,8 +535,7 @@ CreateFile(unsigned char *name, unsigned short pid)
 // Returns fHandle on success.
 //       0 if file does not exist
 //===================================================================
-struct FCB *
-OpenFile(unsigned char *name, unsigned short pid)
+struct FCB *OpenFile(unsigned char *name, unsigned short pid)
 {
 	struct FCB *fHandle = AllocKMem(sizeof(struct FCB));
 
@@ -699,7 +696,7 @@ long ReadFile(struct FCB *fHandle, char *buffer, long noBytes)
 				break;
 		}
 		if (fHandle->fileCursor == fHandle->length)
-			return(bytesRead);
+			return (bytesRead);
 
 		// If we have read past the end of the buffer we need to load the
 		// next sector into the buffer.
@@ -761,6 +758,7 @@ long WriteFile(struct FCB *fHandle, char *buffer, long noBytes)
 				fHandle->nextSector = ClusterToSector(fHandle->currentCluster);
 				fHandle->sectorInCluster = 1;
 			}
+			fHandle->filebuf = ReadSector(fHandle->nextSector);
 			fHandle->bufCursor = 0;
 			fHandle->nextSector++;
 		}

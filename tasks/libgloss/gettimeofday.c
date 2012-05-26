@@ -1,4 +1,9 @@
+#include <errno.h>
+#undef errno
+extern int errno;
+
 int gettimeofday(int mode)
 {
-	return 0;
+	errno = EPERM;
+	return -1;
 }
