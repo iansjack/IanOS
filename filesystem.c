@@ -738,7 +738,9 @@ long WriteFile(struct FCB *fHandle, char *buffer, long noBytes)
 			fHandle->filebuf[fHandle->bufCursor] = buffer[bytesWritten];
 			fHandle->bufIsDirty = 1;
 			bytesWritten++;
-			fHandle->length++;
+			fHandle->fileCursor++;
+			if (fHandle->fileCursor > fHandle->length)
+				fHandle->length++;
 			fHandle->bufCursor++;
 		}
 
@@ -886,6 +888,8 @@ long CreateDir(unsigned char *name, unsigned short pid)
 
 int Seek(struct FCB *fHandle, int offset, int whence)
 {
+	long currPos = fHandle->fileCursor;
+
 	switch (whence)
 	{
 	case SEEK_SET:
@@ -905,20 +909,16 @@ int Seek(struct FCB *fHandle, int offset, int whence)
 	}
 
 	if (fHandle->fileCursor < 0)
-	{
 		fHandle->fileCursor = 0;
-		offset = 0;
-	}
 
 	if (fHandle->fileCursor > fHandle->length)
-	{
-		fHandle->fileCursor = fHandle->length;
-		offset = fHandle->length;
-	}
+		fHandle->length = fHandle->fileCursor;
 
 	fHandle->bufCursor = fHandle->fileCursor;
 	fHandle->currentCluster = fHandle->startCluster;
 	fHandle->sectorInCluster = 1;
+	fHandle->nextSector = ClusterToSector(fHandle->currentCluster) + 1;
+	fHandle->filebuf = ReadSector(ClusterToSector(fHandle->currentCluster));
 
 	while (fHandle->bufCursor > BytesPerSector)
 	{
@@ -939,7 +939,7 @@ int Seek(struct FCB *fHandle, int offset, int whence)
 		fHandle->filebuf = ReadSector(fHandle->nextSector);
 		fHandle->nextSector++;
 	}
-	return offset;
+	return fHandle->fileCursor;
 }
 
 Truncate(struct FCB *fileHandle, long length)
