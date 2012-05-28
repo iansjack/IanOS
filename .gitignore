@@ -8,10 +8,12 @@ linkmap
 *.fdd
 *.hdd
 *.vfd
+*.lst
 tasks/task?
 tasks/cat
 tasks/pwd
 tasks/ls
 tasks/edit
 tasks/sh
+tasks/rm
 .settings/

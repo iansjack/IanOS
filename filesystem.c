@@ -321,8 +321,7 @@ unsigned char *DirNameToName(unsigned char dirname[11])
 //============================================================================
 // Find virtual directory node of a file. If not found return 0.
 //============================================================================
-struct vDirNode *
-FindDirectory(unsigned char *fullpath)
+struct vDirNode *FindDirectory(unsigned char *fullpath)
 {
 	if (fullpath[0] == '/')
 		fullpath++;
@@ -352,8 +351,7 @@ FindDirectory(unsigned char *fullpath)
 // Find the directory entry for the file whose name is pointed to by "name".
 // Return the address of the directory entry, or 0 on failure. 
 //===========================================================================
-struct DirEntry *
-FindFile(unsigned char *name)
+struct DirEntry *FindFile(unsigned char *name)
 {
 	struct DirEntry *buffer;
 	struct DirEntry *entry;
@@ -378,9 +376,8 @@ FindFile(unsigned char *name)
 // Returns the the buffer of the sector containing the directory entry, or 0 if not found.
 // Sets sector to the sector number of the entry, entryOffset to the offset to the entry.
 //======================================================================================================
-struct DirEntry *
-FindFileDirectorySector(unsigned char *filename, struct vDirNode *directory,
-		int *sector, int *entryOffset)
+struct DirEntry *FindFileDirectorySector(unsigned char *filename,
+		struct vDirNode *directory, int *sector, int *entryOffset)
 {
 	*sector = 0;
 	unsigned char *dirName = 0;
@@ -450,8 +447,8 @@ int FindFreeCluster(void)
 // Returns a pointer to the zero-filled entry, or 0 on failure
 // Buffer will contain the sector of the directory containing the entry
 //======================================================================
-struct DirEntry *
-FindEmptyDirectorySlot(struct DirEntry *directory, struct vDirNode *dir)
+struct DirEntry *FindEmptyDirectorySlot(struct DirEntry *directory,
+		struct vDirNode *dir)
 {
 	if (dir)
 	{
@@ -547,6 +544,7 @@ struct FCB *OpenFile(unsigned char *name, unsigned short pid)
 		fHandle->dir = 0;
 		fHandle->currentCluster = 0;
 		fHandle->startSector = RootDir;
+		fHandle->currentSector = RootDir;
 		fHandle->startCluster = 0;
 		fHandle->fileCursor = fHandle->bufCursor = fHandle->bufIsDirty = 0;
 		fHandle->length = 512;
@@ -565,6 +563,7 @@ struct FCB *OpenFile(unsigned char *name, unsigned short pid)
 			fHandle->dir = FindDirectory(name);
 			fHandle->currentCluster = entry->startingCluster;
 			fHandle->startSector = ClusterToSector(entry->startingCluster);
+			fHandle->currentSector = fHandle->startSector;
 			fHandle->startCluster = entry->startingCluster;
 			fHandle->fileCursor = fHandle->bufCursor = fHandle->bufIsDirty = 0;
 			if (entry->attribute & 0x10)
@@ -704,9 +703,7 @@ long ReadFile(struct FCB *fHandle, char *buffer, long noBytes)
 		{
 			if (fHandle->bufIsDirty)
 			{
-				WriteSector(
-						ClusterToSector(fHandle->currentCluster)
-								+ fHandle->sectorInCluster - 1);
+				WriteSector(fHandle->currentSector);
 				FlushSectorBuffers(sectorBuffers);
 			}
 			if (fHandle->sectorInCluster++ == SectorsPerCluster)
@@ -717,7 +714,7 @@ long ReadFile(struct FCB *fHandle, char *buffer, long noBytes)
 			}
 			fHandle->filebuf = ReadSector(fHandle->nextSector);
 			fHandle->bufCursor = 0;
-			fHandle->nextSector++;
+			fHandle->currentSector = fHandle->nextSector++;
 		}
 	}
 	return (bytesRead);
@@ -747,10 +744,8 @@ long WriteFile(struct FCB *fHandle, char *buffer, long noBytes)
 		// If we have written past the end of the buffer we need to flush the sector to the disk
 		if ((fHandle->bufCursor == 512) && (bytesWritten < noBytes))
 		{
-			WriteSector(
-					ClusterToSector(fHandle->currentCluster)
-							+ fHandle->sectorInCluster - 1);
-			if (fHandle->sectorInCluster++ > SectorsPerCluster)
+			WriteSector(fHandle->currentSector);
+			if (fHandle->sectorInCluster++ == SectorsPerCluster)
 			{
 				// Allocate another cluster
 				int freeCluster = FindFreeCluster();
@@ -762,9 +757,10 @@ long WriteFile(struct FCB *fHandle, char *buffer, long noBytes)
 			}
 			fHandle->filebuf = ReadSector(fHandle->nextSector);
 			fHandle->bufCursor = 0;
-			fHandle->nextSector++;
+			fHandle->currentSector = fHandle->nextSector++;
 		}
 	}
+	WriteSector(fHandle->currentSector);
 	FlushSectorBuffers(sectorBuffers);
 	return (bytesWritten);
 }
@@ -895,15 +891,12 @@ int Seek(struct FCB *fHandle, int offset, int whence)
 	case SEEK_SET:
 		fHandle->fileCursor = offset;
 		break;
-
 	case SEEK_CUR:
 		fHandle->fileCursor += offset;
 		break;
-
 	case SEEK_END:
 		fHandle->fileCursor = fHandle->length + offset;
 		break;
-
 	default:
 		return -1;
 	}
@@ -917,27 +910,30 @@ int Seek(struct FCB *fHandle, int offset, int whence)
 	fHandle->bufCursor = fHandle->fileCursor;
 	fHandle->currentCluster = fHandle->startCluster;
 	fHandle->sectorInCluster = 1;
-	fHandle->nextSector = ClusterToSector(fHandle->currentCluster) + 1;
-	fHandle->filebuf = ReadSector(ClusterToSector(fHandle->currentCluster));
+	fHandle->currentSector = fHandle->startSector;
+	fHandle->nextSector = fHandle->startSector + 1;
+	fHandle->filebuf = ReadSector(fHandle->startSector);
 
+	// Find the appropriate sector
 	while (fHandle->bufCursor > BytesPerSector)
 	{
 		fHandle->bufCursor -= BytesPerSector;
-		if (fHandle->bufIsDirty)
-		{
-			WriteSector(
-					ClusterToSector(fHandle->currentCluster)
-							+ fHandle->sectorInCluster - 1);
-			FlushSectorBuffers(sectorBuffers);
-		}
 		if (fHandle->sectorInCluster++ == SectorsPerCluster)
 		{
-			fHandle->currentCluster = GetFATEntry(fHandle->currentCluster);
-			fHandle->nextSector = ClusterToSector(fHandle->currentCluster);
+			unsigned short nextCluster = GetFATEntry(fHandle->currentCluster);
+			// If the previous cluster was the last in the file assign a new one
+			if (nextCluster == -1)
+			{
+				nextCluster = FindFreeCluster();
+				PutFATEntry(fHandle->currentCluster, nextCluster);
+				PutFATEntry(nextCluster, 0xFFFF);
+			}
+			fHandle->currentCluster = nextCluster;
+			fHandle->nextSector = ClusterToSector(nextCluster);
 			fHandle->sectorInCluster = 1;
 		}
-		fHandle->filebuf = ReadSector(fHandle->nextSector);
-		fHandle->nextSector++;
+		fHandle->currentSector = fHandle->nextSector++;
+		fHandle->filebuf = ReadSector(fHandle->currentSector);
 	}
 	return fHandle->fileCursor;
 }

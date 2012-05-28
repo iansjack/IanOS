@@ -5,14 +5,10 @@
 
 int main(int argc, char **argv)
 {
-	int test = open("TEST.S", O_RDWR);
-	printf("%d\n", test);
+	int test = open("KERNLIB.C", O_RDWR);
 	if (test != -1)
 	{
-		char buffer[60];
-		int ret = read(test, buffer, 20);
-		printf("%d bytes read.\n", ret);
-		printf("%s\n", buffer);
+		lseek(test, 1028, 0);
 		close(test);
 	}
 	return (0);

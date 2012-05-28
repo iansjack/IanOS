@@ -89,6 +89,7 @@ struct FCB
 	struct DirEntry *dirEntry; // A pointer to the directory entry for this file
 	struct vDirNode *dir; // A pointer to the vDirNode of the directory this file is in
 	unsigned long startSector;
+	unsigned long currentSector;
 	unsigned long nextSector;
 	unsigned long sectorInCluster;
 	unsigned long fileCursor;
