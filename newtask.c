@@ -257,7 +257,6 @@ void NewLowPriTask(void *TaskCode)
 {
 	lowPriTask = NewKernelTask(TaskCode);
 	runnableTasks = RemoveFromTaskList(runnableTasks, lowPriTask);
-	lowPriTask->nexttask = (struct Task *) 0;
 }
 
 //=======================

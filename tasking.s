@@ -27,7 +27,6 @@ TaskSwitch:
 	pop  %rdx
 	pop  %rax
 # Is there another task ready to run?
-.nexttask:
 	mov  runnableTasks, %r15
 	cmp  $0, %r15
 	je	.loPri

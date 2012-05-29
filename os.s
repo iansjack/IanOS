@@ -42,7 +42,6 @@ start64:
 	mov %rax, initialCR3
 	call InitMem64
 	mov currentTask, %r15
-	movq $0, TS.nexttask(%r15)
 	movq %r15, TS.r15(%r15)
 	movb $0, TS.waiting(%r15)          	# We don't want task1 to be waiting when it starts
 	movq $UserData, TS.firstfreemem(%r15)

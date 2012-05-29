@@ -123,18 +123,13 @@ HdInt:	PUSH_ALL
 	mov  blockedTasks, %r15
 .again2:
 	cmpb $HDINT, TS.waiting(%r15)
-	jne  .goon
+	jne  .done2
 	movb $0, TS.waiting(%r15)
 	mov  %r15, %rdi
 	PUSH_ALL
 	call UnBlockTask
 	POP_ALL
 	SWITCH_TASKS
-	jmp  .done2
-.goon:
-	mov  TS.nexttask(%r15), %r15
-	cmpq $0, %r15
-	jne  .again2
 .done2:
 	POP_ALL
 	iretq
@@ -249,9 +244,9 @@ pf:
 	and $2, 0x40(%rsp)		# Test the error code for write to non-present page
 	jz notnp
 	sub %rax, %rbp			# Test to see if the faulting address is
-	cmp $0, %rbp			# within a page of the stack pointer
+	cmp $0, %rbp			# within sixteen pages of the stack pointer
 	jl notnp
-	cmp $0x1000, %rbp
+	cmp $0x10000, %rbp
 	jg notnp
 	mov %rax, %rdi
 	mov  currentTask, %r15

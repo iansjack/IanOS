@@ -14,7 +14,6 @@ typedef int FD;
 
 struct Task
 {
-	struct Task *nexttask;
 	long rax;
 	long rbx;
 	long rcx;
@@ -35,7 +34,6 @@ struct Task
 	long cr3;
 	long firstdata;
 	long firstfreemem;
-	long nextpage;
 	long timer;
 	char *environment;
 	struct MessagePort *parentPort;
