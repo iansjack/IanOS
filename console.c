@@ -149,10 +149,10 @@ void PrintChar(unsigned char c, long console)
 	Position_Cursor(currCons->row, currCons->column);
 }
 
-void ProcessChar(unsigned char c)
+void ProcessChar(unsigned char c, long console)
 {
 	int n1, n2;
-	long console = PidToTask(ConsoleMsg.pid)->console;
+//	long console = PidToTask(ConsoleMsg.pid)->console;
 
 	switch (Mode)
 	{
@@ -322,12 +322,13 @@ void consoleTaskCode()
 		switch (ConsoleMsg.byte)
 		{
 		case WRITECHAR:
-			ProcessChar((unsigned char) ConsoleMsg.quad);
+			ProcessChar((unsigned char) ConsoleMsg.quad, ConsoleMsg.quad2);
 			break;
 
 		case WRITESTR:
 			s = (unsigned char *) ConsoleMsg.quad;
-			while (*s != 0)	ProcessChar(*s++);
+			long console = ConsoleMsg.quad2;
+			while (*s != 0)	ProcessChar(*s++, console);
 			DeallocMem((void *) ConsoleMsg.quad);
 			break;
 
