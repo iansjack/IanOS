@@ -117,18 +117,6 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 	// Allocate the base page for the Page Table
 	struct PML4 *pml4 = (struct PML4 *) AllocPage(pid);
 
-	// A Page for user code memory entries
-//	VIRT(PD,GetPD(pml4, UserCode, pid))->entries[GetPDIndex(UserCode)].value =
-//			(long) AllocPage(pid) | P | RW | US;
-	// A Page for user data memory entries
-//	VIRT(PD,GetPD(pml4, UserData, pid))->entries[GetPDIndex(UserData)].value =
-//			(long) AllocPage(pid) | P | RW | US;
-	// A Page for user stack memory entries
-//	VIRT(PD,GetPD(pml4, UserStack, pid))->entries[GetPDIndex(UserStack)].value =
-//			(long) AllocPage(pid) | P | RW | US;
-	// A Page for kernel memory entries
-//	VIRT(PD,GetPD(pml4, KernelStack, pid))->entries[GetPDIndex(KernelStack)].value =
-//			(long) AllocPage(pid) | P | RW;
 	VIRT(PML4,pml4)->entries[GetPML4Index(VAddr)].value = virtualPDP | P | RW; // Physical to virtual addresses
 	struct PD *pd = GetPD(pml4, 0, pid);
 	VIRT(PD,pd)->entries[GetPDIndex(0)].value = kernelPT | P | RW; // Kernel entries

@@ -884,8 +884,6 @@ long CreateDir(unsigned char *name, unsigned short pid)
 
 int Seek(struct FCB *fHandle, int offset, int whence)
 {
-	long currPos = fHandle->fileCursor;
-
 	switch (whence)
 	{
 	case SEEK_SET:

@@ -60,8 +60,6 @@ KbInt:
 #================
 TimerInt:
 	PUSH_ALL
-	mov  $0x20, %al
-	out  %al, $0x20
 	incq Ticks
 	# Check for tasks waiting on timer
 	mov  blockedTasks, %rbx
@@ -107,8 +105,12 @@ nosecupdate:
 	movb $10, TimeSliceCount
 	cmp $0, canSwitch
 	jnz .tdone
+	mov  $0x20, %al		# Clear int
+	out  %al, $0x20
 	SWITCH_TASKS
 .tdone:
+	mov  $0x20, %al		#Clear int
+	out  %al, $0x20
 	POP_ALL
 	iretq
 
@@ -117,9 +119,6 @@ nosecupdate:
 #=====================
 HdInt:	PUSH_ALL
 .istaskwaiting:
-	mov  $0x20, %al
-	out  %al, $0x20
-	out  %al, $0xA0
 	mov  blockedTasks, %r15
 .again2:
 	cmpb $HDINT, TS.waiting(%r15)
@@ -128,9 +127,15 @@ HdInt:	PUSH_ALL
 	mov  %r15, %rdi
 	PUSH_ALL
 	call UnBlockTask
+	mov  $0x20, %al
+	out  %al, $0x20
+	out  %al, $0xA0
 	POP_ALL
 	SWITCH_TASKS
 .done2:
+	mov  $0x20, %al
+	out  %al, $0x20
+	out  %al, $0xA0
 	POP_ALL
 	iretq
 
