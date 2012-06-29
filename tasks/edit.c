@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #define ctrl(x) x - 0x40
 #define ESC	27
@@ -121,26 +122,16 @@ int main(int argc, char **argv)
 
 	if (argc == 2)
 	{
-		file = open(argv[1]);
-		if (file != -1)
-		{
-			ReadFile(file);
-			windowStart = lines;
-			RedrawScreen();
-		}
-		else
-		{
-			lines = malloc(sizeof(struct line));
-			lines->next = 0;
-			lines->prev = 0;
-			lines->lineno = 0;
-			lines->line = malloc(80);
-		}
+		file = open(argv[1], 0x200 /*O_CREAT*/);
+		ReadFile(file);
+		windowStart = lines;
+		RedrawScreen();
 		currline = lines;
 	}
 	int done = 0;
 	PrintStatusLine();
-	CLRBUFF;
+	CLRBUFF
+	;
 	char c;
 	if (currline->line)
 		strcpy(currentLineBuffer, currline->line);
@@ -187,7 +178,8 @@ int main(int argc, char **argv)
 				temp->line = malloc(1);
 				temp->line[0] = 0;
 			}
-			CLRBUFF;
+			CLRBUFF
+			;
 			strcpy(currentLineBuffer, temp->line);
 			// Reset all the counters and reposition the cursor
 			column = 0;
@@ -203,7 +195,8 @@ int main(int argc, char **argv)
 				currline->line = malloc(strlen(currentLineBuffer) + 1);
 				strcpy(currline->line, currentLineBuffer);
 				currline = currline->prev;
-				CLRBUFF;
+				CLRBUFF
+				;
 				if (currline->line)
 					strcpy(currentLineBuffer, currline->line);
 				if (column > strlen(currentLineBuffer))
@@ -225,7 +218,8 @@ int main(int argc, char **argv)
 				currline->line = malloc(strlen(currentLineBuffer) + 1);
 				strcpy(currline->line, currentLineBuffer);
 				currline = currline->next;
-				CLRBUFF;
+				CLRBUFF
+				;
 				if (currline->line)
 					strcpy(currentLineBuffer, currline->line);
 				if (column > strlen(currentLineBuffer))
@@ -287,10 +281,7 @@ int main(int argc, char **argv)
 // Clear the screen
 	printf("%c[2J", ESC);
 	fflush(stdout);
-	if (file != -1)
-		sys_truncate(file, 0);
-	else
-		file = creat(argv[1]);
+	sys_truncate(file, 0);
 	currline = lines;
 	if (file)
 	{

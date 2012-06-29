@@ -357,4 +357,3 @@ Sys_Truncate:
 	call DoTruncate
 	pop %rcx
 	sysretq
-

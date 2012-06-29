@@ -30,6 +30,7 @@
 								<option id="gnu.c.compiler.option.include.paths.1097934719" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/IanOS/include}&quot;"/>
 									<listOptionValue builtIn="false" value="/usr/local/cross/x86_64-elf/include"/>
+									<listOptionValue builtIn="false" value="/usr/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1869188685" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -63,4 +64,5 @@
 		</scannerConfigBuildInfo>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
+	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 </cproject>

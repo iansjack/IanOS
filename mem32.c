@@ -40,13 +40,13 @@ void InitMemManagement()
 	nPagesFree--;
 
 	// Kernel Memory
-	for (count = 1; count < 0x12; count++)
+	for (count = 1; count < 0x13; count++)
 	{
 		PMap[count] = 1;
 		nPagesFree--;
 	}
 
-	firstFreePage = 0x12;
+	firstFreePage = 0x13;
 
 	// EBDA
 	PMap[0x9E] = PMap[0x9F] = 1;

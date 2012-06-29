@@ -7,7 +7,6 @@
 
 char getchar();
 void send(struct Message *msg);
-long GetDirectoryEntry(int n, struct DirEntry *entry);
 int printf(unsigned char *s, ...);
 int intToAsc(int i, char *buffer, int len);
 int intToHAsc(int i, char *buffer, int len);

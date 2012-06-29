@@ -88,6 +88,7 @@ TimerInt:
 	jne nosecupdate
 	movb $0, tenths
 	incb sec
+	incq unixtime
 	cmp $60, sec
 	jl noupdate
 	movb $0, sec

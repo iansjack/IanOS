@@ -1,6 +1,8 @@
+#include <linux/types.h>
 #include <kernel.h>
 #include <filesystem.h>
 #include <errno.h>
+#include "blocks.h"
 
 struct Task *
 NewKernelTask(void *TaskCode);
@@ -105,9 +107,9 @@ long DoExec(char *name, char *environment)
 	long argc;
 	long argv;
 
-	char *kname = AllocKMem(strlen(name) + 6); // Enough space for "/BIN" + name
+	char *kname = AllocKMem(strlen(name) + 6); // Enough space for "/bin" + name
 
-	strcpy(kname, "/BIN/");
+	strcpy(kname, "/bin/");
 	strcat(kname, name);
 
 	struct Message *FSMsg = ALLOCMSG;
@@ -156,7 +158,6 @@ long DoExec(char *name, char *environment)
 
 		// Load the user data
 		int bytesRead = ReadFromFile(fHandle, (char *) UserData, datalen);
-		Debug();
 
 		// Zero the rest of the data segment
 		char *temp = (char *)(UserData + bytesRead);

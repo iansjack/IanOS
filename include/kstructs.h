@@ -81,27 +81,6 @@ struct clusterListEntry
 	unsigned short cluster;
 };
 
-struct FCB
-{
-	struct FCB *nextFCB;
-	struct DirEntry *dirEntry; // A pointer to the directory entry for this file
-	struct vDirNode *dir; // A pointer to the vDirNode of the directory this file is in
-	unsigned long startSector;
-	unsigned long currentSector;
-	unsigned long nextSector;
-	unsigned long sectorInCluster;
-	unsigned long fileCursor;
-	unsigned char *filebuf;
-	long pid;
-	FD fileDescriptor;
-	unsigned int length;
-	unsigned short currentCluster;
-	unsigned short startCluster;
-	unsigned short bufCursor;
-	unsigned char bufIsDirty; // 0 = clean, 1 = dirty
-	unsigned char deviceType;
-};
-
 struct Console
 {
 	unsigned char *kbBuffer;

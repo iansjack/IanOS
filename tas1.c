@@ -10,6 +10,6 @@ void tas1(void)
 
 	long pid = fork();
 	if (!pid)
-		execve("SH", "SH");
+		execve("sh", "sh");
 	exit();
 }

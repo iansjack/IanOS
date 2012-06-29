@@ -2,6 +2,9 @@
 #include <filesystem.h>
 #include <console.h>
 #include <sys/errno.h>
+#include <linux/types.h>
+#include <time.h>
+#include "blocks.h"
 
 #define O_CREAT	0x0200
 
@@ -10,13 +13,29 @@ extern struct MessagePort *FSPort;
 extern struct MessagePort *KbdPort;
 extern struct MessagePort *ConsolePort;
 
-extern long sec, min, hour, day, month, year;
+extern long sec, min, hour, day, month, year, unixtime;
 
 void PrintClock()
 {
 	kprintf(0, 63, "                 ");
-	kprintf(0, 63, "%2d/%02d/%02d %2d:%02d:%02d", day, month, year, hour, min,
-			sec);
+//	kprintf(0, 63, "%2d/%02d/%02d %2d:%02d:%02d", day, month, year, hour, min,
+//			sec);
+	kprintf(0, 63, "%d", unixtime);
+}
+
+void setclock()
+{
+	struct tm tm;
+	tm.tm_sec = sec;
+	tm.tm_min = min;
+	tm.tm_hour = hour;
+	tm.tm_mday = day;
+	tm.tm_mon = month - 1;
+	tm.tm_year = year + 100;
+	tm.tm_isdst = -1;
+	tm.tm_gmtoff = 0;
+	Debug();
+	unixtime = mktime(&tm);
 }
 
 long FindFirstFreeFD()
@@ -168,7 +187,7 @@ FD DoOpen(unsigned char *s, int flags)
 	msg->quad = (long) S;
 	SendReceiveMessage(FSPort, msg);
 	fcb = (struct FCB *) msg->quad;
-	if (!fcb && (flags & O_CREAT))
+	if (((long)fcb < 0) && (flags & O_CREAT))
 	{
 		msg->nextMessage = 0;
 		msg->byte = CREATEFILE;
@@ -178,7 +197,7 @@ FD DoOpen(unsigned char *s, int flags)
 	}
 	DeallocMem(S);
 	DeallocMem(msg);
-	if (fcb)
+	if (fcb > 0)
 	{
 		FD fileDescriptor = FindFirstFreeFD();
 		if (fileDescriptor == -EMFILE)
@@ -192,7 +211,7 @@ FD DoOpen(unsigned char *s, int flags)
 		return fileDescriptor;
 	}
 	else
-		return -ENOENT;
+		return (long) fcb;
 }
 
 //=========================================================
@@ -227,25 +246,27 @@ int DoClose(FD fileDescriptor)
 	return -EBADF;
 }
 
-int DoStat(FD fileDescriptor, struct FileInfo *info) // *** No - this should take a filename!!!
+int DoStat(char *path, struct FileInfo *info) // *** No - this should take a filename!!!
 {
-	struct FCB *temp = fdToFCB(fileDescriptor);
-	if (temp)
-	{
-		struct Message *msg = ALLOCMSG;
-		char *buff = (char *) AllocKMem(sizeof(struct FileInfo));
+	unsigned char *S = NameToFullPath(path);
+	struct Message *msg = ALLOCMSG;
+	char *buff = (char *) AllocKMem(sizeof(struct FileInfo));
 
-		msg->nextMessage = 0;
-		msg->byte = GETFILEINFO;
-		msg->quad = (long) temp;
-		msg->quad2 = (long) buff;
-		SendReceiveMessage(FSPort, msg);
+	msg->nextMessage = 0;
+	msg->byte = GETFILEINFO;
+	msg->quad = (long) S;
+	msg->quad2 = (long) buff;
+	SendReceiveMessage(FSPort, msg);
+	int retval = -ENOENT;
+	if (msg->quad)
+	{
+		retval = 0;
 		copyMem(buff, (char *) info, sizeof(struct FileInfo));
-		DeallocMem(buff);
-		DeallocMem(msg);
-		return 0;
 	}
-	return -EBADF;
+	DeallocMem(buff);
+	DeallocMem(S);
+	DeallocMem(msg);
+	return retval;
 }
 
 int DoFStat(FD fileDescriptor, struct FileInfo *info)
@@ -263,7 +284,7 @@ int DoFStat(FD fileDescriptor, struct FileInfo *info)
 			char *buff = (char *) AllocKMem(sizeof(struct FileInfo));
 
 			msg->nextMessage = 0;
-			msg->byte = GETFILEINFO;
+			msg->byte = GETFFILEINFO;
 			msg->quad = (long) temp;
 			msg->quad2 = (long) buff;
 			SendReceiveMessage(FSPort, msg);
@@ -411,7 +432,7 @@ long DoDelete(unsigned char *name)
 
 long DoChDir(unsigned char *dirName)
 {
-	int retval = -1;
+	int retval = -ENOENT;
 
 	unsigned char *S = NameToFullPath(dirName);
 	struct Message *msg = ALLOCMSG;
@@ -668,7 +689,193 @@ int kprintf(int row, int column, unsigned char *s, ...)
 			}
 			i++;
 		}
-	}va_end(ap);
+	}
+	va_end(ap);
 	KWriteString(sprocessed, row, column);
 	return 0;
 }
+
+char *strrchr(char *string, char delimiter)
+{
+	int n = strlen(string);
+	int i;
+	for (i = n - 1; i >= 0; i--)
+		if (string[i] == delimiter)
+			break;
+	return string + i;
+}
+
+memset(char *address, char value, int len)
+{
+	int i;
+	for (i = 0; i < len; i++)
+		address[i] = value;
+}
+
+memcpy(char *dest, char *source, int len)
+{
+	int i;
+	for (i = 0; i < len; i++)
+		dest[i] = source[i];
+}
+
+long strspn(char *s1, char *s2)
+{
+	long ret = 0;
+	while (*s1 && strchr(s2, *s1++))
+		ret++;
+	return ret;
+}
+
+long strcspn(char *s1, char *s2)
+{
+	long ret = 0;
+	while (*s1)
+		if (strchr(s2, *s1))
+			return ret;
+		else
+			s1++, ret++;
+	return ret;
+}
+char *strtok(char * str, char * delim)
+{
+	static char* p = 0;
+	if (str)
+		p = str;
+	else if (!p)
+		return 0;
+	str = p + strspn(p, delim);
+	p = str + strcspn(str, delim);
+	if (p == str)
+		return p = 0;
+	p = *p ? *p = 0, p + 1 : 0;
+	return str;
+}
+
+//==================================================================
+// Finds first occurrence of c in string.
+// Returns pointer to that occurrence or 0 if not found
+//==================================================================
+unsigned char *strchr(unsigned char *string, unsigned char c)
+{
+	long i = 0;
+	while (string[i])
+	{
+		if (string[i] == c)
+			return string + i;
+		i++;
+	}
+	return 0;
+}
+
+//================================================================
+// Returns the length of string
+//================================================================
+long strlen(unsigned char *string)
+{
+	int i = 0;
+	while (string[i++])
+		;
+	return i - 1;
+}
+
+//===============================================================
+// Compares s1 and s2 up to length characters.
+// Returns 0 if they are equal, non-zero otherwise.
+//===============================================================
+long strncmp(unsigned char *s1, unsigned char *s2, long length)
+{
+	long count;
+	short done = 0;
+
+	for (count = 0; count < length; count++)
+	{
+		if (s1[count] != s2[count])
+		{
+			done = 1;
+			break;
+		}
+	}
+	if (done)
+		return (1);
+	else
+		return (0);
+}
+
+//=======================================================
+// Copy null-terminates string s1 to s2
+//=======================================================
+unsigned char *strcpy(unsigned char *destination, unsigned char *source)
+{
+	unsigned char *retval = destination;
+	while (*source)
+	{
+		*destination++ = *source++;
+	}
+	*destination = 0;
+	return retval;
+}
+
+//===============================================================
+// Compares s1 and s2.
+// Returns 0 if they are equal, non-zero otherwise.
+//===============================================================
+long strcmp(unsigned char *s1, unsigned char *s2)
+{
+	long retval = 1;
+	int count = 0;
+	while (s1[count] == s2[count])
+	{
+		if (s1[count++] == 0)
+			retval = 0;
+	}
+	return retval;
+}
+
+//===========================================================
+// Concatenates s2 to the end of s1.
+// Returns s1
+//===========================================================
+unsigned char *strcat(unsigned char *s1, unsigned char *s2)
+{
+	int n = strlen(s1);
+	strcpy(s1 + n, s2);
+	return s1;
+}
+
+int intToAsc(int i, char *buffer, int len)
+{
+	int count;
+
+	for (count = 0; count < len; count++)
+		buffer[count] = ' ';
+	count = len - 1;
+	do
+	{
+		buffer[count] = '0' + i % 10;
+		i = i / 10;
+		count--;
+	} while (i > 0);
+	return 0;
+}
+
+int intToHAsc(int i, char *buffer, int len)
+{
+	int count;
+
+	for (count = 0; count < len; count++)
+		buffer[count] = ' ';
+	count = len - 1;
+	do
+	{
+		int mod;
+		if (i % 16 < 10)
+			buffer[count] = '0' + i % 16;
+		else
+			buffer[count] = '0' + 7 + i % 16;
+		i = i / 16;
+		count--;
+	} while (i > 0);
+	return 0;
+}
+

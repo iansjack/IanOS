@@ -29,7 +29,7 @@ unsigned short int *PMap;
 long memorySemaphore;
 long initialCR3;
 
-long sec, min, hour, day, month, year, tenths;
+long sec, min, hour, day, month, year, tenths, unixtime;
 
 struct MessagePort *KbdPort;
 struct MessagePort *ConsolePort;
@@ -129,6 +129,7 @@ void * AllocMem(long sizeRequested, struct MemStruct *list)
 	KWriteHex(NoOfAllocations, 23);
 #endif
 	return (list + 1);
+	ASSERT((long)list->next > (long)list);
 }
 
 DeallocUMem(void *list)
@@ -158,6 +159,7 @@ void DeallocMem(void *list)
 #endif
 	}
 	ClearSem(&memorySemaphore);
+	ASSERT((long)l->next > (long)l);
 }
 
 //===============================================================================

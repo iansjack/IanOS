@@ -82,3 +82,4 @@ unsigned char *strcat(unsigned char *s1, unsigned char *s2)
 	strcpy(s1 + n, s2);
 	return s1;
 }
+

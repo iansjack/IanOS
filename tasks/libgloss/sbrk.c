@@ -1,6 +1,8 @@
 #include <errno.h>
 #include "../../include/memory.h"
 
+#undef errno
+
 extern int errno;
 extern long DataLen;
 

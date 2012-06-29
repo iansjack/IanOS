@@ -1,6 +1,6 @@
 include ../Flags.mak
 
-CFLAGS:=$(CFLAGS) -O -I ..
+CFLAGS:=$(CFLAGS) -O -I .. -I/usr/include
 LIBS = $(INC)/library/liblib.a $(INC)/library/libsyscalls.a 
 LIBOBJS = printf.o string.o \
 	getchar.o convert.o

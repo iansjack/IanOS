@@ -1,8 +1,8 @@
 include Flags.mak
 
 OBJS = startup.o os.o mem32.o ptab32.o hwsetup.o gates.o messages.o memory.o pagetab.o keyboard.o \
-		console.o vga.o filesystem.o syscalls.o newtask.o tasking.o messaging.o interrupts.o \
-		ide.o kernlib.o  tasklist.o btree.o tas1.o clock.o
+		console.o vga.o filesystem.o block.o syscalls.o newtask.o tasking.o messaging.o interrupts.o \
+		ide.o kernlib.o tasklist.o btree.o clock.o tas1.o scalls.o
 
 all: bootdisk IanOS.o
 	cd library; make all; cd ..
@@ -18,11 +18,13 @@ library/libsyscalls.a:
 	$(CC) $(CFLAGS) -c $*.c
 	gcc -MM $(CFLAGS) $*.c > $*.d
 
-IanOS.o: $(OBJS) library/liblib.a library/libsyscalls.a
-	ld -Tlink2.ld $(OBJS) library/liblib.a library/libsyscalls.a -oIanOS.o
-
+IanOS.o: $(OBJS) library/liblib.a library/libsyscalls.a /usr/local/cross/x86_64-elf/lib/libc.a
+#	ld -Tlink2.ld $(OBJS) library/liblib.a library/libsyscalls.a -oIanOS.o
+	ld -Tlink2.ld $(OBJS) /usr/local/cross/x86_64-elf/lib/libc.a -oIanOS.o
+	
 IanOS.bin: $(OBJS) library/liblib.a library/libsyscalls.a
-	ld -s --print-map -Tlink.ld $(OBJS) library/liblib.a library/libsyscalls.a -oIanOS.bin>linkmap 
+#	ld -s --print-map -Tlink.ld $(OBJS) library/liblib.a library/libsyscalls.a /usr/local/cross/x86_64-elf/lib/libc.a -oIanOS.bin>linkmap 
+	ld -s --print-map -Tlink.ld $(OBJS) /usr/local/cross/x86_64-elf/lib/libc.a -oIanOS.bin>linkmap 
 	
 bootdisk: bootsect.bin 32sect IanOS.bin
 	cat bootsect.bin 32sect IanOS.bin floppy >I.fdd

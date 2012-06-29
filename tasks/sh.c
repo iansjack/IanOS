@@ -35,19 +35,18 @@ int main(int argc, char **argv)
 			char *name = strtok(commandline, " ");
 
 			// Convert name[] to upper case.
-			strupr(name);
 			printf("\n");
 
-			// Process "CD" command;
-			if (!strcmp(name, "CD"))
+			// Process "cd" command;
+			if (!strcmp(name, "cd"))
 			{
 				char *directory = strtok(NULL, " ");
 				if (chdir(directory) == -1)
 					printf("Directory not found!\n");
 			}
 
-			// Process "EXIT" command
-			else if (!strcmp(name, "EXIT"))
+			// Process "exit" command
+			else if (!strcmp(name, "exit"))
 				return 0;
 			else
 			{

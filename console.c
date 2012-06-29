@@ -113,6 +113,13 @@ void PrintChar(unsigned char c, long console)
 			currCons->column--;
 		break;
 
+	case TAB:
+		;
+		int n;
+		for (n = 0; n < TABSIZE; n++)
+			PrintChar(' ', console);
+		break;
+
 	case SOL:
 		currCons->column = 0;
 		break;
@@ -295,7 +302,7 @@ void consoleTaskCode()
 	Mode = NORMAL_MODE;
 	ConsolePort = AllocMessagePort();
 
-	VideoBuffer = (char *)0x80000B8000;
+	VideoBuffer = (char *) 0x80000B8000;
 	ConsolePort->waitingProc = (struct Task *) -1L;
 	ConsolePort->msgQueue = 0;
 
@@ -328,7 +335,8 @@ void consoleTaskCode()
 		case WRITESTR:
 			s = (unsigned char *) ConsoleMsg.quad;
 			long console = ConsoleMsg.quad2;
-			while (*s != 0)	ProcessChar(*s++, console);
+			while (*s != 0)
+				ProcessChar(*s++, console);
 			DeallocMem((void *) ConsoleMsg.quad);
 			break;
 

@@ -1,13 +1,15 @@
-include ../Flags.mak
+#include ../Flags.mak
+INC = -I ~/IanOS/include
+CC = x86_64-elf-gcc
 CFLAGS = -fno-stack-protector -fno-builtin -ffixed-r15 -mno-red-zone -g \
- 		-I $(INC) -I /usr/local/cross/x86_64-elf/include
+		-I /usr/local/cross/x86_64-elf/include $(INC)
 LDFLAGS = -Xlinker --print-map >linkmap -Tlink.ld
 TASKS = pwd ls cat edit sh rm task4
 
 all: $(TASKS)
 
 install-%:	
-	mcopy -o $* C:/BIN/$(call uc, $*)
+	cp $* ~/mnt/bin/
 
 install: $(TASKS)
 	for task in $(TASKS); do \

@@ -5,8 +5,8 @@
 extern long nPagesFree;
 extern long firstFreePage;
 extern unsigned short int *PMap;
-long kernelPT;
-long virtualPDP;
+long kernelPT;		// Initialized in ptab32.c
+long virtualPDP;	// Initialized in ptab32.c
 extern struct Task *currentTask;
 
 void Debug()
@@ -42,25 +42,25 @@ struct PT *GetPT(struct PML4 *pml4, long lAddress, unsigned short pid)
 	int pdpIndex = GetPDPIndex(lAddress);
 	int pml4Index = GetPML4Index(lAddress);
 
-	long pdp = VIRT(PML4,pml4)->entries[pml4Index].value & 0xFFFFF000;
+	long pdp = VIRT(PML4,pml4) ->entries[pml4Index].value & 0xFFFFF000;
 	if (!pdp)
 	{
 		long newpage = (long) AllocPage(pid);
-		VIRT(PML4,pml4)->entries[pml4Index].value = newpage | P | RW | US;
+		VIRT(PML4,pml4) ->entries[pml4Index].value = newpage | P | RW | US;
 		pdp = newpage;
 	}
-	long pd = VIRT(PDP,pdp)->entries[pdpIndex].value & 0xFFFFF000;
+	long pd = VIRT(PDP,pdp) ->entries[pdpIndex].value & 0xFFFFF000;
 	if (!pd)
 	{
 		long newpage = (long) AllocPage(pid);
-		VIRT(PDP,pdp)->entries[pdpIndex].value = newpage | P | RW | US;
+		VIRT(PDP,pdp) ->entries[pdpIndex].value = newpage | P | RW | US;
 		pd = newpage;
 	}
-	long pt = VIRT(PD,pd)->entries[pdIndex].value & 0xFFFFF000;
+	long pt = VIRT(PD,pd) ->entries[pdIndex].value & 0xFFFFF000;
 	if (!pt)
 	{
 		long newpage = (long) AllocPage(pid);
-		VIRT(PD,pd)->entries[pdIndex].value = newpage | P | RW | US;
+		VIRT(PD,pd) ->entries[pdIndex].value = newpage | P | RW | US;
 		pt = newpage;
 	}
 	return (struct PT *) (pt & 0xFFFFF000);
@@ -74,18 +74,18 @@ struct PD *GetPD(struct PML4 *pml4, long lAddress, unsigned short pid)
 	int pdpIndex = lAddress >> 30 & 0x1FF;
 	int pml4Index = lAddress >> 39 & 0x1FF;
 
-	long pdp = VIRT(PML4,pml4)->entries[pml4Index].value & 0xFFFFF000;
+	long pdp = VIRT(PML4,pml4) ->entries[pml4Index].value & 0xFFFFF000;
 	if (!pdp)
 	{
 		long newpage = (long) AllocPage(pid);
-		VIRT(PML4,pml4)->entries[pml4Index].value = newpage | P | RW | US;
+		VIRT(PML4,pml4) ->entries[pml4Index].value = newpage | P | RW | US;
 		pdp = newpage;
 	}
-	long pd = VIRT(PDP,pdp)->entries[pdpIndex].value & 0xFFFFF000;
+	long pd = VIRT(PDP,pdp) ->entries[pdpIndex].value & 0xFFFFF000;
 	if (!pd)
 	{
 		long newpage = (long) AllocPage(pid);
-		VIRT(PDP,pdp)->entries[pdpIndex].value = newpage | P | RW | US;
+		VIRT(PDP,pdp) ->entries[pdpIndex].value = newpage | P | RW | US;
 		pd = newpage;
 	}
 	return (struct PD *) (pd & 0xFFFFF000);
@@ -98,11 +98,11 @@ struct PDP *GetPDP(struct PML4 *pml4, long lAddress, unsigned short pid)
 {
 	int pml4Index = GetPML4Index(lAddress);
 
-	long pdp = VIRT(PML4,pml4)->entries[pml4Index].value & 0xFFFFF000;
+	long pdp = VIRT(PML4,pml4) ->entries[pml4Index].value & 0xFFFFF000;
 	if (!pdp)
 	{
 		long newpage = (long) AllocPage(pid);
-		VIRT(PML4,pml4)->entries[pml4Index].value = newpage | P | RW | US;
+		VIRT(PML4,pml4) ->entries[pml4Index].value = newpage | P | RW | US;
 		pdp = newpage;
 	}
 	return (struct PDP *) (pdp & 0xFFFFF000);
@@ -117,30 +117,31 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 	// Allocate the base page for the Page Table
 	struct PML4 *pml4 = (struct PML4 *) AllocPage(pid);
 
-	VIRT(PML4,pml4)->entries[GetPML4Index(VAddr)].value = virtualPDP | P | RW; // Physical to virtual addresses
+	VIRT(PML4,pml4) ->entries[GetPML4Index(VAddr)].value = virtualPDP | P
+			| RW; // Physical to virtual addresses
 	struct PD *pd = GetPD(pml4, 0, pid);
-	VIRT(PD,pd)->entries[GetPDIndex(0)].value = kernelPT | P | RW; // Kernel entries
+	VIRT(PD,pd) ->entries[GetPDIndex(0)].value = kernelPT | P | RW; // Kernel entries
 
 	if (parentPid == 0) // Just create some default PTEs
-			    // We need these two entries so that NewKernelTask can
-			    // access the data and stack pages of the new process.
+	// We need these two entries so that NewKernelTask can
+	// access the data and stack pages of the new process.
 	{
 		long c;
 		struct PT *pt = GetPT(pml4, UserData, pid);
-		VIRT(PT,pt)->entries[GetPTIndex(UserData)].value = AllocAndCreatePTE(
-				TempUserData, pid, RW | P);
+		VIRT(PT,pt) ->entries[GetPTIndex(UserData)].value =
+				AllocAndCreatePTE(TempUserData, pid, RW | P);
 		c = TempUserData;
 		asm ("invlpg %0;"
 				:
 				:"m"(*(char *)TempUserData)
 		);
 
-                pt = GetPT(pml4, KernelStack, pid);
-                VIRT(PT,pt)->entries[GetPTIndex(KernelStack)].value =
-                                AllocAndCreatePTE(TempUStack, pid, RW | P);
+		pt = GetPT(pml4, KernelStack, pid);
+		VIRT(PT,pt) ->entries[GetPTIndex(KernelStack)].value =
+				AllocAndCreatePTE(TempUStack, pid, RW | P);
 
-                pt = GetPT(pml4, UserStack, pid);
-		VIRT(PT,pt)->entries[GetPTIndex(UserStack)].value =
+		pt = GetPT(pml4, UserStack, pid);
+		VIRT(PT,pt) ->entries[GetPTIndex(UserStack)].value =
 				AllocAndCreatePTE(TempUStack, pid, RW | P);
 		c = TempUStack;
 		asm ("invlpg %0;"
@@ -162,17 +163,17 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 		struct PT *currentPT = GetPT(current_pml4, UserCode, parentPid);
 		int i = GetPTIndex(UserCode);
 		long c = TempUserCode;
-		while (VIRT(PT,currentPT)->entries[i].value)
+		while (VIRT(PT,currentPT) ->entries[i].value)
 		{
 			// Create a page table entry in the new Page Table and also point TempUserCode to it.
-			VIRT(PT,pt)->entries[i].value = AllocAndCreatePTE(TempUserCode,
+			VIRT(PT,pt) ->entries[i].value = AllocAndCreatePTE(TempUserCode,
 					pid, US | RW | P);
 			// Copy the physical memory
 			copyMem(
-					(void *)((VIRT(PT, currentPT)->entries[i].value) & 0xFFFFF000)
-							+ VAddr,
-					(void *)((VIRT(PT, pt)->entries[i].value) & 0xFFFFF000) + VAddr,
-					PageSize);
+					(void *) ((VIRT(PT, currentPT) ->entries[i].value)
+							& 0xFFFFF000) + VAddr,
+					(void *) ((VIRT(PT, pt) ->entries[i].value) & 0xFFFFF000)
+							+ VAddr, PageSize);
 			i++;
 		}
 
@@ -181,17 +182,17 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 		pt = GetPT(pml4, UserData, pid);
 		currentPT = GetPT(current_pml4, UserData, parentPid);
 		i = GetPTIndex(UserData);
-		while (VIRT(PT,currentPT)->entries[i].value)
+		while (VIRT(PT,currentPT) ->entries[i].value)
 		{
 			// Create a page table entry in the new Page Table and also point TempUserCode to it.
-			VIRT(PT,pt)->entries[i].value = AllocAndCreatePTE(TempUserCode,
+			VIRT(PT,pt) ->entries[i].value = AllocAndCreatePTE(TempUserCode,
 					pid, US | RW | P);
 			// Copy the physical memory
 			copyMem(
-					(void *)((VIRT(PT, currentPT)->entries[i].value) & 0xFFFFF000)
-							+ VAddr,
-					(void *)((VIRT(PT, pt)->entries[i].value) & 0xFFFFF000) + VAddr,
-					PageSize);
+					(void *) ((VIRT(PT, currentPT) ->entries[i].value)
+							& 0xFFFFF000) + VAddr,
+					(void *) ((VIRT(PT, pt) ->entries[i].value) & 0xFFFFF000)
+							+ VAddr, PageSize);
 			i++;
 		}
 
@@ -200,17 +201,17 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 		pt = GetPT(pml4, UserStack, pid);
 		currentPT = GetPT(current_pml4, UserStack, parentPid);
 		i = GetPTIndex(UserStack);
-		while (VIRT(PT,currentPT)->entries[i].value)
+		while (VIRT(PT,currentPT) ->entries[i].value)
 		{
 			// Create a page table entry in the new Page Table and also point TempUserCode to it.
-			VIRT(PT,pt)->entries[i].value = AllocAndCreatePTE(TempUserCode,
+			VIRT(PT,pt) ->entries[i].value = AllocAndCreatePTE(TempUserCode,
 					pid, US | RW | P);
 			// Copy the physical memory
 			copyMem(
-					(void *)((VIRT(PT, currentPT)->entries[i].value) & 0xFFFFF000)
-							+ VAddr,
-					(void *)((VIRT(PT, pt)->entries[i].value) & 0xFFFFF000) + VAddr,
-					PageSize);
+					(void *) ((VIRT(PT, currentPT) ->entries[i].value)
+							& 0xFFFFF000) + VAddr,
+					(void *) ((VIRT(PT, pt) ->entries[i].value) & 0xFFFFF000)
+							+ VAddr, PageSize);
 			i--;
 		}
 
@@ -219,17 +220,17 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 		pt = GetPT(pml4, KernelStack, pid);
 		currentPT = GetPT(current_pml4, KernelStack, parentPid);
 		i = GetPTIndex(KernelStack);
-		while (VIRT(PT,currentPT)->entries[i].value)
+		while (VIRT(PT,currentPT) ->entries[i].value)
 		{
 			// Create a page table entry in the new Page Table and also point TempUserCode to it.
-			VIRT(PT,pt)->entries[i].value = AllocAndCreatePTE(TempUserCode,
+			VIRT(PT,pt) ->entries[i].value = AllocAndCreatePTE(TempUserCode,
 					pid, US | RW | P);
 			// Copy the physical memory
 			copyMem(
-					(void *)((VIRT(PT, currentPT)->entries[i].value) & 0xFFFFF000)
-							+ VAddr,
-					(void *)((VIRT(PT, pt)->entries[i].value) & 0xFFFFF000) + VAddr,
-					PageSize);
+					(void *) ((VIRT(PT, currentPT) ->entries[i].value)
+							& 0xFFFFF000) + VAddr,
+					(void *) ((VIRT(PT, pt) ->entries[i].value) & 0xFFFFF000)
+							+ VAddr, PageSize);
 			i--;
 		}
 	}
@@ -257,7 +258,7 @@ long CreatePTEWithPT(struct PML4 *pml4, void *pAddress, long lAddress,
 
 	// We don't want this function to be interrupted.
 	asm ("cli");
-	VIRT(PT,pt)->entries[ptIndex].value = ((long) pAddress & 0xFFFFF000)
+	VIRT(PT,pt) ->entries[ptIndex].value = ((long) pAddress & 0xFFFFF000)
 			| flags;
 	asm ("sti");
 
@@ -285,22 +286,22 @@ void ClearUserMemory(void)
 	struct PT *pt = GetPT((struct PML4 *) (currentTask->cr3 & 0xFFFFF000),
 			UserCode, currentTask->pid);
 	int i = 0;
-	while (VIRT(PT, pt)->entries[i].value)
+	while (VIRT(PT, pt) ->entries[i].value)
 	{
-		PMap[VIRT(PT,pt)->entries[i].value >> 12] = 0;
+		PMap[VIRT(PT,pt) ->entries[i].value >> 12] = 0;
 		nPagesFree++;
-		VIRT(PT,pt)->entries[i++].value = 0;
+		VIRT(PT,pt) ->entries[i++].value = 0;
 	}
 
 	// User Data
 	pt = GetPT((struct PML4 *) (currentTask->cr3 & 0xFFFFF000), UserData,
 			currentTask->pid);
 	i = 0;
-	while (VIRT(PT, pt)->entries[i].value)
+	while (VIRT(PT, pt) ->entries[i].value)
 	{
-		PMap[VIRT(PT,pt)->entries[i].value >> 12] = 0;
+		PMap[VIRT(PT,pt) ->entries[i].value >> 12] = 0;
 		nPagesFree++;
-		VIRT(PT,pt)->entries[i++].value = 0;
+		VIRT(PT,pt) ->entries[i++].value = 0;
 	}
 
 	// Let's forget about the stacks
@@ -315,9 +316,10 @@ void * AllocPage(unsigned short int PID)
 {
 	long count = firstFreePage;
 
-	while (PMap[count ]) count++;
+	while (PMap[count])
+		count++;
 	PMap[count] = PID;
-	void *mem = (void *)(count << 12);
+	void *mem = (void *) (count << 12);
 	nPagesFree--;
 
 	return (mem);
