@@ -24,7 +24,6 @@ int main(int argc, char **argv)
 		fstat(file, &inf);
 		int dir_length = inf.st_size;
 		buffer = malloc(dir_length);
-		printf("%d\n", dir_length);
 		struct ext2_dir_entry_2 *dir = (struct ext2_dir_entry_2 *) buffer;
 		read(file, buffer, dir_length);
 		while (1)

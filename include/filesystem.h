@@ -29,7 +29,7 @@ struct FileInfo
 	long mode;
 	long uid;
 	long gid;
-	long Length;
+	long size;
 	long atime;
 	long mtime;
 	long ctime;

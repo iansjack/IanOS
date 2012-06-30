@@ -122,7 +122,7 @@ long DoExec(char *name, char *environment)
 	SendReceiveMessage(FSPort, FSMsg);
 
 	fHandle = (struct FCB *) FSMsg->quad;
-	if (fHandle)
+	if ((long) fHandle > 0)
 	{
 		ReadFromFile(fHandle, header, 14);
 		ReadFromFile(fHandle, (char *) &codelen, 8);

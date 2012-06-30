@@ -15,6 +15,7 @@ int main(int argc, char **argv)
 	memset(commandline, ' ', 80);
 	while (1)
 	{
+		fflush(stdout);
 		char c = getchar();
 
 		switch (c)
@@ -33,37 +34,39 @@ int main(int argc, char **argv)
 
 			memcpy(environment, commandline, 80);
 			char *name = strtok(commandline, " ");
-
-			// Convert name[] to upper case.
 			printf("\n");
 
-			// Process "cd" command;
-			if (!strcmp(name, "cd"))
+			if (name)
 			{
-				char *directory = strtok(NULL, " ");
-				if (chdir(directory) == -1)
-					printf("Directory not found!\n");
-			}
-
-			// Process "exit" command
-			else if (!strcmp(name, "exit"))
-				return 0;
-			else
-			{
-				int pid = fork();
-				if (!pid)
+				// Process "cd" command;
+				if (!strcmp(name, "cd"))
 				{
-					if (execve(name, environment))
-					{
-						printf("Command not found\n");
-						return 1;
-					}
+					char *directory = strtok(NULL, " ");
+					if (chdir(directory) == -1)
+						printf("Directory not found!\n");
 				}
+
+				// Process "exit" command
+				else if (!strcmp(name, "exit"))
+					return 0;
+
 				else
-					waitpid(pid);
+				{
+					int pid = fork();
+					if (!pid)
+					{
+						if (execve(name, environment))
+						{
+							printf("Command not found\n");
+							return 1;
+						}
+					}
+					else
+						waitpid(pid);
+				}
 			}
 
-			printf("#> ");
+			printf("#>");
 
 			// Clear commandline[]
 			memset(commandline, ' ', 80);

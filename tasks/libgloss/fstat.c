@@ -11,7 +11,10 @@ int fstat(int fildes, struct stat *st)
 	sys_fstat(fildes, &inf);
 	st->st_mode = S_IFCHR;
 	st->st_ino = inf.inode;
-  	st->st_size = inf.Length;
+	st->st_mode = inf.mode;
+	st->st_uid = inf.uid;
+	st->st_gid = inf.gid;
+  	st->st_size = inf.size;
   	st->st_atime = inf.atime;
   	st->st_ctime = inf.ctime;
   	st->st_mtime = inf.mtime;

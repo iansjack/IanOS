@@ -524,7 +524,10 @@ void fsTaskCode(void)
 			fcb = (struct FCB *) FSMsg->quad;
 			struct FileInfo info;
 			info.inode = fcb->inodeNumber;
-			info.Length = fcb->inode->i_size;
+			info.mode = fcb->inode->i_mode;
+			info.uid = fcb->inode->i_uid;
+			info.gid = fcb->inode->i_gid;
+			info.size = fcb->inode->i_size;
 			info.atime = fcb->inode->i_atime;
 			info.ctime = fcb->inode->i_ctime;
 			info.mtime = fcb->inode->i_mtime;

@@ -282,7 +282,7 @@ int DoFStat(FD fileDescriptor, struct FileInfo *info)
 	{
 		if (temp->deviceType == KBD || temp->deviceType == CONS)
 		{
-			info->Length = 0;
+			info->size = 0;
 		}
 		else
 		{

@@ -176,8 +176,8 @@ Sys_UnLink:
 Sys_Execve:
 	push %rcx
 	call DoExec
-	cmp $1,%rax
-	je  notLoaded
+	cmp $0,%rax
+	jne notLoaded
 	mov $(UserStack + PageSize), %rsp
 	push $UserCode
 notLoaded:
