@@ -34,7 +34,6 @@ void setclock()
 	tm.tm_year = year + 100;
 	tm.tm_isdst = -1;
 	tm.tm_gmtoff = 0;
-	Debug();
 	unixtime = mktime(&tm);
 }
 
@@ -253,20 +252,27 @@ int DoStat(char *path, struct FileInfo *info) // *** No - this should take a fil
 	char *buff = (char *) AllocKMem(sizeof(struct FileInfo));
 
 	msg->nextMessage = 0;
-	msg->byte = GETFILEINFO;
+	msg->byte = OPENFILE;
 	msg->quad = (long) S;
-	msg->quad2 = (long) buff;
 	SendReceiveMessage(FSPort, msg);
-	int retval = -ENOENT;
-	if (msg->quad)
+	struct FCB * fcb = (struct FCB *)msg->quad;
+	if (fcb > 0)
 	{
-		retval = 0;
+		msg->nextMessage = 0;
+		msg->byte = GETFILEINFO;
+		msg->quad = (long) fcb;
+		msg->quad2 = (long) buff;
+		SendReceiveMessage(FSPort, msg);
 		copyMem(buff, (char *) info, sizeof(struct FileInfo));
+		DeallocMem(buff);
+		msg->nextMessage = 0;
+		msg->byte = CLOSEFILE;
+		msg->quad = (long) fcb;
+		SendReceiveMessage(FSPort, msg);
+		DeallocMem(msg);
+		return 0;
 	}
-	DeallocMem(buff);
-	DeallocMem(S);
-	DeallocMem(msg);
-	return retval;
+	return (long)fcb;
 }
 
 int DoFStat(FD fileDescriptor, struct FileInfo *info)
@@ -284,7 +290,7 @@ int DoFStat(FD fileDescriptor, struct FileInfo *info)
 			char *buff = (char *) AllocKMem(sizeof(struct FileInfo));
 
 			msg->nextMessage = 0;
-			msg->byte = GETFFILEINFO;
+			msg->byte = GETFILEINFO;
 			msg->quad = (long) temp;
 			msg->quad2 = (long) buff;
 			SendReceiveMessage(FSPort, msg);
@@ -417,7 +423,7 @@ long DoMkDir(unsigned char *s)
 
 long DoDelete(unsigned char *name)
 {
-	int retval = 0;
+	int retval;
 	unsigned char *S = NameToFullPath(name);
 	struct Message *msg = ALLOCMSG;
 
@@ -425,15 +431,13 @@ long DoDelete(unsigned char *name)
 	msg->byte = DELETEFILE;
 	msg->quad = (long) S;
 	SendReceiveMessage(FSPort, msg);
+	retval = msg->quad;
 	DeallocMem(S);
 	DeallocMem(msg);
-	return retval;
 }
 
 long DoChDir(unsigned char *dirName)
 {
-	int retval = -ENOENT;
-
 	unsigned char *S = NameToFullPath(dirName);
 	struct Message *msg = ALLOCMSG;
 
@@ -441,12 +445,12 @@ long DoChDir(unsigned char *dirName)
 	msg->byte = TESTFILE;
 	msg->quad = (long) S;
 	SendReceiveMessage(FSPort, msg);
-	if (msg->quad)
+	long retval = msg->quad;
+	if (retval > 0)
 	{
 		DeallocMem(currentTask->currentDirName);
 		currentTask->currentDirName = AllocKMem(strlen(S) + 1);
 		strcpy(currentTask->currentDirName, S);
-		retval = 0;
 	}
 	DeallocMem(S);
 	DeallocMem(msg);

@@ -470,48 +470,42 @@ void fsTaskCode(void)
 
 	while (1)
 	{
+		struct FCB *fcb = 0;
 		ReceiveMessage(FSPort, FSMsg);
 		tempPort = FSMsg->tempPort;
 		switch (FSMsg->byte)
 		{
 		case CREATEFILE:
-			;
-			struct FCB *fcb = CreateFile((char *) FSMsg->quad/*, FSMsg->pid*/);
-			fcb->pid = FSMsg->pid;
+			fcb = CreateFile((char *) FSMsg->quad);
+			if (fcb > 0)
+				fcb->pid = FSMsg->pid;
 			FSMsg->quad = (long) fcb;
-			SendMessage(tempPort, FSMsg);
 			break;
 
 		case OPENFILE:
-			fcb = OpenFile((unsigned char *) FSMsg->quad/*, FSMsg->pid*/);
-			fcb->pid = FSMsg->pid;
+			fcb = OpenFile((unsigned char *) FSMsg->quad);
+			if (fcb > 0)
+				fcb->pid = FSMsg->pid;
 			FSMsg->quad = (long) fcb;
-			SendMessage(tempPort, FSMsg);
 			break;
 
 		case CLOSEFILE:
 			CloseFile((struct FCB *) FSMsg->quad);
 			DeallocMem((void *) FSMsg->quad);
-			SendMessage(tempPort, FSMsg);
 			break;
 
 		case READFILE:
-			result = ReadFile((struct FCB *) FSMsg->quad, (char *) FSMsg->quad2,
+			FSMsg->quad = ReadFile((struct FCB *) FSMsg->quad, (char *) FSMsg->quad2,
 					FSMsg->quad3);
-			FSMsg->quad = result;
-			SendMessage(tempPort, FSMsg);
 			break;
 
 		case WRITEFILE:
-			result = WriteFile((struct FCB *) FSMsg->quad,
+			FSMsg->quad = WriteFile((struct FCB *) FSMsg->quad,
 					(char *) FSMsg->quad2, FSMsg->quad3);
-			FSMsg->quad = result;
-			SendMessage(tempPort, FSMsg);
 			break;
 
 		case DELETEFILE:
-			result = DeleteFile((char *) FSMsg->quad/*, FSMsg->pid*/);
-			SendMessage(tempPort, FSMsg);
+			FSMsg->quad = DeleteFile((char *) FSMsg->quad);
 			break;
 
 		case TESTFILE:
@@ -524,31 +518,11 @@ void fsTaskCode(void)
 					result = 1;
 			}
 			FSMsg->quad = result;
-			SendMessage(tempPort, FSMsg);
 			break;
 
 		case GETFILEINFO:
-			fcb = OpenFile((unsigned char *) FSMsg->quad);
-			struct FileInfo info;
-			if (!fcb)
-				FSMsg->quad = 0;
-			else
-			{
-				FSMsg->quad = 1;
-				info.inode = fcb->inodeNumber;
-				info.Length = fcb->inode->i_size;
-				info.atime = fcb->inode->i_atime;
-				info.ctime = fcb->inode->i_ctime;
-				info.mtime = fcb->inode->i_mtime;
-				CloseFile(fcb);
-				copyMem((char *) (&info), (char *) FSMsg->quad2,
-						sizeof(struct FileInfo));
-			}
-			SendMessage(tempPort, FSMsg);
-			break;
-
-		case GETFFILEINFO:
 			fcb = (struct FCB *) FSMsg->quad;
+			struct FileInfo info;
 			info.inode = fcb->inodeNumber;
 			info.Length = fcb->inode->i_size;
 			info.atime = fcb->inode->i_atime;
@@ -556,30 +530,24 @@ void fsTaskCode(void)
 			info.mtime = fcb->inode->i_mtime;
 			copyMem((char *) (&info), (char *) FSMsg->quad2,
 					sizeof(struct FileInfo));
-			SendMessage(tempPort, FSMsg);
 			break;
 
 		case CREATEDIR:
-			result = CreateDir((char *) FSMsg->quad/*, FSMsg->pid*/);
-			FSMsg->quad = result;
-			SendMessage(tempPort, FSMsg);
+			FSMsg->quad = CreateDir((char *) FSMsg->quad);
 			break;
 
 		case SEEK:
-			result = Seek((struct FCB *) FSMsg->quad, FSMsg->quad2,
+			FSMsg->quad = Seek((struct FCB *) FSMsg->quad, FSMsg->quad2,
 					FSMsg->quad3);
-			FSMsg->quad = result;
-			SendMessage(tempPort, FSMsg);
 			break;
 
 		case TRUNCATE:
-			result = Truncate((struct FCB*) FSMsg->quad, FSMsg->quad2);
-			FSMsg->quad = result;
-			SendMessage(tempPort, FSMsg);
+			FSMsg->quad = Truncate((struct FCB*) FSMsg->quad, FSMsg->quad2);
 			break;
 
 		default:
 			break;
 		}
+		SendMessage(tempPort, FSMsg);
 	}
 }

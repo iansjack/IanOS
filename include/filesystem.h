@@ -9,10 +9,9 @@
 #define DELETEFILE  	6
 #define TESTFILE  		7
 #define GETFILEINFO 	8
-#define GETFFILEINFO	9
-#define CREATEDIR		10
-#define SEEK			11
-#define TRUNCATE		12
+#define CREATEDIR		9
+#define SEEK			10
+#define TRUNCATE		11
 
 #define SEEK_SET	0
 #define SEEK_CUR	1

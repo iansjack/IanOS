@@ -92,6 +92,12 @@ void * AllocMem(long sizeRequested, struct MemStruct *list)
 		while (list->size <= sizeRequested + sizeof(struct MemStruct))
 		{
 			long temp = (long) list >> 12;
+			long temp2 = list->size;
+			while (temp2 > PageSize)	// There may already be allocated pages beyond the current one!
+			{
+				temp++;
+				temp2 -= PageSize;
+			}
 			while (list->size < sizeRequested + 2 * sizeof(struct MemStruct))
 			{
 				if (kernel)
