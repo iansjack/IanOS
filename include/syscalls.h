@@ -11,6 +11,7 @@ void exit(void);
 void sys_ReceiveMessage(long port, struct Message *msg);
 void sys_SendMessage(long port, struct Message *msg);
 void sys_SendReceive(long port, struct Message *msg);
+long sys_time();
 void nanoleep(int interval);
 long sys_GetTicks();
 unsigned char *getcwd();
@@ -20,15 +21,13 @@ FD open(unsigned char *filename);
 int close(FD fileDescriptor);
 long execve(unsigned char *name, char *environment);
 void waitpid(unsigned short pid);
-// int lstat(unsigned char *filename, struct FileInfo *info);	// Wrong - should take filename as parameter!!!
-// int fstat(FD fileDescriptor, struct FileInfo *info);
 long read(FD fileDescriptor, unsigned char *buffer, long noBytes);
 long write(FD fileDescriptor, unsigned char *buffer, long noBytes);
 FD creat(unsigned char *name);
 int unlink(unsigned char *name);
-// long mkdir(unsigned char *name);
 int lseek(FD fDescriptor, int offset, int whence);
 int fork();
+long time(long *t);
 void *malloc(int size);
 void free(void *ptr);
 

@@ -173,7 +173,7 @@ void KWriteHex(long c, int row) //, int col)
 
 //=========================================================
 //  Opens the file s.
-//  Returns a FD for the file in RAX
+//  Returns a FD for the file
 //=========================================================
 FD DoOpen(unsigned char *s, int flags)
 {
@@ -214,7 +214,7 @@ FD DoOpen(unsigned char *s, int flags)
 }
 
 //=========================================================
-// 
+//  Closes a file
 //=========================================================
 int DoClose(FD fileDescriptor)
 {
@@ -245,7 +245,10 @@ int DoClose(FD fileDescriptor)
 	return -EBADF;
 }
 
-int DoStat(char *path, struct FileInfo *info) // *** No - this should take a filename!!!
+//=================================
+// Implements the stat system call
+//=================================
+int DoStat(char *path, struct FileInfo *info)
 {
 	unsigned char *S = NameToFullPath(path);
 	struct Message *msg = ALLOCMSG;
@@ -275,6 +278,9 @@ int DoStat(char *path, struct FileInfo *info) // *** No - this should take a fil
 	return (long)fcb;
 }
 
+//=================================
+//Implements the fstat system call
+//=================================
 int DoFStat(FD fileDescriptor, struct FileInfo *info)
 {
 	struct FCB *temp = fdToFCB(fileDescriptor);
@@ -302,6 +308,10 @@ int DoFStat(FD fileDescriptor, struct FileInfo *info)
 	}
 	return -EBADF;
 }
+
+//=================================
+// Implements the read system call
+//=================================
 long DoRead(FD fileDescriptor, char *buffer, long noBytes)
 {
 	if (!noBytes)
@@ -333,6 +343,9 @@ long DoRead(FD fileDescriptor, char *buffer, long noBytes)
 	return (retval);
 }
 
+//==================================
+// Implements the write system call
+//==================================
 long DoWrite(FD fileDescriptor, char *buffer, long noBytes)
 {
 	if (!noBytes)
@@ -380,6 +393,9 @@ long DoWrite(FD fileDescriptor, char *buffer, long noBytes)
 	return (retval);
 }
 
+//==================================
+// Implements the creat system call
+//==================================
 FD DoCreate(unsigned char *s)
 {
 	unsigned char *S = NameToFullPath(s);
@@ -408,6 +424,9 @@ FD DoCreate(unsigned char *s)
 	return -ENFILE;
 }
 
+//==================================
+// Implements the mkdir system call
+//==================================
 long DoMkDir(unsigned char *s)
 {
 	unsigned char *S = NameToFullPath(s);
@@ -421,6 +440,9 @@ long DoMkDir(unsigned char *s)
 	DeallocMem(msg);
 }
 
+//===================================
+// Implements the delete system call
+//===================================
 long DoDelete(unsigned char *name)
 {
 	int retval;
@@ -436,6 +458,9 @@ long DoDelete(unsigned char *name)
 	DeallocMem(msg);
 }
 
+//===================================
+// Implements the chdir system call
+//===================================
 long DoChDir(unsigned char *dirName)
 {
 	unsigned char *S = NameToFullPath(dirName);
@@ -457,6 +482,9 @@ long DoChDir(unsigned char *dirName)
 	return retval;
 }
 
+//===================================
+// Implements the getcwd system call
+//===================================
 unsigned char *DoGetcwd(char *name, long length)
 {
 	if (length < strlen(currentTask->currentDirName))
@@ -465,6 +493,9 @@ unsigned char *DoGetcwd(char *name, long length)
 	return name;
 }
 
+//===================================
+// Implements the seek system call
+//===================================
 int DoSeek(FD fileDescriptor, int offset, int whence)
 {
 	struct FCB *temp = fdToFCB(fileDescriptor);
@@ -494,6 +525,9 @@ int DoSeek(FD fileDescriptor, int offset, int whence)
 	return -EBADF;
 }
 
+//=====================================
+// Implements the truncate system call
+//=====================================
 int DoTruncate(FD fileDescriptor, long length)
 {
 	struct FCB *temp = fdToFCB(fileDescriptor);
@@ -882,4 +916,3 @@ int intToHAsc(int i, char *buffer, int len)
 	} while (i > 0);
 	return 0;
 }
-

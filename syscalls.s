@@ -23,7 +23,7 @@ CallNo:
 	.quad	Sys_UnLink
 	.quad	Sys_Execve
 	.quad	Sys_ChDir
-	.quad	Unimplemented	#Sys_Time
+	.quad	Sys_Time
 	.quad	Unimplemented	#Sys_MkNod
 	.quad	Unimplemented	#Sys_ChMod
 	.quad	Unimplemented	#Sys_LChOwn
@@ -333,6 +333,14 @@ Sys_MkDir:
 	pop %rcx
 	sysretq
 	
+#============================================================
+# Returns the system time in the variable pointed to by %rdi
+#============================================================
+Sys_Time:
+	mov unixtime, %rax
+#	mov %rax, (%rdi)
+	sysretq
+
 #========================================================
 # Tell the current task to sleep for RDI nanoseconds
 #========================================================

@@ -6,7 +6,7 @@ OBJS = _exit.o access.c alloc_page.o chdir.o chmod.o close.o creat.o execve.o fc
 		fstat.o getcwd.o \
 		getpid.o gettimeofday.o getwd.o isatty.o kill.o lseek.o lstat.o mkdir.o open.o pathconf.o read.o \
 		sbrk.o stat.o sys_close.o sys_execve.o sys_lstat.o \
-		sys_fstat.o sys_open.o sys_truncate.o umask.o unlink.o waitpid.o write.o
+		sys_fstat.o sys_open.o sys_time.o sys_truncate.o umask.o unlink.o waitpid.o write.o
 
 all: $(OBJS)
 
