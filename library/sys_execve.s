@@ -1,4 +1,4 @@
-	.include "../../include/syscalls.inc"
+	.include "../include/syscalls.inc"
 	
 	.global sys_execve
 

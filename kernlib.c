@@ -881,6 +881,10 @@ unsigned char *strcat(unsigned char *s1, unsigned char *s2)
 	return s1;
 }
 
+//=================================================================
+// Convert the integer in i to it's ASCII representation in buffer
+// The integer is of length n
+//=================================================================
 int intToAsc(int i, char *buffer, int len)
 {
 	int count;
@@ -897,6 +901,10 @@ int intToAsc(int i, char *buffer, int len)
 	return 0;
 }
 
+//=============================================================================
+// Convert the integer in i to it's hesadecimal ASCII representation in buffer
+// The integer is of length n
+//=============================================================================
 int intToHAsc(int i, char *buffer, int len)
 {
 	int count;

@@ -1,14 +1,13 @@
-	.include "../../include/syscalls.inc"
-	
-	.global creat
+	.include "../include/syscalls.inc"
+	.global _exit;
 
 	.text
 
-creat:
+_exit:
 	push %rcx
 	push %r9
 	push %r11
-	mov $SYS_CREAT, %r9
+	mov $SYS_EXIT, %r9
 	syscall
 	pop %r11
 	pop %r9

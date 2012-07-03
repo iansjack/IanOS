@@ -1,10 +1,10 @@
-	.include "../../include/syscalls.inc"
+	.include "../include/syscalls.inc"
 	
-	.global sys_lstat
+	.global stat
 
 	.text
-
-sys_lstat:
+	
+stat:
 	push %rcx
 	push %r9
 	push %r11
@@ -14,4 +14,5 @@ sys_lstat:
 	pop %r9
 	pop %rcx
 	ret
+		
 

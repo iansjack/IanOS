@@ -1,14 +1,14 @@
-	.include "../../include/syscalls.inc"
+	.include "../include/syscalls.inc"
 	
-	.global fork
+	.global getcwd
 
 	.text
 
-fork:
+getcwd:
 	push %rcx
 	push %r9
 	push %r11
-	mov $SYS_FORK, %r9
+	mov $SYS_GETCWD, %r9
 	syscall
 	pop %r11
 	pop %r9

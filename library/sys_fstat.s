@@ -1,14 +1,14 @@
-	.include "../../include/syscalls.inc"
+	.include "../include/syscalls.inc"
 	
-	.global mkdir
+	.global sys_fstat
 
 	.text
 
-mkdir:
+sys_fstat:
 	push %rcx
 	push %r9
 	push %r11
-	mov $SYS_MKDIR, %r9
+	mov $SYS_FSTAT, %r9
 	syscall
 	pop %r11
 	pop %r9

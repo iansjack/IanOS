@@ -1,14 +1,14 @@
-	.include "../../include/syscalls.inc"
+	.include "../include/syscalls.inc"
 	
-	.global read
+	.global sys_lstat
 
 	.text
 
-read:
+sys_lstat:
 	push %rcx
 	push %r9
 	push %r11
-	mov $SYS_READ, %r9
+	mov $SYS_STAT, %r9
 	syscall
 	pop %r11
 	pop %r9

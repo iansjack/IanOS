@@ -1,14 +1,14 @@
-	.include "../../include/syscalls.inc"
+	.include "../include/syscalls.inc"
 	
-	.global getwd
+	.global getpid
 
 	.text
 
-getwd:
+getpid:
 	push %rcx
 	push %r9
 	push %r11
-	mov $SYS_GETCWD, %r9
+	mov $SYS_GETPID, %r9
 	syscall
 	pop %r11
 	pop %r9

@@ -1,14 +1,14 @@
-	.include "../../include/syscalls.inc"
+	.include "../include/syscalls.inc"
 	
-	.global unlink
+	.global waitpid
 
 	.text
 
-unlink:
+waitpid:
 	push %rcx
 	push %r9
 	push %r11
-	mov $SYS_UNLINK, %r9
+	mov $SYS_WAITPID, %r9
 	syscall
 	pop %r11
 	pop %r9

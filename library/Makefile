@@ -1,32 +1,21 @@
-include ../Flags.mak
+INC = -I ~/IanOS/include
+CC = x86_64-elf-gcc
+CFLAGS = -fno-stack-protector -fno-builtin -ffixed-r15 -mno-red-zone -g \
+		-I /usr/local/cross/x86_64-elf/include $(INC) 
+OBJS = _exit.o access.c alloc_page.o chdir.o chmod.o close.o creat.o execve.o fcntl.o fork.o \
+		fstat.o getcwd.o \
+		getpid.o gettimeofday.o getwd.o isatty.o kill.o lseek.o lstat.o mkdir.o open.o pathconf.o read.o \
+		sbrk.o stat.o sys_close.o sys_execve.o sys_lstat.o \
+		sys_fstat.o sys_open.o sys_time.o sys_truncate.o umask.o unlink.o waitpid.o write.o
 
-CFLAGS:=$(CFLAGS) -O -I .. -I/usr/include
-LIBS = $(INC)/library/liblib.a $(INC)/library/libsyscalls.a 
-LIBOBJS = printf.o string.o \
-	getchar.o convert.o
-SYSCALLSOBJS = syscalls.o killtask.o getticks.o
+all: $(OBJS) crt0
 
-all: liblib.a libsyscalls.a
+crt0: crt0.s
+	as crt0.s -ocrt0.o
 
-liblib.a: $(LIBOBJS)
-	ar -r liblib.a $(LIBOBJS)
-
-libsyscalls.a: $(SYSCALLSOBJS)
-	ar -r libsyscalls.a $(SYSCALLSOBJS)
-
+install: $(OBJS)	
+	ar -r /usr/local/cross/x86_64-elf/lib/libc.a *.o
+	cp crt0.o /usr/local/cross/x86_64-elf/lib
+	
 clean:
-	rm -f *.a *.o *~
-
-printf.o: printf.c $(INC)/console.h $(INC)/kstructs.h $(INC)/memory.h $(INC)/syscalls.h
-
-syscalls.o: syscalls.s $(INC)/syscalls.inc
-
-string.o: string.c 
-
-killtask.o: killtask.s $(INC)/syscalls.inc
-
-getcommandline.o: getcommandline.s $(INC)/syscalls.inc
-
-getticks.o: getticks.s $(INC)/syscalls.inc
-
-convert.o: convert.c
+	rm -f *.o

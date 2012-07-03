@@ -1,13 +1,14 @@
-	.include "../../include/syscalls.inc"
-	.global _exit;
+	.include "../include/syscalls.inc"
+	
+	.global unlink
 
 	.text
 
-_exit:
+unlink:
 	push %rcx
 	push %r9
 	push %r11
-	mov $SYS_EXIT, %r9
+	mov $SYS_UNLINK, %r9
 	syscall
 	pop %r11
 	pop %r9
