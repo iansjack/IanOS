@@ -119,6 +119,7 @@ int main(int argc, char **argv)
 
 	// Clear the screen
 	printf("%c[2J", ESC);
+	fflush(stdout);
 
 	if (argc == 2)
 	{
@@ -126,6 +127,7 @@ int main(int argc, char **argv)
 		ReadFile(file);
 		windowStart = lines;
 		RedrawScreen();
+		fflush(stdout);
 		currline = lines;
 	}
 	int done = 0;
@@ -273,6 +275,7 @@ int main(int argc, char **argv)
 			printf("%c[%d;%dH", ESC, line, column);
 			break;
 		}
+		fflush(stdout);
 	}
 	free(currline->line);
 	currline->line = malloc(strlen(currentLineBuffer) + 1);

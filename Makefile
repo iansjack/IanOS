@@ -5,8 +5,10 @@ OBJS = startup.o os.o mem32.o ptab32.o hwsetup.o gates.o messages.o memory.o pag
 		ide.o kernlib.o tasklist.o btree.o clock.o tas1.o scalls.o
 
 all: bootdisk IanOS.o
+	mount /home/ian/mnt
 	cd library; make all; make install; cd ..
 	cd tasks; make all; make install; cd ..
+	umount /home/ian/mnt
 
 %.o : %.c
 	$(CC) $(CFLAGS) -c $*.c

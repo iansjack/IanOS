@@ -2,19 +2,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-extern int errno;
-
 int main(int argc, char **argv)
 {
 	int ret;
 
 	int InFile = open(argv[1]);
 	if (InFile == -1)
+		printf("Error opening file %s\n", argv[1]);
+	else
 	{
-		printf("%d %d\n", InFile, errno);
-		perror("Error: ");
-	}
-	if (InFile != -1) {
 		struct stat inf;
 		fstat(InFile, &inf);
 

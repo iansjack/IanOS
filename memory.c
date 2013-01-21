@@ -1,15 +1,5 @@
 #include <kernel.h>
 
-#ifdef DEBUG
-struct MemoryAllocation
-{
-	void *memory;
-	long size;
-	void *allocated;
-	void *deallocated;
-};
-#endif
-
 extern struct Task *currentTask;
 extern struct TaskList *runnableTasks;
 extern struct TaskList *blockedTasks;
@@ -35,11 +25,6 @@ struct MessagePort *KbdPort;
 struct MessagePort *ConsolePort;
 struct MessagePort *FSPort;
 
-#ifdef DEBUG
-long NoOfAllocations;
-#endif
-long debugging;
-
 void InitMem64(void)
 {
 	PMap = (unsigned short int *) PageMap;
@@ -57,9 +42,6 @@ void InitMem64(void)
 	deadTasks = 0;
 	lowPriTask = 0L;
 	blockedTasks = 0L;
-#ifdef DEBUG
-	NoOfAllocations = 0;
-#endif
 	memorySemaphore = 0;
 	canSwitch = 0;
 	tenths = 0;
@@ -72,7 +54,6 @@ void InitMem64(void)
 //=========================================================================================
 void * AllocMem(long sizeRequested, struct MemStruct *list)
 {
-	ASSERT((long)list & (long)sizeRequested > 0);
 	unsigned char kernel = 0;
 	if (list == firstFreeKMem)
 		kernel = 1;
@@ -130,18 +111,7 @@ void * AllocMem(long sizeRequested, struct MemStruct *list)
 		list->size = 0;
 	}
 	ClearSem(&memorySemaphore);
-#ifdef DEBUG
-	NoOfAllocations++;
-	KWriteHex(NoOfAllocations, 23);
-#endif
 	return (list + 1);
-	ASSERT((long)list->next > (long)list);
-}
-
-DeallocUMem(void *list)
-{
-	ASSERT((long)list >= UserData & (long)list < KernelStack);
-	DeallocMem(list);
 }
 
 //==================================================
@@ -150,7 +120,6 @@ DeallocUMem(void *list)
 //==================================================
 void DeallocMem(void *list)
 {
-	ASSERT(list);
 	struct MemStruct *l = (struct MemStruct *) list;
 
 	// We want the memory deallocation to be atomic, so set a semaphore before proceeding
@@ -159,13 +128,8 @@ void DeallocMem(void *list)
 	if (!l->size)
 	{
 		l->size = (long) l->next - (long) l - sizeof(struct MemStruct);
-#ifdef DEBUG
-		NoOfAllocations--;
-		KWriteHex(NoOfAllocations, 23);
-#endif
 	}
 	ClearSem(&memorySemaphore);
-	ASSERT((long)l->next > (long)l);
 }
 
 //===============================================================================

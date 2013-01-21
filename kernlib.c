@@ -196,7 +196,7 @@ FD DoOpen(unsigned char *s, int flags)
 	}
 	DeallocMem(S);
 	DeallocMem(msg);
-	if (fcb > 0)
+	if ((long) fcb > 0)
 	{
 		FD fileDescriptor = FindFirstFreeFD();
 		if (fileDescriptor == -EMFILE)

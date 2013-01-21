@@ -440,6 +440,12 @@ long Truncate(struct FCB *fcb, long length)
 	else if (length < fcb->inode->i_size)
 	{
 		fcb->inode->i_size = length;
+		if (length < fcb->fileCursor)
+		{
+			fcb->fileCursor = length;
+			SetBufferFromCursor(fcb);
+			fcb->bufCursor = fcb->fileCursor % block_size;
+		}
 	}
 	else
 		return -EPERM;
@@ -484,7 +490,7 @@ void fsTaskCode(void)
 
 		case OPENFILE:
 			fcb = OpenFile((unsigned char *) FSMsg->quad);
-			if (fcb > 0)
+			if ((long) fcb > 0)
 				fcb->pid = FSMsg->pid;
 			FSMsg->quad = (long) fcb;
 			break;

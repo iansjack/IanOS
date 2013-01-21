@@ -11,13 +11,12 @@ int main(int argc, char **argv)
 
 	int file;
 	if (argc == 2)
-		file = open(argv[1]);
-	else
 	{
-		getcwd(cwd, 256);
-		file = open(cwd);
-		free(cwd);
+		chdir(argv[1]);
 	}
+	getcwd(cwd, 256);
+	file = open(cwd);
+	free(cwd);
 	if (file != -1)
 	{
 		struct stat inf;
@@ -29,7 +28,8 @@ int main(int argc, char **argv)
 		while (1)
 		{
 			char * c = malloc(dir->name_len + 16);
-			strncpy(c, dir->name, dir->name_len);
+			c[0] = 0;
+			strncat(c, dir->name, dir->name_len);
 			c[dir->name_len] = 0;
 			lstat(c, &inf);
 			char mode[] = "----------";
