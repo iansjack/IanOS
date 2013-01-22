@@ -1,10 +1,10 @@
 	.include "../include/syscalls.inc"
 	
-	.global write
+	.global sys_write
 
 	.text
 
-write:
+sys_write:
 	push %rcx
 	push %r9
 	push %r11

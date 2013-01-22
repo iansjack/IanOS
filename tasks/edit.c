@@ -9,10 +9,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #define ctrl(x) x - 0x40
 #define ESC	27
-#define CLRBUFF	for (count = 0; count < 80; count++) currentLineBuffer[count] = 0
+#define Clear_Buffer	for (count = 0; count < 80; count++) currentLineBuffer[count] = 0
+#define Clear_Screen	printf("%c[2J", ESC)
+#define Position_Cursor printf("%c[%d;%dH", ESC, line, column)
 #define Overwrite	0
 #define Insert		1
 #define WINDOWSIZE	20
@@ -90,7 +93,7 @@ void PrintStatusLine()
 void RedrawScreen()
 {
 	struct line *tempcurrline = lines;
-	printf("%c[2J", ESC);
+	Clear_Screen;
 	tempcurrline = windowStart;
 	if (!windowStart)
 		return;
@@ -116,14 +119,12 @@ int main(int argc, char **argv)
 	char currentLineBuffer[80];
 	int count;
 	mode = Insert;
-
-	// Clear the screen
-	printf("%c[2J", ESC);
+	Clear_Screen;
 	fflush(stdout);
 
 	if (argc == 2)
 	{
-		file = open(argv[1], 0x200 /*O_CREAT*/);
+		file = open(argv[1], O_RDWR | O_CREAT);
 		ReadFile(file);
 		windowStart = lines;
 		RedrawScreen();
@@ -132,8 +133,7 @@ int main(int argc, char **argv)
 	}
 	int done = 0;
 	PrintStatusLine();
-	CLRBUFF
-	;
+	Clear_Buffer;
 	char c;
 	if (currline->line)
 		strcpy(currentLineBuffer, currline->line);
@@ -180,8 +180,7 @@ int main(int argc, char **argv)
 				temp->line = malloc(1);
 				temp->line[0] = 0;
 			}
-			CLRBUFF
-			;
+			Clear_Buffer;
 			strcpy(currentLineBuffer, temp->line);
 			// Reset all the counters and reposition the cursor
 			column = 0;
@@ -197,13 +196,12 @@ int main(int argc, char **argv)
 				currline->line = malloc(strlen(currentLineBuffer) + 1);
 				strcpy(currline->line, currentLineBuffer);
 				currline = currline->prev;
-				CLRBUFF
-				;
+				Clear_Buffer;
 				if (currline->line)
 					strcpy(currentLineBuffer, currline->line);
 				if (column > strlen(currentLineBuffer))
 					column = strlen(currentLineBuffer);
-				printf("%c[%d;%dH", ESC, line, column);
+				Position_Cursor;
 				if (line < 0)
 				{
 					windowStart = windowStart->prev;
@@ -220,13 +218,12 @@ int main(int argc, char **argv)
 				currline->line = malloc(strlen(currentLineBuffer) + 1);
 				strcpy(currline->line, currentLineBuffer);
 				currline = currline->next;
-				CLRBUFF
-				;
+				Clear_Buffer;
 				if (currline->line)
 					strcpy(currentLineBuffer, currline->line);
 				if (column > strlen(currentLineBuffer))
 					column = strlen(currentLineBuffer);
-				printf("%c[%d;%dH", ESC, line, column);
+				Position_Cursor;
 				if (line > WINDOWSIZE)
 				{
 					windowStart = windowStart->next;
@@ -256,9 +253,9 @@ int main(int argc, char **argv)
 				for (i = column; i < 80; i++)
 					currentLineBuffer[i - 1] = currentLineBuffer[i];
 				column--;
-				printf("%c[1D", ESC);
-				printf("%s", currentLineBuffer + column);
-				printf("%c[%d;%dH", ESC, line, column);
+				printf("%c[1D", ESC);						// Cursor left
+				printf("%s ", currentLineBuffer + column);
+				Position_Cursor;
 			}
 			break;
 		default:
@@ -272,7 +269,7 @@ int main(int argc, char **argv)
 			printf("%s", currentLineBuffer + column);
 			if (column < 80)
 				column++;
-			printf("%c[%d;%dH", ESC, line, column);
+			Position_Cursor;
 			break;
 		}
 		fflush(stdout);
@@ -280,9 +277,7 @@ int main(int argc, char **argv)
 	free(currline->line);
 	currline->line = malloc(strlen(currentLineBuffer) + 1);
 	strcpy(currline->line, currentLineBuffer);
-
-// Clear the screen
-	printf("%c[2J", ESC);
+	Clear_Screen;
 	fflush(stdout);
 	sys_truncate(file, 0);
 	currline = lines;

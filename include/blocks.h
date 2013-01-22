@@ -47,6 +47,7 @@ struct FCB
 	int fileCursor;
 	int bufCursor;
 	FD fileDescriptor;
+	int mode;
 	char *buffer;
 	char deviceType;
 	char bufferIsDirty;

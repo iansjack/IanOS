@@ -1,12 +1,11 @@
-#include <kernel.h>
-#include <filesystem.h>
 #include <console.h>
 #include <sys/errno.h>
 #include <linux/types.h>
 #include <time.h>
+#include <fcntl.h>
+#include <kernel.h>
+#include <filesystem.h>
 #include "blocks.h"
-
-#define O_CREAT	0x0200
 
 extern struct Task *currentTask;
 extern struct MessagePort *FSPort;
@@ -203,6 +202,7 @@ FD DoOpen(unsigned char *s, int flags)
 			return -EMFILE;
 		currentTask->FDbitmap |= 1 << fileDescriptor;
 		fcb->fileDescriptor = fileDescriptor;
+		fcb->mode = flags;
 		struct FCB *temp = currentTask->fcbList;
 		while (temp->nextFCB)
 			temp = temp->nextFCB;
@@ -314,8 +314,7 @@ int DoFStat(FD fileDescriptor, struct FileInfo *info)
 //=================================
 long DoRead(FD fileDescriptor, char *buffer, long noBytes)
 {
-	if (!noBytes)
-		return 0;
+	if (!noBytes) return 0;
 
 	long retval = 0;
 
@@ -338,7 +337,11 @@ long DoRead(FD fileDescriptor, char *buffer, long noBytes)
 			return (1);
 		}
 		else
+		{
+			if (temp->deviceType == CONS) return (-EINVAL);
+			if ((temp->mode & 3) == O_WRONLY)return (-EBADF);
 			retval = ReadFromFile(temp, buffer, noBytes);
+		}
 	}
 	return (retval);
 }
@@ -348,8 +351,7 @@ long DoRead(FD fileDescriptor, char *buffer, long noBytes)
 //==================================
 long DoWrite(FD fileDescriptor, char *buffer, long noBytes)
 {
-	if (!noBytes)
-		return 0;
+	if (!noBytes) return 0;
 
 	long retval = 0;
 
@@ -373,6 +375,9 @@ long DoWrite(FD fileDescriptor, char *buffer, long noBytes)
 		}
 		else
 		{
+			if (temp->deviceType == KBD) return (-EINVAL);
+			if ((temp->mode & 3) == O_RDONLY)return (-EBADF);
+
 			struct Message *FSMsg;
 
 			FSMsg = ALLOCMSG;

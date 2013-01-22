@@ -1,5 +1,4 @@
-#include <memory.h>
-#include <syscalls.h>
+#include <unistd.h>
 
 // This task is just here to start the ball rolling
 
@@ -10,6 +9,6 @@ void tas1(void)
 
 	long pid = fork();
 	if (!pid)
-		execve("sh", "sh");
+		execve((const char *) "sh", (char * const *) "sh", NULL);
 	exit();
 }
