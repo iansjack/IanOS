@@ -14,7 +14,6 @@ long nPagesFree;
 long nPages;
 long firstFreePage;
 struct MemStruct *firstFreeKMem;
-long nextKPage;
 unsigned short int *PMap;
 long memorySemaphore;
 long initialCR3;
@@ -31,7 +30,6 @@ void InitMem64(void)
 	firstFreeKMem = (struct MemStruct *) OSHeap;
 	firstFreeKMem->size = PageSize - sizeof(struct MemStruct);
 	currentTask = (struct Task *) AllocKMem(sizeof(struct Task));
-	nextKPage = 0x12;
 	nextpid = 3;
 	runnableTasks = (struct TaskList *) AllocKMem(sizeof(struct TaskList));
 	runnableTasks->next = 0L;
@@ -50,67 +48,73 @@ void InitMem64(void)
 
 //=========================================================================================
 // Searches the linked list pointed to by list for a block of memory of size sizeRequested
-// Allocates the memory and returns its address in RAX
+// Allocates the memory and returns its address in RAX. If necessary, maps new pages
+// into the heap.
 //=========================================================================================
 void * AllocMem(long sizeRequested, struct MemStruct *list)
 {
 	unsigned char kernel = 0;
-	if (list == firstFreeKMem)
-		kernel = 1;
+	if (list == firstFreeKMem) kernel = 1;
 	// We want the memory allocation to be atomic, so set a semaphore before proceeding
 	SetSem(&memorySemaphore);
 
 	while (list->next)
 	{
-		if (list->size >= sizeRequested)
-			break;
+		if (list->size >= sizeRequested) break;
 		list = list->next;
 	}
 
+	// We have either found a large enough space or we are at the end of the list
+	// Test first to see if it's the end of the list
 	if (!list->next)
 	{
 		// End of list. Enough memory available? If not allocate new pages until there is.
-		while (list->size <= sizeRequested + sizeof(struct MemStruct))
+		// We need at least the size requested plus space for a new MemStruct record
+		while (list->size < sizeRequested + sizeof(struct MemStruct))
 		{
-			long temp = (long) list >> 12;
-			long temp2 = list->size;
-			while (temp2 > PageSize)	// There may already be allocated pages beyond the current one!
-			{
-				temp++;
-				temp2 -= PageSize;
-			}
-			while (list->size < sizeRequested + 2 * sizeof(struct MemStruct))
-			{
-				if (kernel)
-					AllocAndCreatePTE(++temp << 12, 1, RW | G | P);
-				else
-					AllocAndCreatePTE(++temp << 12, currentTask->pid,
-							RW | US | P);
-				list->size += PageSize;
-			}
+			// Not enough free space, so allocate another page.
+			// Find first unmapped address
+			long temp = (long) list + sizeof(struct MemStruct) + list->size;
+			if (kernel)
+				AllocAndCreatePTE(temp, 1, RW | G | P);
+			else
+				AllocAndCreatePTE(temp, currentTask->pid, RW | US | P);
+			list->size += PageSize;
 		}
 	}
 
 	// We now have found a free memory block with enough (or more space)
 	// Is there enough space for another link?
-	if (list->size <= sizeRequested + sizeof(struct MemStruct))
+	if (list->size < sizeRequested + sizeof(struct MemStruct))
 	{
 		// No. Just allocate the whole block
+		// Was that the last entry in the list?
+		if (!list->next)
+		{
+			void *temp = (void *)list + sizeof(struct MemStruct) + sizeRequested;
+			((struct MemStruct *)temp)->next = 0;
+			((struct MemStruct *)temp)->size = list->size - sizeRequested - sizeof(struct MemStruct);
+			list->next = temp;
+		}
+		// Allocate the block
 		list->size = 0;
 	}
 	else
 	{
-		// Yes, so create the new link
-		void *temp = (void *) list;
-		temp += sizeRequested;
-		temp += sizeof(struct MemStruct);
+		// Yes, so create link to the new free block
+		void *temp = (void *) list + sizeof(struct MemStruct) + sizeRequested;
 		((struct MemStruct *) temp)->next = list->next;
+		((struct MemStruct *) temp)->size = list->size - sizeRequested - sizeof(struct MemStruct);
+
+		// link the new free block into the list
 		list->next = (struct MemStruct *) temp;
-		list->next->size = list->size - sizeRequested
-				- sizeof(struct MemStruct);
+
+		// Allocate the block
 		list->size = 0;
 	}
 	ClearSem(&memorySemaphore);
+
+	// Return a pointer to the memory (i.e. skip the struct)
 	return (list + 1);
 }
 

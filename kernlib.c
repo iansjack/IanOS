@@ -185,13 +185,16 @@ FD DoOpen(unsigned char *s, int flags)
 	msg->quad = (long) S;
 	SendReceiveMessage(FSPort, msg);
 	fcb = (struct FCB *) msg->quad;
-	if (((long)fcb < 0) && (flags & O_CREAT))
+	if ((long)fcb <= 0)
 	{
-		msg->nextMessage = 0;
-		msg->byte = CREATEFILE;
-		msg->quad = (long) S;
-		SendReceiveMessage(FSPort, msg);
-		fcb = (struct FCB *) msg->quad;
+		if (flags & 0x200 /*O_CREAT*/) // Why is O_CREAT ending up as 0x40???
+		{
+			msg->nextMessage = 0;
+			msg->byte = CREATEFILE;
+			msg->quad = (long) S;
+			SendReceiveMessage(FSPort, msg);
+			fcb = (struct FCB *) msg->quad;
+		}
 	}
 	DeallocMem(S);
 	DeallocMem(msg);
@@ -259,7 +262,7 @@ int DoStat(char *path, struct FileInfo *info)
 	msg->quad = (long) S;
 	SendReceiveMessage(FSPort, msg);
 	struct FCB * fcb = (struct FCB *)msg->quad;
-	if (fcb > 0)
+	if ((long) fcb > 0)
 	{
 		msg->nextMessage = 0;
 		msg->byte = GETFILEINFO;
@@ -413,7 +416,7 @@ FD DoCreate(unsigned char *s)
 	long retval = msg->quad;
 	DeallocMem(msg);
 	struct FCB *fcb = (struct FCB *) retval;
-	if (fcb)
+	if ((long) fcb > 0)
 	{
 		FD fileDescriptor = FindFirstFreeFD();
 		if (fileDescriptor == -EMFILE)
