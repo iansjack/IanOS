@@ -68,7 +68,6 @@ long DoFork()
 	fcbout->fileDescriptor = STDOUT;
 	fcbout->deviceType = CONS;
 	fcbin->nextFCB = fcbout;
-	;
 
 	//STDERR
 	struct FCB *fcberr = (struct FCB *) AllocKMem(sizeof(struct FCB));
@@ -93,19 +92,67 @@ long DoFork()
 	return pid;
 }
 
+//======================================
+// Load a flat format binary executable
+//======================================
+void LoadFlat(struct FCB * fHandle)
+{
+	char header[15];
+	long codelen, datalen, currentPage, size;
+
+	ReadFromFile(fHandle, header, 14);
+	ReadFromFile(fHandle, (char *) &codelen, 8);
+	ReadFromFile(fHandle, (char *) &datalen, 8);
+
+	// Allocate pages for user code
+	currentPage = UserCode;
+	size = codelen;
+	ClearUserMemory();
+	while (size > 0)
+	{
+		AllocAndCreatePTE(currentPage, currentTask->pid, RW | US | P);
+		size -= PageSize;
+		currentPage += PageSize;
+	}
+	copyMem((char *) header, (char *) UserCode, 14);
+	copyMem((char *) &codelen, (char *) UserCode + 14, 8);
+	copyMem((char *) &datalen, (char *) UserCode + 22, 8);
+	char *location = (char *) UserCode + 30;
+
+	// Load the user code
+	ReadFromFile(fHandle, location, codelen - 30);
+
+	// Allocate pages for user data
+	currentPage = UserData;
+	size = datalen + sizeof(struct MemStruct);
+	while (size > 0)
+	{
+		AllocAndCreatePTE(currentPage, currentTask->pid, RW | US | P);
+		size -= PageSize;
+		currentPage += PageSize;
+	}
+
+	// Load the user data
+	int bytesRead = ReadFromFile(fHandle, (char *) UserData, datalen);
+
+	// Zero the rest of the data segment
+	char *temp = (char *)(UserData + bytesRead);
+	while (bytesRead >= PageSize)
+		bytesRead -= PageSize;
+	int n;
+	for (n = 0; n < bytesRead; n++)
+		temp[n] = 0;
+
+	currentTask->firstfreemem = UserData + datalen;
+}
+
 //===============================================================================
 // This loads the program "name" into memory, if it exists.
 //===============================================================================
 long DoExec(char *name, char *environment)
 {
 	struct FCB *fHandle;
-	long codelen, datalen;
-	char header[15];
-	long *data;
-	long currentPage;
-	long size;
-	long argc;
-	long argv;
+	long argv, argc;
 
 	char *kname = AllocKMem(strlen(name) + 6); // Enough space for "/bin" + name
 
@@ -124,50 +171,7 @@ long DoExec(char *name, char *environment)
 	fHandle = (struct FCB *) FSMsg->quad;
 	if ((long) fHandle > 0)
 	{
-		ReadFromFile(fHandle, header, 14);
-		ReadFromFile(fHandle, (char *) &codelen, 8);
-		ReadFromFile(fHandle, (char *) &datalen, 8);
-
-		// Allocate pages for user code
-		currentPage = UserCode;
-		size = codelen;
-		ClearUserMemory();
-		while (size > 0)
-		{
-			AllocAndCreatePTE(currentPage, currentTask->pid, RW | US | P);
-			size -= PageSize;
-			currentPage += PageSize;
-		}
-		copyMem((char *) header, (char *) UserCode, 14);
-		copyMem((char *) &codelen, (char *) UserCode + 14, 8);
-		copyMem((char *) &datalen, (char *) UserCode + 22, 8);
-		char *location = (char *) UserCode + 30;
-
-		// Load the user code
-		ReadFromFile(fHandle, location, codelen - 30);
-
-		// Allocate pages for user data
-		currentPage = UserData;
-		size = datalen + sizeof(struct MemStruct);
-		while (size > 0)
-		{
-			AllocAndCreatePTE(currentPage, currentTask->pid, RW | US | P);
-			size -= PageSize;
-			currentPage += PageSize;
-		}
-
-		// Load the user data
-		int bytesRead = ReadFromFile(fHandle, (char *) UserData, datalen);
-
-		// Zero the rest of the data segment
-		char *temp = (char *)(UserData + bytesRead);
-		while (bytesRead >= PageSize)
-			bytesRead -= PageSize;
-		int n;
-		for (n = 0; n < bytesRead; n++)
-			temp[n] = 0;
-
-		currentTask->firstfreemem = UserData + datalen;
+		LoadFlat(fHandle);
 
 		//Close file and deallocate memory for structures
 		FSMsg->nextMessage = 0;
@@ -179,10 +183,11 @@ long DoExec(char *name, char *environment)
 
 		// Process the arguments for argc and argv
 		// Copy environment string to user data space
-		copyMem(environment, (void *) (UserData + datalen), 81);
+		// It occupies the 81 bytes after the current first free memory
+		currentTask->environment = (void *)currentTask->firstfreemem;
+		copyMem(environment, currentTask->environment, 81);
 		currentTask->firstfreemem += 81;
-		currentTask->environment = (void *) UserData + datalen;
-		long argv = (long) currentTask->environment;
+		argv = (long) currentTask->environment;
 		argc = ParseEnvironmentString(&argv);
 		argv += 80;
 		currentTask->firstfreemem += argc * sizeof(char *);
