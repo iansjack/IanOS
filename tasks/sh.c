@@ -1,7 +1,10 @@
+#include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include "console.h"
+#undef errno
+extern int errno;
 
 int main(int argc, char **argv)
 {
@@ -57,7 +60,10 @@ int main(int argc, char **argv)
 					{
 						if (execve(name, environment))
 						{
-							printf("Command not found\n");
+							if (errno == ENOENT)
+								printf("Command not found\n");
+							else
+								printf("Not an executable\n");
 							return 1;
 						}
 					}

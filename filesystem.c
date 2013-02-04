@@ -482,52 +482,52 @@ void fsTaskCode(void)
 		switch (FSMsg->byte)
 		{
 		case CREATEFILE:
-			fcb = CreateFile((char *) FSMsg->quad);
+			fcb = CreateFile((char *) FSMsg->quad1);
 			if (fcb > 0)
 				fcb->pid = FSMsg->pid;
-			FSMsg->quad = (long) fcb;
+			FSMsg->quad1 = (long) fcb;
 			break;
 
 		case OPENFILE:
-			fcb = OpenFile((unsigned char *) FSMsg->quad);
+			fcb = OpenFile((unsigned char *) FSMsg->quad1);
 			if ((long) fcb > 0)
 				fcb->pid = FSMsg->pid;
-			FSMsg->quad = (long) fcb;
+			FSMsg->quad1 = (long) fcb;
 			break;
 
 		case CLOSEFILE:
-			CloseFile((struct FCB *) FSMsg->quad);
-			DeallocMem((void *) FSMsg->quad);
+			CloseFile((struct FCB *) FSMsg->quad1);
+			DeallocMem((void *) FSMsg->quad1);
 			break;
 
 		case READFILE:
-			FSMsg->quad = ReadFile((struct FCB *) FSMsg->quad, (char *) FSMsg->quad2,
+			FSMsg->quad1 = ReadFile((struct FCB *) FSMsg->quad1, (char *) FSMsg->quad2,
 					FSMsg->quad3);
 			break;
 
 		case WRITEFILE:
-			FSMsg->quad = WriteFile((struct FCB *) FSMsg->quad,
+			FSMsg->quad1 = WriteFile((struct FCB *) FSMsg->quad1,
 					(char *) FSMsg->quad2, FSMsg->quad3);
 			break;
 
 		case DELETEFILE:
-			FSMsg->quad = DeleteFile((char *) FSMsg->quad);
+			FSMsg->quad1 = DeleteFile((char *) FSMsg->quad1);
 			break;
 
 		case TESTFILE:
-			if (!strcmp((char *) FSMsg->quad, "/"))
+			if (!strcmp((char *) FSMsg->quad1, "/"))
 				result = 1;
 			else
 			{
-				result = (long) GetFileINode((char *) FSMsg->quad);
+				result = (long) GetFileINode((char *) FSMsg->quad1);
 				if (result != -ENOENT)
 					result = 1;
 			}
-			FSMsg->quad = result;
+			FSMsg->quad1 = result;
 			break;
 
 		case GETFILEINFO:
-			fcb = (struct FCB *) FSMsg->quad;
+			fcb = (struct FCB *) FSMsg->quad1;
 			struct FileInfo info;
 			info.inode = fcb->inodeNumber;
 			info.mode = fcb->inode->i_mode;
@@ -542,16 +542,16 @@ void fsTaskCode(void)
 			break;
 
 		case CREATEDIR:
-			FSMsg->quad = CreateDir((char *) FSMsg->quad);
+			FSMsg->quad1 = CreateDir((char *) FSMsg->quad1);
 			break;
 
 		case SEEK:
-			FSMsg->quad = Seek((struct FCB *) FSMsg->quad, FSMsg->quad2,
+			FSMsg->quad1 = Seek((struct FCB *) FSMsg->quad1, FSMsg->quad2,
 					FSMsg->quad3);
 			break;
 
 		case TRUNCATE:
-			FSMsg->quad = Truncate((struct FCB*) FSMsg->quad, FSMsg->quad2);
+			FSMsg->quad1 = Truncate((struct FCB*) FSMsg->quad1, FSMsg->quad2);
 			break;
 
 		default:

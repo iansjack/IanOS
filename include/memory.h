@@ -2,7 +2,7 @@
 #define MEMORY_H
 
 #include "kstructs.h"
-#include "pagetab.h"
+//#include "pagetab.h"
 
 //=============
 // Memory Map

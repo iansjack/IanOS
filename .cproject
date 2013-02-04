@@ -6,7 +6,9 @@
 				<macros>
 					<stringMacro name="INC" type="VALUE_TEXT" value="/home/ian/IanOS/include"/>
 				</macros>
-				<externalSettings/>
+				<externalSettings>
+					<externalSetting/>
+				</externalSettings>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
@@ -27,7 +29,12 @@
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.base.1684977313" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base">
 								<option id="gnu.c.compiler.option.include.paths.1097934719" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/IanOS/include}&quot;"/>
+									<listOptionValue builtIn="false" value="/usr/local/cross/x86_64-elf/include"/>
 									<listOptionValue builtIn="false" value="/usr/include"/>
+									<listOptionValue builtIn="false" value="/usr/local/cross/lib/gcc/x86_64-elf/4.7.2/include"/>
+								</option>
+								<option id="gnu.c.compiler.option.preprocessor.undef.symbol.1549887307" name="Undefined symbols (-U)" superClass="gnu.c.compiler.option.preprocessor.undef.symbol" valueType="undefDefinedSymbols">
+									<listOptionValue builtIn="false" value="CODE_32"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1869188685" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -43,6 +50,18 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
+					<fileInfo id="cdt.managedbuild.toolchain.gnu.base.284882969.275328902" name="ptab32.c" rcbsApplicability="disable" resourcePath="ptab32.c" toolsToInvoke="cdt.managedbuild.tool.gnu.c.compiler.base.1684977313.59906638">
+						<tool id="cdt.managedbuild.tool.gnu.c.compiler.base.1684977313.59906638" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base.1684977313">
+							<option id="gnu.c.compiler.option.preprocessor.def.symbols.1085702524" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
+								<listOptionValue builtIn="false" value="CODE_32"/>
+							</option>
+							<option id="gnu.c.compiler.option.preprocessor.undef.symbol.1268586626" name="Undefined symbols (-U)" superClass="gnu.c.compiler.option.preprocessor.undef.symbol"/>
+							<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1204521451" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
+						</tool>
+					</fileInfo>
+					<sourceEntries>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+					</sourceEntries>
 				</configuration>
 			</storageModule>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
@@ -51,15 +70,33 @@
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 		<project id="IanOS.null.1383551375" name="IanOS"/>
 	</storageModule>
-	<storageModule moduleId="refreshScope" versionNumber="1">
-		<resource resourceType="PROJECT" workspacePath="/IanOS"/>
-	</storageModule>
-	<storageModule moduleId="scannerConfiguration">
-		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.284882969;cdt.managedbuild.toolchain.gnu.base.284882969.1919157594;cdt.managedbuild.tool.gnu.c.compiler.base.1684977313;cdt.managedbuild.tool.gnu.c.compiler.input.1869188685">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.make.core.GCCStandardMakePerFileProfile"/>
-		</scannerConfigBuildInfo>
+	<storageModule moduleId="refreshScope" versionNumber="2">
+		<configuration configurationName="Default">
+			<resource resourceType="PROJECT" workspacePath="/IanOS"/>
+		</configuration>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
+	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
+	<storageModule moduleId="scannerConfiguration">
+		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.284882969;cdt.managedbuild.toolchain.gnu.base.284882969.1919157594;cdt.managedbuild.tool.gnu.c.compiler.base.1684977313;cdt.managedbuild.tool.gnu.c.compiler.input.1869188685">
+			<autodiscovery enabled="true" problemReportingEnabled="false" selectedProfileId="org.eclipse.cdt.make.core.GCCStandardMakePerFileProfile"/>
+			<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerFileProfile">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="false"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="makefileGenerator">
+					<runAction arguments="-E -P -v -dD" command="" useDefault="true"/>
+					<parser enabled="false"/>
+				</scannerInfoProvider>
+			</profile>
+		</scannerConfigBuildInfo>
+	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.core.language.mapping">
+		<project-mappings>
+			<file-mapping/>
+		</project-mappings>
+	</storageModule>
 </cproject>

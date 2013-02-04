@@ -3,11 +3,11 @@
 
 // #define DEBUG
 
-#include <kstructs.h>
-#include <memory.h>
-#include <pagetab.h>
-#include <lib.h>
-#include <tasklist.h>
+#include "kstructs.h"
+#include "memory.h"
+#include "pagetab.h"
+#include "lib.h"
+#include "tasklist.h"
 
 void SendMessage(struct MessagePort *MP, struct Message *Msg);
 void ReceiveMessage(struct MessagePort *MP, struct Message *Msg);
@@ -17,6 +17,7 @@ unsigned char *ReadSector(unsigned int SectorNo);
 void WriteSector(unsigned int SectorNo);
 void WaitForInt(long interrupt);
 long ReadFromFile(struct FCB *fHandle, char *buffer, long noBytes);
+long SeekFile(struct Message *FSMsg, struct FCB * fHandle, long offset, long whence);
 void copyMem(unsigned char *source, unsigned char *dest, long size);
 void copyString(unsigned char *source, unsigned char *destination);
 void BlockTask(struct Task *task);

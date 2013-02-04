@@ -136,7 +136,7 @@ void LoadFlat(struct FCB * fHandle)
 	int bytesRead = ReadFromFile(fHandle, (char *) UserData, datalen);
 
 	// Zero the rest of the data segment
-	char *temp = (char *)(UserData + bytesRead);
+	char *temp = (char *) (UserData + bytesRead);
 	while (bytesRead >= PageSize)
 		bytesRead -= PageSize;
 	int n;
@@ -164,38 +164,53 @@ long DoExec(char *name, char *environment)
 	// Open file
 	FSMsg->nextMessage = 0;
 	FSMsg->byte = OPENFILE;
-	FSMsg->quad = (long) kname;
+	FSMsg->quad1 = (long) kname;
 	FSMsg->quad2 = (long) fHandle;
 	SendReceiveMessage(FSPort, FSMsg);
 
-	fHandle = (struct FCB *) FSMsg->quad;
+	fHandle = (struct FCB *) FSMsg->quad1;
 	if ((long) fHandle > 0)
 	{
-		LoadFlat(fHandle);
+		char magic[5];
+		char executable = 0;
+		SeekFile(FSMsg, fHandle, 10, SEEK_SET);
+		ReadFromFile(fHandle, magic, 4);
+		if (!strcmp(magic, "IJ64"))
+		{
+			magic[4] = 0;
+			SeekFile(FSMsg, fHandle, 0, SEEK_SET);
+			LoadFlat(fHandle);
+			executable = 1;
+		}
 
 		//Close file and deallocate memory for structures
 		FSMsg->nextMessage = 0;
 		FSMsg->byte = CLOSEFILE;
-		FSMsg->quad = (long) fHandle;
+		FSMsg->quad1 = (long) fHandle;
 		SendReceiveMessage(FSPort, FSMsg);
 		DeallocMem(kname);
 		DeallocMem(FSMsg);
 
-		// Process the arguments for argc and argv
-		// Copy environment string to user data space
-		// It occupies the 81 bytes after the current first free memory
-		currentTask->environment = (void *)currentTask->firstfreemem;
-		copyMem(environment, currentTask->environment, 81);
-		currentTask->firstfreemem += 81;
-		argv = (long) currentTask->environment;
-		argc = ParseEnvironmentString(&argv);
-		argv += 80;
-		currentTask->firstfreemem += argc * sizeof(char *);
-		long *l = (long *) (UserCode + 22);
-		*l = (long) (currentTask->firstfreemem) - UserData;
-		asm("mov %0,%%rdi;" "mov %1,%%rsi":
-				: "r"(argc), "r"(argv):"%rax", "%rdi");
-		return 0;
+		if (executable)
+		{
+			// Process the arguments for argc and argv
+			// Copy environment string to user data space
+			// It occupies the 81 bytes after the current first free memory
+			currentTask->environment = (void *) currentTask->firstfreemem;
+			copyMem(environment, currentTask->environment, 81);
+			currentTask->firstfreemem += 81;
+			argv = (long) currentTask->environment;
+			argc = ParseEnvironmentString(&argv);
+			argv += 80;
+			currentTask->firstfreemem += argc * sizeof(char *);
+			long *l = (long *) (UserCode + 22);
+			*l = (long) (currentTask->firstfreemem) - UserData;
+			asm("mov %0,%%rdi;" "mov %1,%%rsi":
+					: "r"(argc), "r"(argv):"%rax", "%rdi");
+			return 0;
+		}
+		else
+			return -ENOEXEC;
 	}
 	else
 	{
@@ -276,7 +291,7 @@ void KillTask(void)
 	if (task->parentPort)
 	{
 		struct Message *m = ALLOCMSG;
-		m->quad = 0;
+		m->quad1 = 0;
 		SendMessage(task->parentPort, m);
 		DeallocMem(m);
 	}

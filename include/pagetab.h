@@ -5,12 +5,12 @@
 #define RW		2				// Read(0)/Write(1)
 #define US		4				// User(1)/Supervisor(0)
 #define PWT		8				// Page-Level Writethrough
-#define PCD 	        16				// Page-Level Cache Disable
+#define PCD 	16				// Page-Level Cache Disable
 #define A		32				// Accessed(1)
 #define D		64 				// Dirty(1)
-#define PAT 	        128				// Page Attribute Table (or sometimes Page Size, but always 0 for our purposes
+#define PAT 	128				// Page Attribute Table (or sometimes Page Size, but always 0 for our purposes
 #define G		256				// Global
-#define	NX32	        0x80000000
+#define	NX32	0x80000000
 #define NX		0x8000000000000	// No execute
 
 #ifdef CODE_32

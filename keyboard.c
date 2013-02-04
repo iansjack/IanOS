@@ -123,7 +123,7 @@ void ProcessMsgQueue(struct Console *console)
 		{
 			struct MessagePort *tempPort = tempMsg->tempPort;
 			tempMsg->nextMessage = 0;
-			tempMsg->quad = 0L;
+			tempMsg->quad1 = 0L;
 			tempMsg->byte = temp;
 			SendMessage(tempPort, tempMsg);
 		}
@@ -176,7 +176,7 @@ void kbTaskCode()
 		case GETCHAR:
 			// We are interested in the console that requested a character.
 			// It may not be the current one.
-			currentCons = &consoles[KbdMsg->quad];
+			currentCons = &consoles[KbdMsg->quad1];
 			tempMsg = currentCons->MsgQueue;
 			if (!tempMsg)
 				currentCons->MsgQueue = KbdMsg;

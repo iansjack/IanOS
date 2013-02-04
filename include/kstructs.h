@@ -55,7 +55,7 @@ struct Task
 struct Message
 {
 	struct Message *nextMessage;
-	long quad;
+	long quad1;
 	long quad2;
 	long quad3;
 	struct MessagePort *tempPort;

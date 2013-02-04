@@ -329,15 +329,15 @@ void consoleTaskCode()
 		switch (ConsoleMsg.byte)
 		{
 		case WRITECHAR:
-			ProcessChar((unsigned char) ConsoleMsg.quad, ConsoleMsg.quad2);
+			ProcessChar((unsigned char) ConsoleMsg.quad1, ConsoleMsg.quad2);
 			break;
 
 		case WRITESTR:
-			s = (unsigned char *) ConsoleMsg.quad;
+			s = (unsigned char *) ConsoleMsg.quad1;
 			long console = ConsoleMsg.quad2;
 			while (*s != 0)
 				ProcessChar(*s++, console);
-			DeallocMem((void *) ConsoleMsg.quad);
+			DeallocMem((void *) ConsoleMsg.quad1);
 			break;
 
 		default:
