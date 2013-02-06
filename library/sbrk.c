@@ -3,8 +3,10 @@
 
 #undef errno
 
+void * Alloc_Page(void *);
+
 extern int errno;
-extern long DataLen;
+// extern long DataLen;
 
 static char sbrk_first_time = 1;
 static int sbrk_size = 0;
@@ -15,8 +17,10 @@ void *sbrk(int size)
 	if (sbrk_first_time) 
 	{
 		sbrk_first_time = 0;
-		sbrk_curbrk = (void *)(UserData + DataLen); //*firstfreemem);
-		sbrk_size = PageSize - DataLen;
+		// sbrk_curbrk = (void *)(UserData + DataLen); //*firstfreemem);
+		sbrk_curbrk = Alloc_Page(0);
+		// sbrk_size = PageSize - DataLen;
+		sbrk_size = PageSize - (long) sbrk_curbrk;
 		while (sbrk_size < 0)
 			sbrk_size += PageSize;
 	}

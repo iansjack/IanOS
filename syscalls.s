@@ -58,6 +58,12 @@ SysCalls:
 Alloc_Page:
 	push %rcx
 	mov  currentTask, %r15
+	cmp $0, %rdi
+	jne alloc
+	mov TS.firstfreemem(%r15), %rax
+	pop %rcx
+	sysretq
+alloc:
 	mov  TS.pid(%r15), %rsi
 	mov	 $7, %rdx
 	call AllocAndCreatePTE

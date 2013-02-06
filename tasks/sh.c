@@ -44,7 +44,7 @@ int main(int argc, char **argv)
 				// Process "cd" command;
 				if (!strcmp(name, "cd"))
 				{
-					char *directory = strtok(NULL, " ");
+					char *directory = strtok(/*NULL*/ 0, " ");
 					if (chdir(directory) == -1)
 						printf("Directory not found!\n");
 				}

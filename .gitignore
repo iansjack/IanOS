@@ -17,3 +17,6 @@ tasks/edit
 tasks/sh
 tasks/rm
 .settings/
+.project
+.cproject
+
