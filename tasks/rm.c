@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-extern errno;
+#undef errno;
+extern int errno;
 
 int main(int argc, char **argv)
 {

@@ -447,6 +447,7 @@ long DoMkDir(unsigned char *s)
 	DeallocMem(S);
 	long retval = msg->quad1;
 	DeallocMem(msg);
+	return retval;
 }
 
 //===================================
@@ -465,6 +466,7 @@ long DoDelete(unsigned char *name)
 	retval = msg->quad1;
 	DeallocMem(S);
 	DeallocMem(msg);
+	return retval;
 }
 
 //===================================
@@ -502,6 +504,9 @@ unsigned char *DoGetcwd(char *name, long length)
 	return name;
 }
 
+//====================================
+// A wrapper for the seek system call
+//====================================
 long SeekFile(struct Message *FSMsg, struct FCB * fHandle, long offset, long whence)
 {
 	FSMsg->nextMessage = 0;

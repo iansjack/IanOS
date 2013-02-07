@@ -1,10 +1,10 @@
 	.include "../include/syscalls.inc"
 	
-	.global unlink
+	.global sys_unlink
 
 	.text
 
-unlink:
+sys_unlink:
 	push %rcx
 	push %r9
 	push %r11

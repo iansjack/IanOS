@@ -265,7 +265,7 @@ long DeleteFile(char *name)
 
 	// Now free the blocks allocated to this file
 	struct FCB *fcb = OpenFile(name);
-	if (fcb < 0)
+	if ((long)fcb < 0)
 		return (long) fcb;
 	// Delete all direct blocks
 	for (i = 0; i < EXT2_IND_BLOCK; i++)
