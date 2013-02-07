@@ -8,5 +8,5 @@ _start:		call main
 			call _exit
 
 Magic:		.ascii	"IJ64"
-CodeLen:	.quad	CodeLength
-DataLen:	.quad	DataLength
+#CodeLen:	.quad	CodeLength
+#DataLen:	.quad	DataLength

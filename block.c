@@ -7,9 +7,9 @@ typedef int umode_t;
 #include <sys/fcntl.h>
 #include <string.h>
 #include <unistd.h>
-#include "ext2_fs.h"
-#include "blocks.h"
-#include "memory.h"
+#include <ext2_fs.h>
+#include <blocks.h>
+#include <memory.h>
 
 struct ext2_super_block sb;
 int block_size = 1024;
@@ -304,7 +304,7 @@ __le32 GetFileINode(char *path)
 			}
 		}
 		startingDirectory = dir->inode;
-		name = strtok(NULL, "/");
+		name = strtok(/*NULL*/ 0, "/");
 	}
 	DeallocMem(temp);
 	return startingDirectory;

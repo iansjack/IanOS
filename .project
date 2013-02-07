@@ -63,26 +63,17 @@
 				</dictionary>
 			</arguments>
 		</buildCommand>
-		<buildCommand>
-			<name>org.eclipse.cdt.managedbuilder.core.ScannerConfigBuilder</name>
-			<arguments>
-			</arguments>
-		</buildCommand>
-		<buildCommand>
-			<name>org.eclipse.linuxtools.rpm.rpmlint.rpmlintBuilder</name>
-			<arguments>
-			</arguments>
-		</buildCommand>
 	</buildSpec>
 	<natures>
 		<nature>org.eclipse.cdt.core.cnature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 		<nature>org.eclipse.linuxtools.rpm.rpmlint.rpmlintNature</nature>
+		<nature>org.eclipse.cdt.codan.core.codanNature</nature>
 	</natures>
 	<filteredResources>
 		<filter>
-			<id>1360146379029</id>
+			<id>1360152082293</id>
 			<name></name>
 			<type>21</type>
 			<matcher>
@@ -91,7 +82,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1360146379032</id>
+			<id>1360152082296</id>
 			<name></name>
 			<type>21</type>
 			<matcher>
@@ -100,7 +91,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1360146379034</id>
+			<id>1360152082300</id>
 			<name></name>
 			<type>21</type>
 			<matcher>
@@ -109,7 +100,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1360146379037</id>
+			<id>1360152082304</id>
 			<name></name>
 			<type>21</type>
 			<matcher>
@@ -118,7 +109,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1360146379039</id>
+			<id>1360152082309</id>
 			<name></name>
 			<type>21</type>
 			<matcher>
@@ -127,7 +118,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1360146379042</id>
+			<id>1360152082313</id>
 			<name></name>
 			<type>21</type>
 			<matcher>
@@ -136,7 +127,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1360146379044</id>
+			<id>1360152082317</id>
 			<name></name>
 			<type>21</type>
 			<matcher>
@@ -145,7 +136,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1360146379047</id>
+			<id>1360152082322</id>
 			<name></name>
 			<type>10</type>
 			<matcher>
@@ -154,7 +145,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1360146379049</id>
+			<id>1360152082327</id>
 			<name></name>
 			<type>5</type>
 			<matcher>
@@ -163,7 +154,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1360146379051</id>
+			<id>1360152082332</id>
 			<name></name>
 			<type>5</type>
 			<matcher>

@@ -1,4 +1,4 @@
-INC = -I ~/IanOS/include
+INC = -I /home/ian/IanOS/include
 CC = x86_64-elf-gcc
 CFLAGS = -fno-stack-protector -fno-builtin -ffixed-r15 -mno-red-zone -g \
 		-I /usr/local/cross/x86_64-elf/include $(INC) 

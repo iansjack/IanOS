@@ -9,6 +9,6 @@ void tas1(void)
 
 	long pid = fork();
 	if (!pid)
-		execve((const char *) "sh", (char * const *) "sh", NULL);
+		execve((const char *) "sh", (char * const *) "sh", /*NULL*/ 0);
 	exit();
 }

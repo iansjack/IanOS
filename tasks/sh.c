@@ -63,7 +63,7 @@ int main(int argc, char **argv)
 							if (errno == ENOENT)
 								printf("Command not found\n");
 							else
-								printf("Not an executable\n");
+								printf("Not an executable: errorno = %d\n", errno);
 							return 1;
 						}
 					}

@@ -1,4 +1,4 @@
-#include "kernel.h"
+#include <kernel.h>
 
 #define VIRT(type, name) ((struct type *) ((long) name + VAddr))
 

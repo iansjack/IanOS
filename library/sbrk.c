@@ -1,5 +1,5 @@
 #include <errno.h>
-#include "memory.h"
+#include <kernel.h>
 
 #undef errno
 

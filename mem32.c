@@ -1,4 +1,4 @@
-#include <memory.h>
+#include <kernel.h>
 
 extern long long memorySemaphore;
 extern long long nPagesFree;

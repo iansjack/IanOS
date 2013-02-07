@@ -4,8 +4,8 @@
  *  Created on: 6 Jun 2012
  *      Author: ian
  */
-
-#include "kstructs.h"
+#include <linux/types.h>
+#include <kstructs.h>
 
 #ifndef BLOCKS_H_
 #define BLOCKS_H_

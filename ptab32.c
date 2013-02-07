@@ -1,5 +1,5 @@
-#include "memory.h"
-#include "pagetab32.h"
+#include <memory.h>
+#include <pagetab32.h>
 
 void CreatePT164(struct PT *);
 void CreatePhysicalToVirtual(struct PML4 *, int);

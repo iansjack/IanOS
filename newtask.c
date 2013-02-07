@@ -2,6 +2,7 @@
 #include <kernel.h>
 #include <filesystem.h>
 #include <errno.h>
+#include <elf.h>
 #include "blocks.h"
 
 struct Task *
@@ -146,6 +147,31 @@ void LoadFlat(struct FCB * fHandle)
 	currentTask->firstfreemem = UserData + datalen;
 }
 
+void LoadElf(struct Message *FSMsg, struct FCB * fHandle)
+{
+	Elf64_Ehdr header;
+	Elf64_Phdr pheader;
+	long currentPage, size;
+
+	ReadFromFile(fHandle, (char *)&header, sizeof(Elf64_Ehdr));
+	SeekFile(FSMsg, fHandle, header.e_phoff, SEEK_SET);
+	ReadFromFile(fHandle, (char *)&pheader, sizeof(Elf64_Phdr));
+	int sizetoload = pheader.p_filesz;
+	int loadlocation = pheader.p_offset;
+	SeekFile(FSMsg, fHandle, loadlocation, SEEK_SET);
+	currentPage = UserCode;
+	size = sizetoload;
+	ClearUserMemory();
+	while (size > 0)
+	{
+		AllocAndCreatePTE(currentPage, currentTask->pid, RW | US | P);
+		size -= PageSize;
+		currentPage += PageSize;
+	}
+	ReadFromFile(fHandle, (char *)UserCode, sizetoload);
+	AllocAndCreatePTE(UserData, currentTask->pid, RW | US | P);
+	currentTask->firstfreemem = UserData;
+}
 //===============================================================================
 // This loads the program "name" into memory, if it exists.
 //===============================================================================
@@ -153,6 +179,7 @@ long DoExec(char *name, char *environment)
 {
 	struct FCB *fHandle;
 	long argv, argc;
+	int retval = -ENOEXEC;
 
 	char *kname = AllocKMem(strlen(name) + 6); // Enough space for "/bin" + name
 
@@ -175,12 +202,23 @@ long DoExec(char *name, char *environment)
 		char executable = 0;
 		SeekFile(FSMsg, fHandle, 10, SEEK_SET);
 		ReadFromFile(fHandle, magic, 4);
+		magic[4] = 0;
 		if (!strcmp(magic, "IJ64"))
 		{
-			magic[4] = 0;
 			SeekFile(FSMsg, fHandle, 0, SEEK_SET);
 			LoadFlat(fHandle);
 			executable = 1;
+		}
+		else
+		{
+			SeekFile(FSMsg, fHandle, 0, SEEK_SET);
+			ReadFromFile(fHandle, magic, 4);
+			if (magic[0] == 0x7F)
+			{
+				SeekFile(FSMsg, fHandle, 0, SEEK_SET);
+				LoadElf(FSMsg, fHandle);
+				executable = 1;
+			}
 		}
 
 		//Close file and deallocate memory for structures
@@ -197,20 +235,25 @@ long DoExec(char *name, char *environment)
 			// Copy environment string to user data space
 			// It occupies the 81 bytes after the current first free memory
 			currentTask->environment = (void *) currentTask->firstfreemem;
-			copyMem(environment, currentTask->environment, 81);
-			currentTask->firstfreemem += 81;
+			copyMem(environment, currentTask->environment, 80);
+			currentTask->firstfreemem += 80;
 			argv = (long) currentTask->environment;
 			argc = ParseEnvironmentString(&argv);
 			argv += 80;
+
+			// Adjust firstfreemem to point to the first free memory location.
 			currentTask->firstfreemem += argc * sizeof(char *);
-			long *l = (long *) (UserCode + 22);
-			*l = (long) (currentTask->firstfreemem) - UserData;
+
+			// Build the first MemStruct struct. Is all this necessary? User tasks don't use the kernel memory allocation, do they?
+			long *l = (long *)(currentTask->firstfreemem);
+			*l = 0;
+			*(l + 1) = -((sizeof(struct MemStruct) + currentTask->firstfreemem)) % PageSize;
 			asm("mov %0,%%rdi;" "mov %1,%%rsi":
 					: "r"(argc), "r"(argv):"%rax", "%rdi");
 			return 0;
 		}
 		else
-			return -ENOEXEC;
+			return retval;
 	}
 	else
 	{
@@ -296,10 +339,10 @@ void KillTask(void)
 		DeallocMem(m);
 	}
 
-	if (task->environment)
+	/*if (task->environment)
 		DeallocMem(task->environment);
 	if (task->argv)
-		DeallocMem(task->argv);
+		DeallocMem(task->argv);*/
 
 	//Don't want to task switch whilst destroying task
 	asm("cli");
