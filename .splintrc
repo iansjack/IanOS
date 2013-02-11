@@ -1,0 +1,4 @@
+-Dasm=__asm__
+-D__signed__=signed
+-D__attribute=__attribute__
+
