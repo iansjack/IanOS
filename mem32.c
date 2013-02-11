@@ -13,14 +13,17 @@ extern long long firstFreePage;
 void InitMemManagement()
 {
 	unsigned short int *PMap = (unsigned short int *) PageMap;
+	long long count;
+	long *mempos;
+	long testpattern;
 
 	memorySemaphore = 0;
 	nPagesFree = 256;
 
 	// Find number of free pages by writing a pattern to memory and seeing if it reads back OK
 	// We start at 1Mb and go up in 1Mb increments. Each Mb is 256 pages.
-	long *mempos = (long *) 0x100000;
-	long testpattern = 0x6d72646c;
+	mempos = (long *) 0x100000;
+	testpattern = 0x6d72646c;
 	while (1)
 	{
 		*mempos = testpattern;
@@ -31,7 +34,6 @@ void InitMemManagement()
 	}
 	nPages = nPagesFree;
 
-	int count;
 	for (count = 0; count < nPages; count++)
 		PMap[count] = 0;
 
@@ -68,11 +70,6 @@ void InitMemManagement()
 	}
 }
 
-void ZeroMem()
-{
-	long count;
-
-}
 //============================================
 // Allocate a page of memory and zero fill it
 //============================================

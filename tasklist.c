@@ -1,5 +1,6 @@
 #include <memory.h>
 #include <tasklist.h>
+#include <kernel.h>
 
 extern long canSwitch;
 extern struct TaskList *runnableTasks;
@@ -8,9 +9,10 @@ extern struct TaskList *allTasks;
 
 struct TaskList *AddToHeadOfTaskList(struct TaskList *list, struct Task *task)
 {
+	struct TaskList *temp;
+
 	canSwitch++;
-	struct TaskList *temp =
-	    (struct TaskList *)AllocKMem(sizeof(struct TaskList));
+	temp = (struct TaskList *)AllocKMem((long)sizeof(struct TaskList));
 	temp->task = task;
 	temp->next = list;
 	canSwitch--;
@@ -19,10 +21,11 @@ struct TaskList *AddToHeadOfTaskList(struct TaskList *list, struct Task *task)
 
 struct TaskList *AddToTailOfTaskList(struct TaskList *list, struct Task *task)
 {
+	struct TaskList *temp, *start;
+
 	canSwitch++;
-	struct TaskList *temp =
-	    (struct TaskList *)AllocKMem(sizeof(struct TaskList));
-	struct TaskList *start = list;
+	temp = (struct TaskList *)AllocKMem((long)sizeof(struct TaskList));
+	start = list;
 
 	temp->next = 0;
 	temp->task = task;
@@ -40,16 +43,18 @@ struct TaskList *AddToTailOfTaskList(struct TaskList *list, struct Task *task)
 
 struct TaskList *RemoveFromTaskList(struct TaskList *list, struct Task *task)
 {
+	struct TaskList *start, *temp;
+
 	canSwitch++;
 	if (list == 0) {
 		KWriteString("The list is empty!", 17, 0);
 		while (1) ;
 	}
-	struct TaskList *start = list;
+	start = list;
 
 	if (list->task == task) {
 		list = list->next;
-		DeallocMem(start);
+		DeallocMem((void *)start);
 		canSwitch--;
 		return list;
 	} else {
@@ -70,7 +75,7 @@ struct TaskList *RemoveFromTaskList(struct TaskList *list, struct Task *task)
 
 		while (list->next->task != task)
 			list = list->next;
-		struct TaskList *temp = list->next;
+		temp = list->next;
 		list->next = list->next->next;
 		DeallocMem(temp);
 		canSwitch--;
@@ -83,6 +88,8 @@ struct TaskList *RemoveFromTaskList(struct TaskList *list, struct Task *task)
 //===========================================================
 struct TaskList *MoveTaskToEndOfList(struct TaskList *list)
 {
+	struct TaskList *start, *temp;
+
 	canSwitch++;
 	if (!list) {
 		canSwitch--;
@@ -93,8 +100,8 @@ struct TaskList *MoveTaskToEndOfList(struct TaskList *list)
 		return list;
 	}
 
-	struct TaskList *start = list;
-	struct TaskList *temp = list;
+	start = list;
+	temp = list;
 	list = list->next;
 	while (temp->next)
 		temp = temp->next;

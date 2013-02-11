@@ -15,7 +15,7 @@ extern long Ticks;
 //===================================================================
 struct BTreeNode * CreateBTreeNode(int key, void * data)
 {
-	struct BTreeNode * node = (struct BTreeNode *)AllocUMem(sizeof(struct BTreeNode));
+	struct BTreeNode * node = (struct BTreeNode *)AllocUMem((long)sizeof(struct BTreeNode));
 	node->key = key;
 	node->data = data;
 	node->lesser = 0;
@@ -155,7 +155,7 @@ struct BTreeNode * BalanceBTree(struct BTreeNode * btree)
 		difference = -difference;
 	while (difference > 1)
 	{
-		struct BTreeNode *tempNode, *temp1Node, *temp2Node;
+		struct BTreeNode *tempNode, *temp2Node;
 		if (nLesser < nGreater)
 		{
 			// Make the smallest node in Greater the new tree root

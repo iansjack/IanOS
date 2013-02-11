@@ -12,8 +12,8 @@ void SendMessage(struct MessagePort *MP, struct Message *Msg)
 	struct Message *temp = (struct Message *)ALLOCMSG;
 
 	copyMem((unsigned char *)Msg, (unsigned char *)temp,
-		sizeof(struct Message));
-	temp->pid = currentTask->pid;
+		(long)sizeof(struct Message));
+	temp->pid = (long)currentTask->pid;
 	asm("cli");
 	if (MP->msgQueue == 0) {
 		MP->msgQueue = temp;
@@ -39,6 +39,8 @@ void SendMessage(struct MessagePort *MP, struct Message *Msg)
 //======================================
 void ReceiveMessage(struct MessagePort *MP, struct Message *Msg)
 {
+	struct Message *temp;
+
 	while (MP->msgQueue == 0) {
 		MP->waitingProc = currentTask;
 		currentTask->waiting = 0x80;
@@ -46,12 +48,12 @@ void ReceiveMessage(struct MessagePort *MP, struct Message *Msg)
 		SWTASKS;
 	}
 	asm("cli");
-	struct Message *temp = MP->msgQueue;
+	temp = MP->msgQueue;
 	MP->msgQueue = temp->nextMessage;
 	temp->nextMessage = 0;
 	asm("sti");
 	copyMem((unsigned char *)temp, (unsigned char *)Msg,
-		sizeof(struct Message));
+		(long)sizeof(struct Message));
 	DeallocMem(temp);
 }
 
@@ -60,7 +62,7 @@ void ReceiveMessage(struct MessagePort *MP, struct Message *Msg)
 //========================
 struct MessagePort *AllocMessagePort()
 {
-	struct MessagePort *temp = AllocKMem(sizeof(struct MessagePort));
+	struct MessagePort *temp = (struct MessagePort *)AllocKMem((long)sizeof(struct MessagePort));
 
 	temp->waitingProc = (struct Task *)-1L;
 	temp->msgQueue = 0;

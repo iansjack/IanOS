@@ -1,4 +1,5 @@
 #include <kernel.h>
+#define NULL (void *)0
 
 extern struct Task *currentTask;
 extern struct TaskList *runnableTasks;
@@ -28,18 +29,19 @@ void InitMem64(void)
 {
 	PMap = (unsigned short int *) PageMap;
 	firstFreeKMem = (struct MemStruct *) OSHeap;
-	firstFreeKMem->size = PageSize - sizeof(struct MemStruct);
-	currentTask = (struct Task *) AllocKMem(sizeof(struct Task));
+	firstFreeKMem->next = 0;
+	firstFreeKMem->size = (long)(PageSize - sizeof(struct MemStruct));
+	currentTask = (struct Task *) AllocKMem((long)sizeof(struct Task));
 	nextpid = 3;
-	runnableTasks = (struct TaskList *) AllocKMem(sizeof(struct TaskList));
-	runnableTasks->next = 0L;
+	runnableTasks = (struct TaskList *) AllocKMem((long)sizeof(struct TaskList));
+	runnableTasks->next = NULL;
 	runnableTasks->task = currentTask;
-	allTasks = (struct TaskList *) AllocKMem(sizeof(struct TaskList));
+	allTasks = (struct TaskList *) AllocKMem((long)sizeof(struct TaskList));
 	allTasks->task = currentTask;
 	allTasks->next = 0;
 	deadTasks = 0;
-	lowPriTask = 0L;
-	blockedTasks = 0L;
+	lowPriTask = NULL; //0L;
+	blockedTasks = NULL; //0L;
 	memorySemaphore = 0;
 	canSwitch = 0;
 	tenths = 0;
@@ -76,9 +78,9 @@ void * AllocMem(long sizeRequested, struct MemStruct *list)
 			// Find first unmapped address
 			long temp = (long) list + sizeof(struct MemStruct) + list->size;
 			if (kernel)
-				AllocAndCreatePTE(temp, 1, RW | G | P);
+				(void) AllocAndCreatePTE(temp, 1, RW | G | P);
 			else
-				AllocAndCreatePTE(temp, currentTask->pid, RW | US | P);
+				(void) AllocAndCreatePTE(temp, currentTask->pid, RW | US | P);
 			list->size += PageSize;
 		}
 	}

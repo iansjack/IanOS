@@ -5,7 +5,9 @@ typedef int FD;
 
 #define	CONS	1
 #define	KBD		2
+#ifndef S_SPLINT_S
 #define FILE	3
+#endif
 #define DIR		4
 
 #define STDIN	0
@@ -83,9 +85,9 @@ struct clusterListEntry
 
 struct Console
 {
-	unsigned char *kbBuffer;
+	char *kbBuffer;
 	struct Message *MsgQueue;
-	unsigned char *ConsoleBuffer;
+	char *ConsoleBuffer;
 	short kbBufStart;
 	short kbBufCurrent;
 	short kbBufCount;

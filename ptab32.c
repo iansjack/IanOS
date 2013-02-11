@@ -1,6 +1,6 @@
 #include <memory.h>
 #include <pagetab32.h>
-
+void *AllocPage32(unsigned short int PID); // Defined in mem32.c
 void CreatePT164(struct PT *);
 void CreatePhysicalToVirtual(struct PML4 *, int);
 
@@ -75,7 +75,7 @@ void CreatePhysicalToVirtual(struct PML4 * pml4, int noOfPages)
 {
 	int PTsNeeded = (noOfPages / 512);
 	int PDsNeeded = (PTsNeeded / 512) + 1;
-	int PDPsNeeded = (PDsNeeded / 512) + 1;
+	// int PDPsNeeded = (PDsNeeded / 512) + 1;
 	int count1, count2, count3;
 
 	struct PDP * pdp = (struct PDP *) AllocPage32(1);

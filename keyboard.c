@@ -40,7 +40,7 @@ struct Console consoles[8];
 // The unshifted keyboard table.
 //==============================
 
-char KbdTableU[] =
+unsigned char KbdTableU[] =
 { 0, 0 /*esc */, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=',
 		8 /*backspace */, 0 /*tab */, 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i',
 		'o', 'p', '[', ']', 13, 0 /*ctrl */, 'a', 's', 'd', 'f', 'g', 'h', 'j',
@@ -58,7 +58,7 @@ char KbdTableU[] =
 // The shifted keyboard table.
 //==============================
 
-char KbdTableS[] =
+unsigned char KbdTableS[] =
 { 0, 0 /*esc */, '!', '"', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+',
 		8 /*backspace */, 0 /*tab */, 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I',
 		'O', 'P', '{', '}', 13, 0 /*ctrl */, 'A', 'S', 'D', 'F', 'G', 'H', 'J',
@@ -76,7 +76,7 @@ char KbdTableS[] =
 // The Ctrl keyboard table.
 //==============================
 
-char KbdTableC[] =
+unsigned char KbdTableC[] =
 { 0, 0 /*esc */, '!', '"', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+',
 		8 /*backspace */, 0 /*tab */, 17, 23, 5, 18, 20, 25, 21, 9, 15, 16, '{',
 		'}', 13, 0 /*ctrl */, 1, 19, 4, 6, 7, 8, 10, 11, 12, ':', '@', '`',
@@ -106,15 +106,18 @@ void keyPressed()
 
 void ProcessMsgQueue(struct Console *console)
 {
+	char temp;
+	struct Message *tempMsg;
+
 	// Check if there is a request on the current console's message queue.
 	// Since the keypress came from the current console that is the one we look at.
 	while (console->kbBufCount && console->MsgQueue)
 	{
 		// Take the first character from the buffer
-		unsigned char temp = console->kbBuffer[console->kbBufStart];
+		temp = console->kbBuffer[console->kbBufStart];
 		console->kbBufCount--;
 		console->kbBufStart++;
-		struct Message *tempMsg = console->MsgQueue;
+		tempMsg = console->MsgQueue;
 		console->MsgQueue = tempMsg->nextMessage;
 
 		// If it's a GETCHAR message, send the character back to the calling program
@@ -124,7 +127,7 @@ void ProcessMsgQueue(struct Console *console)
 			struct MessagePort *tempPort = tempMsg->tempPort;
 			tempMsg->nextMessage = 0;
 			tempMsg->quad1 = 0L;
-			tempMsg->byte = temp;
+			tempMsg->byte = (unsigned char)temp;
 			SendMessage(tempPort, tempMsg);
 		}
 		DeallocMem(tempMsg);
@@ -136,18 +139,17 @@ void ProcessMsgQueue(struct Console *console)
 //=====================================================
 void kbTaskCode()
 {
-	kprintf(1, 0, "Starting Keyboard Task");
-
 	unsigned char temp = 0;
 	unsigned char modifier = 0;
-	struct MessagePort *tempPort;
 	struct Message *KbdMsg;
 	struct Console *currentCons;
 	struct Message *tempMsg;
+	int i;
+
+	kprintf(1, 0, "Starting Keyboard Task");
 
 	KbdPort = AllocMessagePort();
 
-	int i;
 	for (i = 0; i < 4; i++)
 	{
 		consoles[i].kbBuffer = AllocUMem(128);
@@ -253,7 +255,7 @@ void kbTaskCode()
 							else if ((temp >= 'a') && (temp <= 'z'))
 								temp -= 0x20;
 						}
-						currentCons->kbBuffer[currentCons->kbBufCurrent] = temp;
+						currentCons->kbBuffer[currentCons->kbBufCurrent] = (char) temp;
 						currentCons->kbBufCount++;
 						currentCons->kbBufCurrent++;
 						break;

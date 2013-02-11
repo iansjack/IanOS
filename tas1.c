@@ -4,11 +4,12 @@
 
 void tas1(void)
 {
+	long pid;
 	// Give tasks time to set themselves up
 	nanosleep(10);
 
-	long pid = fork();
+	pid = fork();
 	if (!pid)
 		execve((const char *) "sh", (char * const *) "sh", /*NULL*/ 0);
-	exit();
+	exit(0);
 }

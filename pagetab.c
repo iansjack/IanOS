@@ -41,22 +41,23 @@ struct PT *GetPT(struct PML4 *pml4, long lAddress, unsigned short pid)
 	int pdIndex = GetPDIndex(lAddress);
 	int pdpIndex = GetPDPIndex(lAddress);
 	int pml4Index = GetPML4Index(lAddress);
+	long pdp, pd, pt;
 
-	long pdp = VIRT(PML4,pml4) ->entries[pml4Index].value & 0xFFFFF000;
+	pdp = VIRT(PML4,pml4) ->entries[pml4Index].value & 0xFFFFF000;
 	if (!pdp)
 	{
 		long newpage = (long) AllocPage(pid);
 		VIRT(PML4,pml4) ->entries[pml4Index].value = newpage | P | RW | US;
 		pdp = newpage;
 	}
-	long pd = VIRT(PDP,pdp) ->entries[pdpIndex].value & 0xFFFFF000;
+	pd = VIRT(PDP,pdp) ->entries[pdpIndex].value & 0xFFFFF000;
 	if (!pd)
 	{
 		long newpage = (long) AllocPage(pid);
 		VIRT(PDP,pdp) ->entries[pdpIndex].value = newpage | P | RW | US;
 		pd = newpage;
 	}
-	long pt = VIRT(PD,pd) ->entries[pdIndex].value & 0xFFFFF000;
+	pt = VIRT(PD,pd) ->entries[pdIndex].value & 0xFFFFF000;
 	if (!pt)
 	{
 		long newpage = (long) AllocPage(pid);
@@ -73,15 +74,16 @@ struct PD *GetPD(struct PML4 *pml4, long lAddress, unsigned short pid)
 {
 	int pdpIndex = lAddress >> 30 & 0x1FF;
 	int pml4Index = lAddress >> 39 & 0x1FF;
+	long pdp, pd;
 
-	long pdp = VIRT(PML4,pml4) ->entries[pml4Index].value & 0xFFFFF000;
+	pdp = VIRT(PML4,pml4) ->entries[pml4Index].value & 0xFFFFF000;
 	if (!pdp)
 	{
 		long newpage = (long) AllocPage(pid);
 		VIRT(PML4,pml4) ->entries[pml4Index].value = newpage | P | RW | US;
 		pdp = newpage;
 	}
-	long pd = VIRT(PDP,pdp) ->entries[pdpIndex].value & 0xFFFFF000;
+	pd = VIRT(PDP,pdp) ->entries[pdpIndex].value & 0xFFFFF000;
 	if (!pd)
 	{
 		long newpage = (long) AllocPage(pid);
@@ -114,12 +116,15 @@ struct PDP *GetPDP(struct PML4 *pml4, long lAddress, unsigned short pid)
 //=====================================================
 void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 {
+	struct PML4 *pml4;
+	struct PD *pd;
+
 	// Allocate the base page for the Page Table
-	struct PML4 *pml4 = (struct PML4 *) AllocPage(pid);
+	pml4 = (struct PML4 *) AllocPage(pid);
 
 	VIRT(PML4,pml4) ->entries[GetPML4Index(VAddr)].value = virtualPDP | P
 			| RW; // Physical to virtual addresses
-	struct PD *pd = GetPD(pml4, 0, pid);
+	pd = GetPD(pml4, 0, pid);
 	VIRT(PD,pd) ->entries[GetPDIndex(0)].value = kernelPT | P | RW; // Kernel entries
 
 	if (parentPid == 0) // Just create some default PTEs
@@ -131,6 +136,7 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 		VIRT(PT,pt) ->entries[GetPTIndex(UserData)].value =
 				AllocAndCreatePTE(TempUserData, pid, RW | P);
 		c = TempUserData;
+
 		asm ("invlpg %0;"
 				:
 				:"m"(*(char *)TempUserData)
@@ -162,7 +168,7 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 		struct PT *pt = GetPT(pml4, UserCode, pid);
 		struct PT *currentPT = GetPT(current_pml4, UserCode, parentPid);
 		int i = GetPTIndex(UserCode);
-		long c = TempUserCode;
+		//long c = TempUserCode;
 		while (VIRT(PT,currentPT) ->entries[i].value)
 		{
 			// Create a page table entry in the new Page Table and also point TempUserCode to it.
@@ -244,6 +250,10 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 long AllocAndCreatePTE(long lAddress, unsigned short pid, short flags)
 {
 	void *pAddress = AllocPage(pid);
+	char * l = (char *)pAddress + VAddr;
+	int i;
+	for (i = 0; i < PageSize; i++)
+		*l++ = 0;
 	return CreatePTE(pAddress, lAddress, pid, flags);
 }
 
@@ -273,10 +283,12 @@ long CreatePTE(void *pAddress, long lAddress, unsigned short pid, short flags)
 	long retVal = 0;
 	struct PML4 *pml4 = (struct PML4 *) (currentTask->cr3 & 0xFFFFF000);
 	retVal = CreatePTEWithPT(pml4, pAddress, lAddress, pid, flags);
+#ifndef S_SPLINT_S
 	asm ("invlpg %0;"
 			:
 			:""(lAddress)
 	);
+#endif
 	return retVal;
 }
 
@@ -315,11 +327,12 @@ void ClearUserMemory(void)
 void * AllocPage(unsigned short int PID)
 {
 	long count = firstFreePage;
+	void *mem;
 
 	while (PMap[count])
 		count++;
 	PMap[count] = PID;
-	void *mem = (void *) (count << 12);
+	mem = (void *) (count << 12);
 	nPagesFree--;
 
 	return (mem);

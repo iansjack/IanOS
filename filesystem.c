@@ -1,6 +1,6 @@
 #include <kernel.h>
 
-typedef int umode_t;
+//typedef int umode_t;
 
 #include <linux/types.h>
 #include <sys/errno.h>
@@ -26,8 +26,8 @@ extern long unixtime;
 //==============================================
 struct FCB *OpenFileByInodeNumber(int inode)
 {
-	struct FCB *fcb = AllocKMem(sizeof(struct FCB));
-	fcb->inode = AllocKMem(sizeof(struct ext2_inode));
+	struct FCB *fcb = AllocKMem((long)sizeof(struct FCB));
+	fcb->inode = AllocKMem((long)sizeof(struct ext2_inode));
 	fcb->inodeNumber = inode;
 	GetINode(inode, fcb->inode);
 	fcb->nextFCB = 0;
@@ -48,17 +48,23 @@ struct FCB *OpenFileByInodeNumber(int inode)
 //====================================================
 struct FCB *CreateFileWithType(char *name, long type)
 {
+	char *parentDirectory, *fileName, *dirBuffer;
+	int parentINodeNo, inodeNo, sizeOfEntry, sizeOfNewEntry, recLength, i;
+	struct ext2_inode *inode;
+	struct ext2_dir_entry_2 *entry, *newEntry;
+	struct FCB *dirFcb;
+
 	// Does the file already exist?
 	if (GetFileINode(name))
 		return (struct FCB *) -EEXIST;
 
 	// Get the INode of the parentdirectory
-	char *parentDirectory = AllocUMem(strlen(name) + 1);
+	parentDirectory = AllocUMem(strlen(name) + 1);
 	strcpy(parentDirectory, name);
-	char *fileName = strrchr(parentDirectory, '/');
+	fileName = strrchr(parentDirectory, '/');
 	fileName[0] = 0;
 	fileName++;
-	int parentINodeNo = GetFileINode(parentDirectory);
+	parentINodeNo = GetFileINode(parentDirectory);
 	if (!parentINodeNo)
 	{
 		DeallocMem(parentDirectory);
@@ -66,26 +72,26 @@ struct FCB *CreateFileWithType(char *name, long type)
 	}
 
 	// Create an inode for the new file
-	struct ext2_inode *inode = AllocKMem(sizeof(struct ext2_inode));
+	inode = AllocKMem((int)sizeof(struct ext2_inode));
 	memset(inode, 0, sizeof(struct ext2_inode));
-	inode->i_mode = EXT2_S_IFREG | EXT2_S_IRUSR | EXT2_S_IWUSR | EXT2_S_IRGRP
-			| EXT2_S_IWGRP | EXT2_S_IROTH | EXT2_S_IWOTH;
-	inode->i_atime = inode->i_ctime = inode->i_mtime = unixtime;
+	inode->i_mode = (u_int16_t)(EXT2_S_IFREG | EXT2_S_IRUSR | EXT2_S_IWUSR | EXT2_S_IRGRP
+			| EXT2_S_IWGRP | EXT2_S_IROTH | EXT2_S_IWOTH);
+	inode->i_atime = inode->i_ctime = inode->i_mtime = (u_int32_t)unixtime;
 	inode->i_dtime = 0;
 	inode->i_links_count = 1;
 	inode->i_blocks = 0;
-	int inodeNo = GetFreeINode(0);
+	inodeNo = GetFreeINode(0);
 
 	// Write the new inode to disk
 	PutINode(inodeNo, inode);
 
 	// Create a directory entry for the new file
-	struct FCB *dirFcb = OpenFileByInodeNumber(parentINodeNo);
-	char *dirBuffer = AllocUMem(dirFcb->inode->i_size);
-	ReadFile(dirFcb, dirBuffer, dirFcb->inode->i_size);
-	int sizeOfNewEntry = 8 + strlen(fileName) + 4 - strlen(fileName) % 4;
-	struct ext2_dir_entry_2 *entry = (struct ext2_dir_entry_2 *) dirBuffer;
-	int sizeOfEntry = 8 + entry->name_len + 4 - entry->name_len % 4;
+	dirFcb = OpenFileByInodeNumber(parentINodeNo);
+	dirBuffer = AllocUMem((int)(dirFcb->inode->i_size));
+	(void)ReadFile(dirFcb, dirBuffer, (long)(dirFcb->inode->i_size));
+	sizeOfNewEntry = 8 + strlen(fileName) + 4 - strlen(fileName) % 4;
+	entry = (struct ext2_dir_entry_2 *) dirBuffer;
+	sizeOfEntry = 8 + entry->name_len + 4 - entry->name_len % 4;
 	while (sizeOfEntry + sizeOfNewEntry > entry->rec_len)
 	{
 		entry = (struct ext2_dir_entry_2 *) ((char *) entry + entry->rec_len);
@@ -93,16 +99,14 @@ struct FCB *CreateFileWithType(char *name, long type)
 	}
 
 	// There's room for the new entry at the end of this record
-	int recLength = entry->rec_len;
+	recLength = entry->rec_len;
 	entry->rec_len = sizeOfEntry;
-	struct ext2_dir_entry_2 *newEntry = AllocUMem(
-			sizeof(struct ext2_dir_entry_2));
+	newEntry = AllocUMem((long)sizeof(struct ext2_dir_entry_2));
 	memset(newEntry, 0, sizeof(struct ext2_dir_entry_2));
 	newEntry->file_type = type;
 	newEntry->inode = inodeNo;
 	newEntry->name_len = strlen(fileName);
 	newEntry->rec_len = recLength - sizeOfEntry;
-	int i;
 	for (i = 0; i < newEntry->name_len; i++)
 		newEntry->name[i] = fileName[i];
 	memcpy((char *) entry + sizeOfEntry, newEntry, sizeOfNewEntry);

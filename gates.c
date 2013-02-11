@@ -57,7 +57,7 @@ struct TSSDescriptor {
 	unsigned:32;
 }__attribute__((packed));
 
-void CreateTrapGate(short selector, long offset, long intNo, unsigned char ist)
+void CreateTrapGate(unsigned short int selector, long offset, long intNo, unsigned char ist)
 {
 	struct Gate *theGate = (struct Gate *)IDT + intNo;
 
@@ -71,7 +71,7 @@ void CreateTrapGate(short selector, long offset, long intNo, unsigned char ist)
 	theGate->reserved = 0;
 }
 
-void CreateIntGate(short selector, long offset, long intNo, unsigned char ist)
+void CreateIntGate(unsigned short int selector, long offset, long intNo, unsigned char ist)
 {
 	struct Gate *theGate = (struct Gate *)IDT + intNo;
 

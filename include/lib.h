@@ -7,11 +7,11 @@
 
 char getchar();
 void send(struct Message *msg);
-int printf(unsigned char *s, ...);
+int printf(char *s, ...);
 int intToAsc(int i, char *buffer, int len);
 int intToHAsc(int i, char *buffer, int len);
-unsigned char *strchr(unsigned char *string, unsigned char c);
-unsigned char *strcpy(unsigned char *dest, unsigned char *source);
-unsigned char *strcat(unsigned char *s1, unsigned char *s2);
+char *strchr(char *string, char c);
+char *strcpy(char *dest, char *source);
+char *strcat(char *s1, char *s2);
 
 #endif

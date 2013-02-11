@@ -17,10 +17,8 @@ void *sbrk(int size)
 	if (sbrk_first_time) 
 	{
 		sbrk_first_time = 0;
-		// sbrk_curbrk = (void *)(UserData + DataLen); //*firstfreemem);
 		sbrk_curbrk = Alloc_Page(0);
-		// sbrk_size = PageSize - DataLen;
-		sbrk_size = PageSize - (long) sbrk_curbrk;
+		sbrk_size = PageSize - ((long) sbrk_curbrk % PageSize);
 		while (sbrk_size < 0)
 			sbrk_size += PageSize;
 	}

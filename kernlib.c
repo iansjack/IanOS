@@ -614,10 +614,10 @@ unsigned char *NameToFullPath(unsigned char *name)
 	}
 	else
 	{
-		// The special case "./*"
+		// The special case "./file"
 		if (name[0] == '.' && name[1] == '/')
 			name += 2;
-		// The special case "../*"
+		// The special case "../file"
 		if (name[0] == '.' && name[1] == '.' && name[2] == '/')
 		{
 			name += 3;
@@ -650,7 +650,7 @@ unsigned char *NameToFullPath(unsigned char *name)
 
 #include <stdarg.h>
 
-int kprintf(int row, int column, unsigned char *s, ...)
+int kprintf(int row, int column, char *s, ...)
 {
 	va_list ap;
 	va_start(ap, s);
@@ -822,7 +822,7 @@ char *strtok(char * str, char * delim)
 // Finds first occurrence of c in string.
 // Returns pointer to that occurrence or 0 if not found
 //==================================================================
-unsigned char *strchr(unsigned char *string, unsigned char c)
+char *strchr(char *string, char c)
 {
 	long i = 0;
 	while (string[i])
@@ -837,7 +837,7 @@ unsigned char *strchr(unsigned char *string, unsigned char c)
 //================================================================
 // Returns the length of string
 //================================================================
-long strlen(unsigned char *string)
+long strlen(char *string)
 {
 	int i = 0;
 	while (string[i++])
@@ -849,7 +849,7 @@ long strlen(unsigned char *string)
 // Compares s1 and s2 up to length characters.
 // Returns 0 if they are equal, non-zero otherwise.
 //===============================================================
-long strncmp(unsigned char *s1, unsigned char *s2, long length)
+long strncmp(char *s1, char *s2, long length)
 {
 	long count;
 	short done = 0;
@@ -871,9 +871,9 @@ long strncmp(unsigned char *s1, unsigned char *s2, long length)
 //=======================================================
 // Copy null-terminates string s1 to s2
 //=======================================================
-unsigned char *strcpy(unsigned char *destination, unsigned char *source)
+char *strcpy(char *destination, char *source)
 {
-	unsigned char *retval = destination;
+	char *retval = destination;
 	while (*source)
 	{
 		*destination++ = *source++;
@@ -886,7 +886,7 @@ unsigned char *strcpy(unsigned char *destination, unsigned char *source)
 // Compares s1 and s2.
 // Returns 0 if they are equal, non-zero otherwise.
 //===============================================================
-long strcmp(unsigned char *s1, unsigned char *s2)
+long strcmp(char *s1, char *s2)
 {
 	long retval = 1;
 	int count = 0;
@@ -902,7 +902,7 @@ long strcmp(unsigned char *s1, unsigned char *s2)
 // Concatenates s2 to the end of s1.
 // Returns s1
 //===========================================================
-unsigned char *strcat(unsigned char *s1, unsigned char *s2)
+char *strcat(char *s1, char *s2)
 {
 	int n = strlen(s1);
 	strcpy(s1 + n, s2);

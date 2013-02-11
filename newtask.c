@@ -156,11 +156,12 @@ void LoadElf(struct Message *FSMsg, struct FCB * fHandle)
 	ReadFromFile(fHandle, (char *)&header, sizeof(Elf64_Ehdr));
 	SeekFile(FSMsg, fHandle, header.e_phoff, SEEK_SET);
 	ReadFromFile(fHandle, (char *)&pheader, sizeof(Elf64_Phdr));
+	int sizetoallocate = pheader.p_memsz;
 	int sizetoload = pheader.p_filesz;
 	int loadlocation = pheader.p_offset;
 	SeekFile(FSMsg, fHandle, loadlocation, SEEK_SET);
 	currentPage = UserCode;
-	size = sizetoload;
+	size = sizetoallocate;
 	ClearUserMemory();
 	while (size > 0)
 	{
@@ -169,6 +170,15 @@ void LoadElf(struct Message *FSMsg, struct FCB * fHandle)
 		currentPage += PageSize;
 	}
 	ReadFromFile(fHandle, (char *)UserCode, sizetoload);
+	// zero .bss
+	char *c = (char *)(UserCode + sizetoload);
+	while (sizetoload < size)
+	{
+		*c = 0;
+		c++;
+		sizetoload++;
+	}
+
 	AllocAndCreatePTE(UserData, currentTask->pid, RW | US | P);
 	currentTask->firstfreemem = UserData;
 }

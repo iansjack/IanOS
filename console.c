@@ -10,13 +10,13 @@ extern struct Console consoles[8];
 extern long canSwitch;
 extern struct MessagePort *ConsolePort;
 
-unsigned char *VideoBuffer;
-unsigned char *ConsoleBuffer;
+char *VideoBuffer;
+char *ConsoleBuffer;
 struct Message ConsoleMsg;
 unsigned char Mode;
 struct Console *currCons;
 
-void switchConsole(long console)
+void switchConsole(unsigned char console)
 {
 	asm("cli");
 	if (currentBuffer != console)
@@ -32,12 +32,13 @@ void switchConsole(long console)
 	Position_Cursor(currCons->row, currCons->column);
 }
 
-void ScrollScreen(long console)
+void ScrollScreen(unsigned char console)
 {
-	asm("cli");
-	canSwitch++;
 	short int row;
 	short int column;
+
+	asm("cli");
+	canSwitch++;
 
 	for (row = 1; row < 25; row++)
 		for (column = 0; column < 80; column++)
@@ -67,7 +68,7 @@ void ScrollScreen(long console)
 	asm("sti");
 }
 
-void ClrScr(long console)
+void ClrScr(unsigned char console)
 {
 	short int row;
 	short int column;
@@ -88,7 +89,7 @@ void ClrScr(long console)
 	currCons->row = currCons->column = 0;
 }
 
-void ClrEOL(long console)
+void ClrEOL(unsigned char console)
 {
 	int i = currCons->column;
 
@@ -101,8 +102,10 @@ void ClrEOL(long console)
 	}
 }
 
-void PrintChar(unsigned char c, long console)
+void PrintChar(char c, unsigned char console)
 {
+	int n;
+
 	switch (c)
 	{
 	case 0:
@@ -114,8 +117,6 @@ void PrintChar(unsigned char c, long console)
 		break;
 
 	case TAB:
-		;
-		int n;
 		for (n = 0; n < TABSIZE; n++)
 			PrintChar(' ', console);
 		break;
@@ -156,10 +157,9 @@ void PrintChar(unsigned char c, long console)
 	Position_Cursor(currCons->row, currCons->column);
 }
 
-void ProcessChar(unsigned char c, long console)
+void ProcessChar(char c, unsigned char console)
 {
 	int n1, n2;
-//	long console = PidToTask(ConsoleMsg.pid)->console;
 
 	switch (Mode)
 	{
@@ -298,6 +298,9 @@ void ProcessChar(unsigned char c, long console)
 
 void consoleTaskCode()
 {
+	int i;
+	char *s;
+
 	kprintf(2, 0, "Starting Console Task");
 	Mode = NORMAL_MODE;
 	ConsolePort = AllocMessagePort();
@@ -306,7 +309,6 @@ void consoleTaskCode()
 	ConsolePort->waitingProc = (struct Task *) -1L;
 	ConsolePort->msgQueue = 0;
 
-	int i;
 	for (i = 0; i < 4; i++)
 	{
 		consoles[i].ConsoleBuffer = AllocKMem(4096);
@@ -314,27 +316,24 @@ void consoleTaskCode()
 		consoles[i].colour = NORMAL;
 	}
 
-	unsigned char *s;
-
 	while (1)
 	{
-		short row;
-		short column;
+		unsigned char console;
 
 		ReceiveMessage(ConsolePort, &ConsoleMsg);
-		long console = ConsoleMsg.quad2;
+		console = (unsigned char)ConsoleMsg.quad2;
 		currCons = &(consoles[console]);
 		ConsoleBuffer = currCons->ConsoleBuffer;
 
 		switch (ConsoleMsg.byte)
 		{
 		case WRITECHAR:
-			ProcessChar((unsigned char) ConsoleMsg.quad1, ConsoleMsg.quad2);
+			ProcessChar((char) ConsoleMsg.quad1, (unsigned char) ConsoleMsg.quad2);
 			break;
 
 		case WRITESTR:
-			s = (unsigned char *) ConsoleMsg.quad1;
-			long console = ConsoleMsg.quad2;
+			s = (char *) ConsoleMsg.quad1;
+			console = (unsigned char) ConsoleMsg.quad2;
 			while (*s != 0)
 				ProcessChar(*s++, console);
 			DeallocMem((void *) ConsoleMsg.quad1);

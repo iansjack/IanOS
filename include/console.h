@@ -25,4 +25,6 @@
 #define ESCBRQ5_MODE		6
 #define ESCBRNUMSEMI_MODE	7
 
+void Position_Cursor(short int row, short int column); // Defined in vga.s
+
 #endif

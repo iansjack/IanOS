@@ -28,11 +28,11 @@ void ClearSem(long *semaphore);
 void KWriteString(char *str, int row, int col);
 struct Task *PidToTask(long pid);
 unsigned char *NameToFullPath(unsigned char *name);
-int kprintf(int row, int column, unsigned char *s, ...);
-long strlen(unsigned char *string);
-long strcmp(unsigned char *s1, unsigned char *s2);
+int kprintf(int row, int column, char *s, ...);
+long strlen(char *string);
+long strcmp(char *s1, char *s2);
 
-#define ALLOCMSG (struct Message *)AllocKMem(sizeof(struct Message))
+#define ALLOCMSG (struct Message *)AllocKMem((long)sizeof(struct Message))
 #define ASSERT(expr) if (!expr){kprintf(24, 1, "Assertion failed - System halted.");asm("cli");asm("hlt");}
 
 #endif
