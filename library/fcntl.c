@@ -3,7 +3,7 @@
 #undef errno
 extern int errno;
 
-int fcntl(int filedes, int cmd)
+int fcntl(int filedes, int cmd, ...)
 {
 	if (cmd == 1 /*F_GETFD*/)
 		return 0;

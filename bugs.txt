@@ -1,0 +1,2 @@
+1. The as function is leaving 0x2000-0x2bff as zeros.
+Is this a bug in the program or the file saving routines?

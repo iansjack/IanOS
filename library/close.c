@@ -1,6 +1,8 @@
 #include <sys/stat.h>
 #include <errno.h>
 
+long sys_close(int);
+
 #undef errno
 extern int errno;
 

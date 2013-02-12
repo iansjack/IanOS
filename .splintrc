@@ -4,3 +4,5 @@
 -weak
 +posixlib
 -I/home/ian/IanOS/include
+-ifempty
+

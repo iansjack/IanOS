@@ -1,22 +1,19 @@
 #ifndef _LINUX_TYPES_H
 #define _LINUX_TYPES_H
 
-typedef unsigned __int8 __u8;
-typedef signed __int8 __s8;
+#undef __mode_t
+typedef mode_t __mode_t;
 
-typedef signed   __int64 __s64;
-typedef unsigned __int64 __u64;
+#undef __ino_t
+typedef ino_t __ino_t;
 
-typedef	signed   __int16	__s16;
-typedef	unsigned __int16	__u16;
+# ifdef S_SPLINT_S
+struct timeval
+  {
+    __time_t tv_sec;		/* Seconds.  */
+    __suseconds_t tv_usec;	/* Microseconds.  */
+  };
+#endif
 
-typedef	signed   __int32	__s32;
-typedef	unsigned __int32	__u32;
-
-typedef	signed   __int64	__s64;
-typedef	unsigned __int64	__u64;
-
-
-typedef __u32 ino_t;
 
 #endif /* LINUX_TYPES_H */

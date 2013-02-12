@@ -1,11 +1,13 @@
 #include <errno.h>
 
+long sys_execve(const char *, char **);
+
 #undef errno
 extern int errno;
 
-int execve(unsigned char *filepath, unsigned char *environ)
+int execve(const char *filepath, char **argv, char **env)
 {
-	long retvalue = sys_execve(filepath, environ);
+	long retvalue = sys_execve(filepath, argv);
 	if (retvalue < 0)
 	{
 		errno = -retvalue;
@@ -14,4 +16,3 @@ int execve(unsigned char *filepath, unsigned char *environ)
 	else
 		return retvalue;
 }
-

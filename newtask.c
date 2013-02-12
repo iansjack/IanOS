@@ -376,7 +376,7 @@ void KillTask(void)
 	while (task->fcbList)
 	{
 		temp = task->fcbList->nextFCB;
-		if (task->fcbList->deviceType == 3 /*FILE*/)
+		if (task->fcbList->deviceType == ORDINARY_FILE)
 			DoClose(task->fcbList->fileDescriptor);
 		else
 			DeallocMem(task->fcbList);

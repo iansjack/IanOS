@@ -1,6 +1,8 @@
 #include <sys/stat.h>
 #include <errno.h>
 
+long sys_unlink(const char *);
+
 #undef errno
 extern int errno;
 

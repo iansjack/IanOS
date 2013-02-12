@@ -1,0 +1,4 @@
+#!/bin/sh
+splint *[2].c
+splint *[!2].c
+

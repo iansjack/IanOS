@@ -5,8 +5,8 @@ typedef int FD;
 
 #define	CONS	1
 #define	KBD		2
-#define FILE	3
-#define DIR		4
+#define ORDINARY_FILE	3
+#define DIRECTORY		4
 
 #define STDIN	0
 #define STDOUT	1

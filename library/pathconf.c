@@ -1,4 +1,4 @@
-int pathconf(int filedes, int name)
+int pathconf(const char *path, int name)
 {
 	return -1;
 }

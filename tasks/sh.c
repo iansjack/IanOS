@@ -18,9 +18,10 @@ int main(int argc, char **argv)
 	memset(commandline, ' ', 80);
 	while (1)
 	{
-		fflush(stdout);
-		char c = getchar();
+		char *name, c;
 
+		fflush(stdout);
+		c = getchar();
 		switch (c)
 		{
 		case BACKSPACE:
@@ -36,7 +37,7 @@ int main(int argc, char **argv)
 			column = 0;
 
 			memcpy(environment, commandline, 80);
-			char *name = strtok(commandline, " ");
+			name = strtok(commandline, " ");
 			printf("\n");
 
 			if (name)
@@ -55,10 +56,10 @@ int main(int argc, char **argv)
 
 				else
 				{
-					int pid = fork();
+					pid_t pid = fork();
 					if (!pid)
 					{
-						if (execve(name, environment))
+						if (execve(name, (char **)environment, NULL))
 						{
 							if (errno == ENOENT)
 								printf("Command not found\n");
@@ -68,7 +69,7 @@ int main(int argc, char **argv)
 						}
 					}
 					else
-						waitpid(pid);
+						(void) waitpid(pid, NULL, 0);
 				}
 			}
 

@@ -13,9 +13,7 @@
 #define	NX32	0x80000000
 #define NX		0x8000000000000	// No execute
 
-#undef PageMap
-#define PageMap         0x0000000000100000LL
-
+#define PageMap         0x0000000000100000L
 
 struct PML4e {
 	long Lo:32;

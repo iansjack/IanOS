@@ -1,5 +1,8 @@
 #include <errno.h>
 #include <sys/time.h>
+#include <types.h>
+
+long sys_time();
 
 #undef errno
 extern int errno;

@@ -1,6 +1,8 @@
 #include <sys/stat.h>
 #include <errno.h>
 
+long sys_write(int, const void *, size_t);
+
 #undef errno
 extern int errno;
 

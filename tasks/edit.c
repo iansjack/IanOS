@@ -11,6 +11,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+void sys_truncate(int, int); // Defined in sys_truncate.s
+
 #define ctrl(x) x - 0x40
 #define ESC	27
 #define Clear_Buffer	for (count = 0; count < 80; count++) currentLineBuffer[count] = 0
@@ -24,28 +26,28 @@ struct line
 {
 	struct line *next;
 	struct line *prev;
-	unsigned char *line;
+	char *line;
 	int lineno;
 };
 
 struct line *lines;
 struct line *windowStart;
-int line;
-int column;
+int line, column;
 char mode;
 int count;
 
 void ReadFile(int file)
 {
-	struct line *firstline = lines;
 	struct line *currline;
+	size_t filesize;
+	char *buffer, *line;
 
 	// First read the whole file into a buffer
 	struct stat info;
 	fstat(file, &info);
-	int filesize = info.st_size;
-	unsigned char *buffer = malloc(filesize);
-	read(file, buffer, filesize);
+	filesize = (size_t) (info.st_size);
+	buffer = malloc(filesize);
+	(void) read(file, buffer, filesize);
 
 	// Parse the buffer into separate lines
 	lines = malloc(sizeof(struct line));
@@ -54,7 +56,7 @@ void ReadFile(int file)
 	lines->lineno = 0;
 	currline = lines;
 
-	char *line = strtok(buffer, "\n");
+	line = strtok(buffer, "\n");
 	while (line)
 	{
 		currline->line = malloc(strlen(line));
@@ -110,14 +112,14 @@ void RedrawScreen()
 
 int main(int argc, char **argv)
 {
-	lines = 0;
-
 	int file;
+	struct line *currline, *temp;
+	char currentLineBuffer[80], c;
+	int count, done, linelength;
+
+	lines = 0;
 	line = 0;
 	column = 0;
-	struct line *currline;
-	char currentLineBuffer[80];
-	int count;
 	mode = Insert;
 	Clear_Screen;
 	fflush(stdout);
@@ -131,10 +133,9 @@ int main(int argc, char **argv)
 		fflush(stdout);
 		currline = lines;
 	}
-	int done = 0;
+	done = 0;
 	PrintStatusLine();
 	Clear_Buffer;
-	char c;
 	if (currline->line)
 		strcpy(currentLineBuffer, currline->line);
 
@@ -155,7 +156,7 @@ int main(int argc, char **argv)
 			break;
 		case ctrl('M'): // Return
 			;
-			int linelength = strlen(currentLineBuffer);
+			linelength = (int) strlen(currentLineBuffer);
 			currentLineBuffer[column] = 0;
 			// Copy the line up to cursor back to currline->line
 			free(currline->line);
@@ -163,7 +164,7 @@ int main(int argc, char **argv)
 			currentLineBuffer[column] = 0;
 			strcpy(currline->line, currentLineBuffer);
 			// Create a new struct line for the new line
-			struct line *temp = malloc(sizeof(struct line));
+			temp = malloc(sizeof(struct line));
 			// Link it into the list
 			temp->next = currline->next;
 			currline->next = temp;
@@ -199,8 +200,8 @@ int main(int argc, char **argv)
 				Clear_Buffer;
 				if (currline->line)
 					strcpy(currentLineBuffer, currline->line);
-				if (column > strlen(currentLineBuffer))
-					column = strlen(currentLineBuffer);
+				if (column > (int) strlen(currentLineBuffer))
+					column = (int) strlen(currentLineBuffer);
 				Position_Cursor;
 				if (line < 0)
 				{
@@ -215,14 +216,14 @@ int main(int argc, char **argv)
 			{
 				line++;
 				free(currline->line);
-				currline->line = malloc(strlen(currentLineBuffer) + 1);
+				currline->line = (char *) malloc(strlen(currentLineBuffer) + 1);
 				strcpy(currline->line, currentLineBuffer);
 				currline = currline->next;
 				Clear_Buffer;
 				if (currline->line)
 					strcpy(currentLineBuffer, currline->line);
-				if (column > strlen(currentLineBuffer))
-					column = strlen(currentLineBuffer);
+				if (column > (int) strlen(currentLineBuffer))
+					column = (int) strlen(currentLineBuffer);
 				Position_Cursor;
 				if (line > WINDOWSIZE)
 				{
@@ -240,7 +241,7 @@ int main(int argc, char **argv)
 			}
 			break;
 		case ctrl('R'): // Right Arrow
-			if (column < 80 && column < strlen(currentLineBuffer))
+			if (column < 80 && column < (int) strlen(currentLineBuffer))
 			{
 				column++;
 				printf("%c[1C", ESC);
@@ -287,8 +288,8 @@ int main(int argc, char **argv)
 		{
 			if (currline->line)
 			{
-				write(file, currline->line, strlen(currline->line));
-				write(file, "\n", 1);
+				(void) write(file, currline->line, strlen(currline->line));
+				(void) write(file, "\n", 1);
 			}
 			currline = currline->next;
 		}

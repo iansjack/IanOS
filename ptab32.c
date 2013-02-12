@@ -2,7 +2,7 @@
 #include <pagetab32.h>
 
 void CreatePT164(struct PT *);
-void CreatePhysicalToVirtual(struct PML4 *, int);
+void CreatePhysicalToVirtual(struct PML4 *, long);
 
 extern long long virtualPDP;
 extern long long kernelPT;
@@ -29,7 +29,7 @@ struct PML4 * CreatePageDir()
 	pd->entries[0].Lo = (long) pt1 | P | RW;
 	pd->entries[1].Lo = (long) pt2 | P | RW;
 	CreatePT164(pt1);
-	CreatePhysicalToVirtual(pml4, nPages);
+	CreatePhysicalToVirtual(pml4, (long) nPages);
 	kernelPT = (long long) ((long) pt1);
 	return pml4;
 }
@@ -71,7 +71,7 @@ void CreatePT164(struct PT * pt)
 // Create Page Table entries mapping all physical addresses
 // to PAddr + 0x8000000000
 //==========================================================
-void CreatePhysicalToVirtual(struct PML4 * pml4, int noOfPages)
+void CreatePhysicalToVirtual(struct PML4 * pml4, long noOfPages)
 {
 	int PTsNeeded = (noOfPages / 512);
 	int PDsNeeded = (PTsNeeded / 512) + 1;
