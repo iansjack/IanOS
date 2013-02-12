@@ -15,7 +15,7 @@ extern long Ticks;
 //===================================================================
 struct BTreeNode * CreateBTreeNode(int key, void * data)
 {
-	struct BTreeNode * node = (struct BTreeNode *)AllocUMem((long)sizeof(struct BTreeNode));
+	struct BTreeNode * node = (struct BTreeNode *)AllocUMem(sizeof(struct BTreeNode));
 	node->key = key;
 	node->data = data;
 	node->lesser = 0;

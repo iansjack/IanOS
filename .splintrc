@@ -1,4 +1,6 @@
 -Dasm=__asm__
 -D__signed__=signed
 -D__attribute=__attribute__
-
+-weak
++posixlib
+-I/home/ian/IanOS/include

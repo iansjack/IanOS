@@ -13,6 +13,10 @@
 #define	NX32	0x80000000
 #define NX		0x8000000000000	// No execute
 
+#undef PageMap
+#define PageMap         0x0000000000100000LL
+
+
 struct PML4e {
 	long Lo:32;
 	long Hi:32;
@@ -49,12 +53,12 @@ struct PT {
 	struct PTE entries[64];
 };
 
-void *AllocPage(unsigned short int pid);
-long CreatePTE(void *pAddress, long lAddress, unsigned short pid, short flags);
-long AllocAndCreatePTE(long lAddress, unsigned short pid, short flags);
-long CreatePTEWithPT(struct PML4 *pml4, void *pAddress, long lAddress,
-		     unsigned short pid, short flags);
-void *VCreatePageDir(unsigned short pid, unsigned short parentPid);
-void ClearUserMemory(void);
+//void *AllocPage(unsigned short int pid);
+//long CreatePTE(void *pAddress, long lAddress, unsigned short pid, short flags);
+//long AllocAndCreatePTE(long lAddress, unsigned short pid, short flags);
+//long CreatePTEWithPT(struct PML4 *pml4, void *pAddress, long lAddress,
+//		     unsigned short pid, short flags);
+//void *VCreatePageDir(unsigned short pid, unsigned short parentPid);
+//void ClearUserMemory(void);
 
 #endif

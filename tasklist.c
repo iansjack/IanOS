@@ -12,7 +12,7 @@ struct TaskList *AddToHeadOfTaskList(struct TaskList *list, struct Task *task)
 	struct TaskList *temp;
 
 	canSwitch++;
-	temp = (struct TaskList *)AllocKMem((long)sizeof(struct TaskList));
+	temp = (struct TaskList *)AllocKMem(sizeof(struct TaskList));
 	temp->task = task;
 	temp->next = list;
 	canSwitch--;
@@ -24,7 +24,7 @@ struct TaskList *AddToTailOfTaskList(struct TaskList *list, struct Task *task)
 	struct TaskList *temp, *start;
 
 	canSwitch++;
-	temp = (struct TaskList *)AllocKMem((long)sizeof(struct TaskList));
+	temp = (struct TaskList *)AllocKMem(sizeof(struct TaskList));
 	start = list;
 
 	temp->next = 0;

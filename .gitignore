@@ -7,6 +7,7 @@ linkmap
 *.bin
 *.fdd
 *.hdd
+*.hdd.*
 *.vfd
 *.lst
 tasks/task?

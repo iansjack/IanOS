@@ -3,10 +3,14 @@
 #include <filesystem.h>
 #include <errno.h>
 #include <elf.h>
-#include "blocks.h"
+#include <blocks.h>
+#include <pagetab.h>
 
-struct Task *
-NewKernelTask(void *TaskCode);
+void ZeroPage(long);	// Defined in tasking.s
+void GoToSleep(long);	// Defined in syscalls.s
+
+void SaveRegisters(struct Task *);	// Defined in tasking.s
+struct Task *NewKernelTask(void *TaskCode);
 long ParseEnvironmentString(long *);
 
 struct Task *currentTask;
@@ -24,7 +28,7 @@ extern long nPages;
 extern long firstFreePage;
 extern struct MessagePort *FSPort;
 
-long nextpid;
+unsigned short nextpid;
 
 //===============================
 // Link task into the task table
@@ -41,14 +45,16 @@ void LinkTask(struct Task *task)
 // Fork the current process.
 // Return the pid of the new process
 //=========================================================================
-long DoFork()
+unsigned short DoFork()
 {
+	unsigned short pid;
+	struct FCB *fcbin, *fcbout, *fcberr;
+
 	// Copy task structure, with adjustments
 	struct Task *task = (struct Task *) AllocKMem(sizeof(struct Task));
-	copyMem((unsigned char *) currentTask, (unsigned char *) task,
-			sizeof(struct Task));
-	int pid = task->pid = nextpid++;
-	task->currentDirName = AllocKMem(strlen(currentTask->currentDirName) + 1);
+	copyMem((char *) currentTask, (char *) task, sizeof(struct Task));
+	pid = task->pid = nextpid++;
+	task->currentDirName = AllocKMem((size_t)strlen(currentTask->currentDirName) + 1);
 	strcpy(task->currentDirName, currentTask->currentDirName);
 	task->parentPort = 0;
 
@@ -59,19 +65,19 @@ long DoFork()
 	// Create FCBs for STDI, STDOUT, and STDERR
 
 	// STDIN
-	struct FCB *fcbin = (struct FCB *) AllocKMem(sizeof(struct FCB));
+	fcbin = (struct FCB *) AllocKMem(sizeof(struct FCB));
 	fcbin->fileDescriptor = STDIN;
 	fcbin->deviceType = KBD;
 	task->fcbList = fcbin;
 
 	// STDOUT
-	struct FCB *fcbout = (struct FCB *) AllocKMem(sizeof(struct FCB));
+	fcbout = (struct FCB *) AllocKMem(sizeof(struct FCB));
 	fcbout->fileDescriptor = STDOUT;
 	fcbout->deviceType = CONS;
 	fcbin->nextFCB = fcbout;
 
 	//STDERR
-	struct FCB *fcberr = (struct FCB *) AllocKMem(sizeof(struct FCB));
+	fcberr = (struct FCB *) AllocKMem(sizeof(struct FCB));
 	fcberr->fileDescriptor = STDERR;
 	fcberr->deviceType = CONS;
 	fcbout->nextFCB = fcberr;
@@ -99,11 +105,13 @@ long DoFork()
 void LoadFlat(struct FCB * fHandle)
 {
 	char header[15];
+	char *location, *temp;
 	long codelen, datalen, currentPage, size;
+	int bytesRead, n;
 
-	ReadFromFile(fHandle, header, 14);
-	ReadFromFile(fHandle, (char *) &codelen, 8);
-	ReadFromFile(fHandle, (char *) &datalen, 8);
+	(void) ReadFromFile(fHandle, header, 14);
+	(void) ReadFromFile(fHandle, (char *) &codelen, 8);
+	(void) ReadFromFile(fHandle, (char *) &datalen, 8);
 
 	// Allocate pages for user code
 	currentPage = UserCode;
@@ -111,36 +119,35 @@ void LoadFlat(struct FCB * fHandle)
 	ClearUserMemory();
 	while (size > 0)
 	{
-		AllocAndCreatePTE(currentPage, currentTask->pid, RW | US | P);
+		(void) AllocAndCreatePTE(currentPage, currentTask->pid, RW | US | P);
 		size -= PageSize;
 		currentPage += PageSize;
 	}
 	copyMem((char *) header, (char *) UserCode, 14);
 	copyMem((char *) &codelen, (char *) UserCode + 14, 8);
 	copyMem((char *) &datalen, (char *) UserCode + 22, 8);
-	char *location = (char *) UserCode + 30;
+	location = (char *) UserCode + 30;
 
 	// Load the user code
-	ReadFromFile(fHandle, location, codelen - 30);
+	(void) ReadFromFile(fHandle, location, codelen - 30);
 
 	// Allocate pages for user data
 	currentPage = UserData;
 	size = datalen + sizeof(struct MemStruct);
 	while (size > 0)
 	{
-		AllocAndCreatePTE(currentPage, currentTask->pid, RW | US | P);
+		(void) AllocAndCreatePTE(currentPage, currentTask->pid, RW | US | P);
 		size -= PageSize;
 		currentPage += PageSize;
 	}
 
 	// Load the user data
-	int bytesRead = ReadFromFile(fHandle, (char *) UserData, datalen);
+	bytesRead = ReadFromFile(fHandle, (char *) UserData, datalen);
 
 	// Zero the rest of the data segment
-	char *temp = (char *) (UserData + bytesRead);
+	temp = (char *) (UserData + bytesRead);
 	while (bytesRead >= PageSize)
 		bytesRead -= PageSize;
-	int n;
 	for (n = 0; n < bytesRead; n++)
 		temp[n] = 0;
 
@@ -151,27 +158,28 @@ void LoadElf(struct Message *FSMsg, struct FCB * fHandle)
 {
 	Elf64_Ehdr header;
 	Elf64_Phdr pheader;
-	long currentPage, size;
+	long currentPage, size, sizetoallocate, sizetoload, loadlocation;
+	char *c;
 
-	ReadFromFile(fHandle, (char *)&header, sizeof(Elf64_Ehdr));
-	SeekFile(FSMsg, fHandle, header.e_phoff, SEEK_SET);
-	ReadFromFile(fHandle, (char *)&pheader, sizeof(Elf64_Phdr));
-	int sizetoallocate = pheader.p_memsz;
-	int sizetoload = pheader.p_filesz;
-	int loadlocation = pheader.p_offset;
-	SeekFile(FSMsg, fHandle, loadlocation, SEEK_SET);
+	(void) ReadFromFile(fHandle, (char *) &header, (long) sizeof(Elf64_Ehdr));
+	(void) SeekFile(FSMsg, fHandle, (long) header.e_phoff, SEEK_SET);
+	(void) ReadFromFile(fHandle, (char *) &pheader, (long) sizeof(Elf64_Phdr));
+	sizetoallocate = (long) pheader.p_memsz;
+	sizetoload = (long) pheader.p_filesz;
+	loadlocation = (long) pheader.p_offset;
+	(void) SeekFile(FSMsg, fHandle, loadlocation, SEEK_SET);
 	currentPage = UserCode;
 	size = sizetoallocate;
 	ClearUserMemory();
 	while (size > 0)
 	{
-		AllocAndCreatePTE(currentPage, currentTask->pid, RW | US | P);
+		(void) AllocAndCreatePTE(currentPage, currentTask->pid, RW | US | P);
 		size -= PageSize;
 		currentPage += PageSize;
 	}
-	ReadFromFile(fHandle, (char *)UserCode, sizetoload);
+	(void) ReadFromFile(fHandle, (char *)UserCode, sizetoload);
 	// zero .bss
-	char *c = (char *)(UserCode + sizetoload);
+	c = (char *)(UserCode + sizetoload);
 	while (sizetoload < size)
 	{
 		*c = 0;
@@ -179,9 +187,10 @@ void LoadElf(struct Message *FSMsg, struct FCB * fHandle)
 		sizetoload++;
 	}
 
-	AllocAndCreatePTE(UserData, currentTask->pid, RW | US | P);
+	(void) AllocAndCreatePTE(UserData, currentTask->pid, RW | US | P);
 	currentTask->firstfreemem = UserData;
 }
+
 //===============================================================================
 // This loads the program "name" into memory, if it exists.
 //===============================================================================
@@ -190,13 +199,13 @@ long DoExec(char *name, char *environment)
 	struct FCB *fHandle;
 	long argv, argc;
 	int retval = -ENOEXEC;
+	struct Message *FSMsg = ALLOCMSG;
 
-	char *kname = AllocKMem(strlen(name) + 6); // Enough space for "/bin" + name
+	char *kname = AllocKMem((size_t) strlen(name) + 6); // Enough space for "/bin" + name
 
 	strcpy(kname, "/bin/");
 	strcat(kname, name);
 
-	struct Message *FSMsg = ALLOCMSG;
 
 	// Open file
 	FSMsg->nextMessage = 0;
@@ -210,22 +219,22 @@ long DoExec(char *name, char *environment)
 	{
 		char magic[5];
 		char executable = 0;
-		SeekFile(FSMsg, fHandle, 10, SEEK_SET);
-		ReadFromFile(fHandle, magic, 4);
+		(void) SeekFile(FSMsg, fHandle, 10, SEEK_SET);
+		(void) ReadFromFile(fHandle, magic, 4);
 		magic[4] = 0;
 		if (!strcmp(magic, "IJ64"))
 		{
-			SeekFile(FSMsg, fHandle, 0, SEEK_SET);
+			(void) SeekFile(FSMsg, fHandle, 0, SEEK_SET);
 			LoadFlat(fHandle);
 			executable = 1;
 		}
 		else
 		{
-			SeekFile(FSMsg, fHandle, 0, SEEK_SET);
-			ReadFromFile(fHandle, magic, 4);
+			(void) SeekFile(FSMsg, fHandle, 0, SEEK_SET);
+			(void) ReadFromFile(fHandle, magic, 4);
 			if (magic[0] == 0x7F)
 			{
-				SeekFile(FSMsg, fHandle, 0, SEEK_SET);
+				(void) SeekFile(FSMsg, fHandle, 0, SEEK_SET);
 				LoadElf(FSMsg, fHandle);
 				executable = 1;
 			}
@@ -241,6 +250,8 @@ long DoExec(char *name, char *environment)
 
 		if (executable)
 		{
+			long *l;
+
 			// Process the arguments for argc and argv
 			// Copy environment string to user data space
 			// It occupies the 81 bytes after the current first free memory
@@ -255,9 +266,9 @@ long DoExec(char *name, char *environment)
 			currentTask->firstfreemem += argc * sizeof(char *);
 
 			// Build the first MemStruct struct. Is all this necessary? User tasks don't use the kernel memory allocation, do they?
-			long *l = (long *)(currentTask->firstfreemem);
+			l = (long *)(currentTask->firstfreemem);
 			*l = 0;
-			*(l + 1) = -((sizeof(struct MemStruct) + currentTask->firstfreemem)) % PageSize;
+			*(l + 1) = -(long)(((sizeof(struct MemStruct) + currentTask->firstfreemem)) % PageSize);
 			asm("mov %0,%%rdi;" "mov %1,%%rsi":
 					: "r"(argc), "r"(argv):"%rax", "%rdi");
 			return 0;
@@ -313,7 +324,7 @@ struct Task * NewKernelTask(void *TaskCode)
 	LinkTask(task);
 	data = (long *) TempUserData;
 	data[0] = 0;
-	data[1] = PageSize - sizeof(struct MemStruct);
+	data[1] = (long) (PageSize - sizeof(struct MemStruct));
 	task->firstfreemem = UserData;
 	task->environment = (void *) 0;
 	task->parentPort = (void *) 0;
@@ -339,6 +350,7 @@ void NewLowPriTask(void *TaskCode)
 void KillTask(void)
 {
 	struct Task *task = currentTask;
+	struct FCB *temp;
 
 	// Is there a task waiting for this one to finish? Send it a message.
 	if (task->parentPort)
@@ -361,12 +373,11 @@ void KillTask(void)
 	runnableTasks = RemoveFromTaskList(runnableTasks, task);
 
 	// Deallocate FCBs
-	struct FCB *temp;
 	while (task->fcbList)
 	{
 		temp = task->fcbList->nextFCB;
-		if (task->fcbList->deviceType == FILE)
-			DoClose(task->fcbList);
+		if (task->fcbList->deviceType == 3 /*FILE*/)
+			DoClose(task->fcbList->fileDescriptor);
 		else
 			DeallocMem(task->fcbList);
 		task->fcbList = temp;
@@ -411,7 +422,7 @@ void UnBlockTask(struct Task *task)
 //=========================================
 // Returns the task structure with PID pid
 //=========================================
-struct Task * PidToTask(long pid)
+struct Task * PidToTask(unsigned short pid)
 {
 	struct TaskList *tempTask = allTasks;
 
@@ -453,12 +464,6 @@ void dummyTask()
 					nPagesFree++;
 				}
 			}
-#ifdef DEBUG
-			int free = 0;
-			for (count = 0; count <nPages; count++)
-			if (!PMap[count]) free++;
-			kprintf(24, 0, "%d %d", free, nPagesFree);
-#endif
 		}
 		else
 			asm("hlt");
@@ -504,12 +509,12 @@ extern void fsTaskCode(void);
 //===================================================================
 void StartTasks()
 {
-	NewLowPriTask(dummyTask);
+	(void) NewLowPriTask((void *) dummyTask);
 	GoToSleep(10);
-	NewKernelTask(kbTaskCode);
+	(void) NewKernelTask((void *) kbTaskCode);
 	GoToSleep(10);
-	NewKernelTask(consoleTaskCode);
+	(void) NewKernelTask((void *) consoleTaskCode);
 	GoToSleep(10);
-	NewKernelTask(fsTaskCode);
+	(void) NewKernelTask((void *) fsTaskCode);
 	GoToSleep(10);
 }

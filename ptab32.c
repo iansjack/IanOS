@@ -1,6 +1,6 @@
 #include <memory.h>
 #include <pagetab32.h>
-void *AllocPage32(unsigned short int PID); // Defined in mem32.c
+
 void CreatePT164(struct PT *);
 void CreatePhysicalToVirtual(struct PML4 *, int);
 

@@ -2,8 +2,6 @@
 
 extern struct Task *currentTask;
 
-void *AllocKMem(long);
-
 //=================================
 // Send a message to a message port
 //=================================
@@ -11,9 +9,8 @@ void SendMessage(struct MessagePort *MP, struct Message *Msg)
 {
 	struct Message *temp = (struct Message *)ALLOCMSG;
 
-	copyMem((unsigned char *)Msg, (unsigned char *)temp,
-		(long)sizeof(struct Message));
-	temp->pid = (long)currentTask->pid;
+	copyMem((char *)Msg, (char *)temp, sizeof(struct Message));
+	temp->pid = currentTask->pid;
 	asm("cli");
 	if (MP->msgQueue == 0) {
 		MP->msgQueue = temp;
@@ -52,8 +49,7 @@ void ReceiveMessage(struct MessagePort *MP, struct Message *Msg)
 	MP->msgQueue = temp->nextMessage;
 	temp->nextMessage = 0;
 	asm("sti");
-	copyMem((unsigned char *)temp, (unsigned char *)Msg,
-		(long)sizeof(struct Message));
+	copyMem((char *)temp, (char *)Msg, sizeof(struct Message));
 	DeallocMem(temp);
 }
 
@@ -62,7 +58,7 @@ void ReceiveMessage(struct MessagePort *MP, struct Message *Msg)
 //========================
 struct MessagePort *AllocMessagePort()
 {
-	struct MessagePort *temp = (struct MessagePort *)AllocKMem((long)sizeof(struct MessagePort));
+	struct MessagePort *temp = (struct MessagePort *)AllocKMem(sizeof(struct MessagePort));
 
 	temp->waitingProc = (struct Task *)-1L;
 	temp->msgQueue = 0;

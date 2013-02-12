@@ -1,4 +1,5 @@
 #include <kernel.h>
+#include <pagetab.h>
 
 #define VIRT(type, name) ((struct type *) ((long) name + VAddr))
 

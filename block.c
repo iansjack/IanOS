@@ -7,12 +7,11 @@ typedef int umode_t;
 #include <sys/fcntl.h>
 #include <string.h>
 #include <unistd.h>
-#include <ext2_fs.h>
 #include <blocks.h>
 #include <memory.h>
 
-void ReadPSector(char *buffer, long block_no); // Defined in ide.s
-void WritePSector(char *buffer, long block_no); // Defined in ide.s
+void ReadPSector(char *buffer, u_int32_t block_no); // Defined in ide.s
+void WritePSector(char *buffer, u_int32_t block_no); // Defined in ide.s
 
 struct ext2_super_block sb;
 int block_size = 1024;
@@ -21,14 +20,14 @@ int inodes_per_block;
 struct ext2_group_desc *group_descriptors;
 char *block_bitmap;
 char *inode_bitmap;
-int currentDirectory = 2; // The inode # of the currentdirectory
+u_int32_t currentDirectory = 2; // The inode # of the currentdirectory
 
 #define SECTOR_SIZE	512
 
 //=============================
 // Read a (fs) block from disk
 //=============================
-void ReadBlock(int block, char *buffer)
+void ReadBlock(u_int32_t block, char *buffer)
 {
 	int i;
 	for (i = 0; i < block_size / SECTOR_SIZE; i++)
@@ -38,7 +37,7 @@ void ReadBlock(int block, char *buffer)
 //============================
 // Write a (fs) block to disk
 //============================
-void WriteBlock(int block, char *buffer)
+void WriteBlock(u_int32_t block, char *buffer)
 {
 	int i;
 	for (i = 0; i < block_size / SECTOR_SIZE; i++)
@@ -58,9 +57,9 @@ void InitializeHD()
 	inodes_per_block = block_size / (int)sizeof(struct ext2_inode);
 	no_of_blockgroups = sb.s_blocks_count / sb.s_blocks_per_group + 1;
 	group_descriptors = AllocUMem(
-			no_of_blockgroups * (long)sizeof(struct ext2_group_desc));
-	block_bitmap = AllocUMem((long)(no_of_blockgroups * block_size));
-	inode_bitmap = AllocUMem((long)(no_of_blockgroups * block_size));
+			no_of_blockgroups * sizeof(struct ext2_group_desc));
+	block_bitmap = AllocUMem(no_of_blockgroups * block_size);
+	inode_bitmap = AllocUMem(no_of_blockgroups * block_size);
 
 	ReadBlock(2, buffer);
 	for (i = 0; i < no_of_blockgroups; i++)
@@ -68,9 +67,9 @@ void InitializeHD()
 		memcpy((void *) &group_descriptors[i],
 				buffer + i * (long)sizeof(struct ext2_group_desc),
 				sizeof(struct ext2_group_desc));
-		ReadBlock((int)(group_descriptors[i].bg_block_bitmap),
+		ReadBlock(group_descriptors[i].bg_block_bitmap,
 				&block_bitmap[i * block_size]);
-		ReadBlock((int)(group_descriptors[i].bg_inode_bitmap),
+		ReadBlock(group_descriptors[i].bg_inode_bitmap,
 				&inode_bitmap[i * block_size]);
 	}
 }
@@ -94,9 +93,9 @@ int GetBlockBitmapBit(int block)
 //======================================================
 // Set the value of the bit for block in the bitmpap
 //======================================================
-void SetBlockBitmapBit(int block)
+void SetBlockBitmapBit(u_int32_t block)
 {
-	int group, block_in_group, byte_in_map, bit_in_byte;
+	u_int32_t group, block_in_group, byte_in_map, bit_in_byte;
 
 	block--;
 	group = block / sb.s_blocks_per_group;
@@ -111,9 +110,9 @@ void SetBlockBitmapBit(int block)
 //======================================================
 // Clear the value of the bit for block in the bitmpap
 //======================================================
-void ClearBlockBitmapBit(int block)
+void ClearBlockBitmapBit(u_int32_t block)
 {
-	int group, block_in_group, byte_in_map, bit_in_byte;
+	u_int32_t group, block_in_group, byte_in_map, bit_in_byte;
 
 	block--;
 	group = block / sb.s_blocks_per_group;
@@ -128,9 +127,9 @@ void ClearBlockBitmapBit(int block)
 //=====================================================================
 // Return the (absolute) block number of the first free block in group
 //=====================================================================
-int GetFreeBlock(int group)
+u_int32_t GetFreeBlock(u_int32_t group)
 {
-	int block;
+	u_int32_t block;
 	int i = 0, j=0;
 	while (block_bitmap[block_size * group + i] == -1)
 		i++;
@@ -162,9 +161,9 @@ int GetINodeBitmapBit(int inode)
 //======================================================
 // Set the value of the bit for inode in the bitmpap
 //======================================================
-void SetINodeBitmapBit(int inode)
+void SetINodeBitmapBit(u_int32_t inode)
 {
-	int group, inode_in_group, byte_in_map, bit_in_byte;
+	u_int32_t group, inode_in_group, byte_in_map, bit_in_byte;
 
 	inode--;
 	group = inode / sb.s_inodes_per_group;
@@ -179,9 +178,9 @@ void SetINodeBitmapBit(int inode)
 //======================================================
 // Clear the value of the bit for inode in the bitmpap
 //======================================================
-void ClearINodeBitmapBit(int inode)
+void ClearINodeBitmapBit(u_int32_t inode)
 {
-	int group, inode_in_group, byte_in_map, bit_in_byte;
+	u_int32_t group, inode_in_group, byte_in_map, bit_in_byte;
 
 	inode--;
 	group = inode / sb.s_inodes_per_group;
@@ -196,9 +195,9 @@ void ClearINodeBitmapBit(int inode)
 //=====================================================================
 // Return the (absolute) inode number of the first free inode in group
 //=====================================================================
-int GetFreeINode(int group)
+u_int32_t GetFreeINode(u_int32_t group)
 {
-	int inode;
+	u_int32_t inode;
 	int i = 0, j = 0;
 	while (inode_bitmap[block_size * group + i] == -1)
 		i++;
@@ -218,15 +217,15 @@ int GetFreeINode(int group)
 void FlushCaches(void)
 {
 	// We need to test whether we are dealing with SPARSE_SUPERBLOCKS or not. Assume yes for the time being
-	int i;
+	u_int32_t i;
 	char buffer[block_size];
 	memset(buffer, 0, (size_t)block_size);
 
-	for (i = 0; i < (int)no_of_blockgroups; i++)
+	for (i = 0; i < no_of_blockgroups; i++)
 		memcpy(buffer + i * sizeof(struct ext2_group_desc),
 				(void *) &group_descriptors[i], sizeof(struct ext2_group_desc));
 
-	for (i = 0; i < (int)no_of_blockgroups; i++)
+	for (i = 0; i < no_of_blockgroups; i++)
 	{
 		// Write SuperBlock and Group Descriptors. Assume < 25 block_groups
 		if (i == 0 || i == 1 || i == 3 || i == 5 || i == 7 || i == 9)
@@ -235,9 +234,9 @@ void FlushCaches(void)
 			WriteBlock(i * block_size * sb.s_blocks_per_group + 1, (char *) &sb);
 			WriteBlock(i * block_size * sb.s_blocks_per_group + 2, buffer);
 		}
-		WriteBlock((int)(group_descriptors[i].bg_block_bitmap),
+		WriteBlock(group_descriptors[i].bg_block_bitmap,
 				&block_bitmap[i * block_size]);
-		WriteBlock((int)(group_descriptors[i].bg_inode_bitmap),
+		WriteBlock(group_descriptors[i].bg_inode_bitmap,
 				&inode_bitmap[i * block_size]);
 	}
 }
@@ -245,17 +244,17 @@ void FlushCaches(void)
 //===================================================================
 // Fill in the struct inode with the details from inode inodeNumber
 //===================================================================
-void GetINode(__le32 inodeNumber, struct ext2_inode *inode)
+void GetINode(u_int32_t inodeNumber, struct ext2_inode *inode)
 {
-	int group_number, block_in_group, block, number_in_block;
+	u_int32_t group_number, block_in_group, block, number_in_block;
 	char buffer[block_size];
 	struct ext2_inode *inodes;
 
 	inodeNumber--;
-	group_number = (int)(inodeNumber / sb.s_inodes_per_group);
+	group_number = inodeNumber / sb.s_inodes_per_group;
 	block_in_group = (inodeNumber % sb.s_inodes_per_group)
 			/ inodes_per_block;
-	block = (int)(group_descriptors[group_number].bg_inode_table + block_in_group);
+	block = group_descriptors[group_number].bg_inode_table + block_in_group;
 	number_in_block = (inodeNumber % sb.s_inodes_per_group)
 			% inodes_per_block;
 	ReadBlock(block, buffer);
@@ -267,17 +266,17 @@ void GetINode(__le32 inodeNumber, struct ext2_inode *inode)
 //===================================================================
 // Write the struct inode to the disk
 //===================================================================
-void PutINode(__le32 inodeNumber, struct ext2_inode *inode)
+void PutINode(u_int32_t inodeNumber, struct ext2_inode *inode)
 {
-	int group_number, block_in_group, block, number_in_block;
+	u_int32_t group_number, block_in_group, block, number_in_block;
 	char buffer[block_size];
 	struct ext2_inode *inodes;
 
 	inodeNumber--;
-	group_number = (int)(inodeNumber / sb.s_inodes_per_group);
+	group_number = inodeNumber / sb.s_inodes_per_group;
 	block_in_group = (inodeNumber % sb.s_inodes_per_group)
 			/ inodes_per_block;
-	block = (int)(group_descriptors[group_number].bg_inode_table + block_in_group);
+	block = group_descriptors[group_number].bg_inode_table + block_in_group;
 	number_in_block = (inodeNumber % sb.s_inodes_per_group)
 			% inodes_per_block;
 	ReadBlock(block, buffer);
@@ -294,9 +293,9 @@ __le32 GetFileINode(char *path)
 {
 	char *temp, *name;
 	char buffer[block_size];
-	int startingDirectory = currentDirectory;
+	u_int32_t startingDirectory = currentDirectory;
 
-	temp = AllocUMem((long)(strlen(path) + 1));
+	temp = AllocUMem(strlen(path) + 1);
 	strcpy(temp, path);
 	if (path[0] == '/')
 	{
@@ -312,7 +311,7 @@ __le32 GetFileINode(char *path)
 		int dir_pos;
 
 		GetINode(startingDirectory, &parentINode);
-		ReadBlock((int)(parentINode.i_block[0]), (char *) &buffer);
+		ReadBlock(parentINode.i_block[0], (char *) &buffer);
 		dir = (struct ext2_dir_entry_2 *) buffer;
 		dir_pos = 0;
 		while (1)
@@ -328,7 +327,7 @@ __le32 GetFileINode(char *path)
 				return 0;
 			}
 		}
-		startingDirectory = (int)(dir->inode);
+		startingDirectory = dir->inode;
 		name = strtok(/*NULL*/ 0, "/");
 	}
 	DeallocMem(temp);
@@ -409,7 +408,7 @@ void SetBufferFromCursor(struct FCB *fcb)
 //====================================================
 void AddFirstBlockToFile(struct FCB *fcb)
 {
-	fcb->currentBlock = GetFreeBlock((int)(fcb->inodeNumber / sb.s_inodes_per_group));
+	fcb->currentBlock = GetFreeBlock(fcb->inodeNumber / sb.s_inodes_per_group);
 	fcb->inode->i_block[0] = fcb->currentBlock;
 	fcb->inode->i_blocks = 2;
 }
@@ -420,7 +419,7 @@ void AddFirstBlockToFile(struct FCB *fcb)
 void AddBlockToFile(struct FCB *fcb)
 {
 	char *buffer = AllocUMem(1024);
-	int group = (int)(fcb->inodeNumber / sb.s_inodes_per_group);
+	u_int32_t group = fcb->inodeNumber / sb.s_inodes_per_group;
 	__le32 tempBlock, tempBlock2, tempBlock3;
 	__le32 *blocks;
 
@@ -451,11 +450,11 @@ void AddBlockToFile(struct FCB *fcb)
 		if (fcb->index2 < block_size / 32)
 		{
 			// This is an indirect block, so get the indirect block table
-			ReadBlock((int)(fcb->inode->i_block[fcb->index1]), buffer);
+			ReadBlock(fcb->inode->i_block[fcb->index1], buffer);
 			blocks = (__le32 *) buffer;
 			// Add currentBlock to the indirect block table
 			blocks[fcb->index2] = fcb->currentBlock;
-			WriteBlock((int)(fcb->inode->i_block[fcb->index1]), buffer);
+			WriteBlock(fcb->inode->i_block[fcb->index1], buffer);
 		}
 		else
 		{
@@ -480,7 +479,7 @@ void AddBlockToFile(struct FCB *fcb)
 		if (fcb->index3 < block_size / 32)
 		{
 			// This is a double-indirect block, so get the first-level indirect block table
-			ReadBlock((int)(fcb->inode->i_block[fcb->index1]), buffer);
+			ReadBlock(fcb->inode->i_block[fcb->index1], buffer);
 			// Get the second-level indirect block table for index2
 			blocks = (__le32 *) buffer;
 			tempBlock = blocks[fcb->index2];
@@ -496,10 +495,10 @@ void AddBlockToFile(struct FCB *fcb)
 			if (fcb->index2 < block_size / 32)
 			{
 				// Still a double-indirect block, but we need to add another first-level table
-				ReadBlock((int)(fcb->inode->i_block[fcb->index1]), buffer);
+				ReadBlock(fcb->inode->i_block[fcb->index1], buffer);
 				blocks = (__le32 *) buffer;
 				tempBlock = blocks[fcb->index2] = GetFreeBlock(group);
-				WriteBlock((int)(fcb->inode->i_block[fcb->index1]), buffer);
+				WriteBlock(fcb->inode->i_block[fcb->index1], buffer);
 				// Clear buffer
 				memset(buffer, 0, (size_t)block_size);
 				blocks[0] = fcb->currentBlock;

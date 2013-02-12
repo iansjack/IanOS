@@ -26,7 +26,7 @@
 #define CTRLED      4
 #define ALTED       8
 
-extern void switchConsole(long console);
+extern void switchConsole(unsigned char console);
 extern struct MessagePort *KbdPort;
 
 long kbBufStart;

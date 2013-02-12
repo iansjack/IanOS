@@ -5,9 +5,7 @@ typedef int FD;
 
 #define	CONS	1
 #define	KBD		2
-#ifndef S_SPLINT_S
 #define FILE	3
-#endif
 #define DIR		4
 
 #define STDIN	0
@@ -39,8 +37,8 @@ struct Task
 	long timer;
 	char *environment;
 	struct MessagePort *parentPort;
-	unsigned char *currentDirName;
-	unsigned char **argv;
+	char *currentDirName;
+	char **argv;
 	long console;
 	struct FCB *fcbList;
 	long FDbitmap;
@@ -61,7 +59,7 @@ struct Message
 	long quad2;
 	long quad3;
 	struct MessagePort *tempPort;
-	long pid;
+	unsigned short pid;
 	unsigned char byte;
 };
 

@@ -1,6 +1,5 @@
 #include <kernel.h>
 
-extern long long memorySemaphore;
 extern long long nPagesFree;
 extern long long nPages;
 extern long long firstFreePage;
@@ -17,7 +16,7 @@ void InitMemManagement()
 	long *mempos;
 	long testpattern;
 
-	memorySemaphore = 0;
+	//memorySemaphore = 0;
 	nPagesFree = 256;
 
 	// Find number of free pages by writing a pattern to memory and seeing if it reads back OK

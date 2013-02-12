@@ -1,5 +1,5 @@
 #include <kernel.h>
-#define NULL (void *)0
+#include <pagetab.h>
 
 extern struct Task *currentTask;
 extern struct TaskList *runnableTasks;
@@ -9,7 +9,7 @@ extern struct Task *lowPriTask;
 extern struct TaskList *deadTasks;
 extern long canSwitch;
 extern long pass;
-extern long nextpid;
+extern unsigned short nextpid;
 unsigned char *oMemMax;
 long nPagesFree;
 long nPages;
@@ -31,12 +31,12 @@ void InitMem64(void)
 	firstFreeKMem = (struct MemStruct *) OSHeap;
 	firstFreeKMem->next = 0;
 	firstFreeKMem->size = (long)(PageSize - sizeof(struct MemStruct));
-	currentTask = (struct Task *) AllocKMem((long)sizeof(struct Task));
+	currentTask = (struct Task *) AllocKMem(sizeof(struct Task));
 	nextpid = 3;
-	runnableTasks = (struct TaskList *) AllocKMem((long)sizeof(struct TaskList));
+	runnableTasks = (struct TaskList *) AllocKMem(sizeof(struct TaskList));
 	runnableTasks->next = NULL;
 	runnableTasks->task = currentTask;
-	allTasks = (struct TaskList *) AllocKMem((long)sizeof(struct TaskList));
+	allTasks = (struct TaskList *) AllocKMem(sizeof(struct TaskList));
 	allTasks->task = currentTask;
 	allTasks->next = 0;
 	deadTasks = 0;
@@ -53,7 +53,7 @@ void InitMem64(void)
 // Allocates the memory and returns its address in RAX. If necessary, maps new pages
 // into the heap.
 //=========================================================================================
-void * AllocMem(long sizeRequested, struct MemStruct *list)
+void * AllocMem(size_t sizeRequested, struct MemStruct *list)
 {
 	unsigned char kernel = 0;
 	if (list == firstFreeKMem) kernel = 1;
@@ -62,7 +62,7 @@ void * AllocMem(long sizeRequested, struct MemStruct *list)
 
 	while (list->next)
 	{
-		if (list->size >= sizeRequested) break;
+		if (list->size >= (int) sizeRequested) break;
 		list = list->next;
 	}
 
@@ -72,7 +72,7 @@ void * AllocMem(long sizeRequested, struct MemStruct *list)
 	{
 		// End of list. Enough memory available? If not allocate new pages until there is.
 		// We need at least the size requested plus space for a new MemStruct record
-		while (list->size < sizeRequested + sizeof(struct MemStruct))
+		while ((size_t) list->size < sizeRequested + sizeof(struct MemStruct))
 		{
 			// Not enough free space, so allocate another page.
 			// Find first unmapped address
@@ -87,7 +87,7 @@ void * AllocMem(long sizeRequested, struct MemStruct *list)
 
 	// We now have found a free memory block with enough (or more space)
 	// Is there enough space for another link?
-	if (list->size < sizeRequested + sizeof(struct MemStruct))
+	if ((size_t) list->size < sizeRequested + sizeof(struct MemStruct))
 	{
 		// No. Just allocate the whole block
 		// Was that the last entry in the list?
@@ -142,7 +142,7 @@ void DeallocMem(void *list)
 // Allocate some kernel memory from the heap. sizeRequested = amount to allocate
 // Returns in RAX address of allocated memory.
 //===============================================================================
-void *AllocKMem(long sizeRequested)
+void *AllocKMem(size_t sizeRequested)
 {
 	return (AllocMem(sizeRequested, firstFreeKMem));
 }
@@ -151,7 +151,7 @@ void *AllocKMem(long sizeRequested)
 // Allocate some user memory from the heap. sizeRequested = amount to allocate
 // Returns in RAX address of allocated memory.
 //===============================================================================
-void *AllocUMem(long sizeRequested)
+void *AllocUMem(size_t sizeRequested)
 {
 	return (AllocMem(sizeRequested, (void *) currentTask->firstfreemem));
 }

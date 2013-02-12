@@ -4,6 +4,7 @@
  *  Created on: 6 Jun 2012
  *      Author: ian
  */
+#include <ext2_fs.h>
 #include <linux/types.h>
 #include <kstructs.h>
 
@@ -40,9 +41,9 @@ struct FCB
 {
 	struct FCB *nextFCB;
 	struct ext2_inode *inode;
-	long pid;
-	__le32 inodeNumber;
-	__le32 currentBlock;
+	unsigned short pid;
+	u_int32_t inodeNumber;
+	u_int32_t currentBlock;
 	int index1, index2, index3, index4;
 	int fileCursor;
 	int bufCursor;
@@ -59,18 +60,18 @@ struct FCB
 #define INDIRECT_BLOCKS			(block_size / sizeof(__le32))
 #define DOUBLE_INDIRECT_BLOCKS	INDIRECT_BLOCKS * INDIRECT_BLOCKS
 
-void ReadBlock(int block, char *buffer);
-void WriteBlock(int block, char *buffer);
+void ReadBlock(u_int32_t block, char *buffer);
+void WriteBlock(u_int32_t block, char *buffer);
 void InitializeHD();
 __le32 GetFileINode(char *path);
-void GetINode(__le32 inode_number, struct ext2_inode *inode);
-void PutINode(__le32 inode_number, struct ext2_inode *inode);
-int GetFreeINode(int group);
+void GetINode(u_int32_t inode_number, struct ext2_inode *inode);
+void PutINode(u_int32_t inode_number, struct ext2_inode *inode);
+u_int32_t GetFreeINode(u_int32_t group);
 void SetBufferFromCursor(struct FCB *fcb);
 void AddFirstBlockToFile(struct FCB *fcb);
 void AddBlockToFile(struct FCB *fcb);
 void FlushCaches(void);
-void ClearBlockBitmapBit(int block);
-void ClearINodeBitmapBit(int inode);
+void ClearBlockBitmapBit(u_int32_t block);
+void ClearINodeBitmapBit(u_int32_t inode);
 
 #endif /* BLOCKS_H_ */

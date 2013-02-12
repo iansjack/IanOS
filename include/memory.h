@@ -1,6 +1,7 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
+#include <stddef.h>
 #include "kstructs.h"
 //#include "pagetab.h"
 
@@ -36,10 +37,10 @@
 
 #define tsslength		0x80
 
-void *AllocMem(long sizeRequested, struct MemStruct *list);
-void *AllocKMem(long sizeRequested);
-void *AllocUMem(long sizeRequested);
-void *AllocSharedMem(long sizeRequested);
+void *AllocMem(size_t sizeRequested, struct MemStruct *list);
+void *AllocKMem(size_t sizeRequested);
+void *AllocUMem(size_t sizeRequested);
+void *AllocSharedMem(size_t sizeRequested);
 void DeallocMem(void *list);
 void DeallocSharedMem(long pid);
 void DeallocKMem(long pid);
