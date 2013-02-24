@@ -56,9 +56,13 @@ struct FCB
 };
 
 // These are the numbers of blocks pointed to by inode->i_block[]
+#define SECTOR_SIZE	512
+#define INODE_BLOCK_SIZE 512
+
 #define DIRECT_BLOCKS			12
 #define INDIRECT_BLOCKS			(block_size / sizeof(__le32))
 #define DOUBLE_INDIRECT_BLOCKS	INDIRECT_BLOCKS * INDIRECT_BLOCKS
+#define I_BLOCK_SIZE_RATIO			(block_size / INODE_BLOCK_SIZE)
 
 void ReadBlock(u_int32_t block, char *buffer);
 void WriteBlock(u_int32_t block, char *buffer);

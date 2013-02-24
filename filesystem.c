@@ -194,7 +194,6 @@ long ReadFile(struct FCB *fcb, char *buffer, long noBytes)
 		if (fcb->bufCursor == block_size)
 		{
 			SetBufferFromCursor(fcb);
-			fcb->bufCursor = 0;
 		}
 		buffer[i] = fcb->buffer[fcb->bufCursor];
 		fcb->bufCursor++;
@@ -219,23 +218,32 @@ long WriteFile(struct FCB *fcb, char *buffer, long noBytes)
 		AddFirstBlockToFile(fcb);
 	for (i = 0; i < noBytes; i++)
 	{
+		// If at the end of the file increment the file size in the inode and mark the inode as dirty
 		if (fcb->fileCursor == (int)(fcb->inode->i_size))
 		{
 			fcb->inode->i_size++;
 			fcb->inodeIsDirty = 1;
 		}
+
+		// If the bufCursor is at the end of the block we need to load the next block
 		if (fcb->bufCursor == block_size)
 		{
+			// If the current buffer is dirty write the block to disk
 			if (fcb->bufferIsDirty)
+			{
 				WriteBlock(fcb->currentBlock, fcb->buffer);
-			if (fcb->fileCursor < (int)(fcb->inode->i_size - 1))
-				SetBufferFromCursor(fcb);
-			else
-				// We need to allocate a new block to the file
+				fcb->bufferIsDirty = 0;
+			}
+			// If the file cursor is at the end of the file allocate a new block
+			if (fcb->fileCursor >= (int)(fcb->inode->i_size - 1))
 				AddBlockToFile(fcb);
-			fcb->bufCursor = 0;
+			else
+				// Load the block and set fcb->bufCursor
+				SetBufferFromCursor(fcb);
 		}
+		// Increment the bufCursor and copy the byte to the file buffer
 		fcb->buffer[fcb->bufCursor++] = buffer[i];
+		// Mark the current buffer as dirty and increment the fileCursor
 		fcb->bufferIsDirty = 1;
 		fcb->fileCursor++;
 	}
@@ -430,13 +438,26 @@ long Seek(struct FCB *fcb, int offset, int whence)
 	{
 		// Do we need to add more blocks
 		blocksNeeded = (u_int32_t)(fcb->fileCursor / block_size + 1);
-		while (blocksNeeded > fcb->inode->i_blocks)
+		int currentBlocks = fcb->inode->i_size / block_size + 1;
+		blocksNeeded -= currentBlocks;
+		if (fcb->currentBlock == 0 && blocksNeeded > 0)
+			// This is a special case where the file is currently empty
+		{
+			AddFirstBlockToFile(fcb);
+			fcb->inode->i_size += block_size;
+			blocksNeeded--;
+		}
+
+		// Remember block_size and i_blocks measure in different block sizes!
+		while (blocksNeeded--)
+		{
 			AddBlockToFile(fcb);
+			fcb->inode->i_size += block_size;
+		}
 		fcb->inode->i_size = (u_int32_t)(fcb->fileCursor);
 	}
 
 	SetBufferFromCursor(fcb);
-	fcb->bufCursor = fcb->fileCursor % block_size;
 	return fcb->fileCursor;
 }
 
@@ -458,7 +479,7 @@ long Truncate(struct FCB *fcb, u_int32_t length)
 		{
 			fcb->fileCursor = (int)length;
 			SetBufferFromCursor(fcb);
-			fcb->bufCursor = fcb->fileCursor % block_size;
+			// fcb->bufCursor = fcb->fileCursor % block_size;
 		}
 	}
 	else

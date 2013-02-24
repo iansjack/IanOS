@@ -22,8 +22,6 @@ char *block_bitmap;
 char *inode_bitmap;
 u_int32_t currentDirectory = 2; // The inode # of the currentdirectory
 
-#define SECTOR_SIZE	512
-
 //=============================
 // Read a (fs) block from disk
 //=============================
@@ -56,8 +54,7 @@ void InitializeHD()
 	block_size = block_size << sb.s_log_block_size;
 	inodes_per_block = block_size / (int)sizeof(struct ext2_inode);
 	no_of_blockgroups = sb.s_blocks_count / sb.s_blocks_per_group + 1;
-	group_descriptors = AllocUMem(
-			no_of_blockgroups * sizeof(struct ext2_group_desc));
+	group_descriptors = AllocUMem(no_of_blockgroups * sizeof(struct ext2_group_desc));
 	block_bitmap = AllocUMem(no_of_blockgroups * block_size);
 	inode_bitmap = AllocUMem(no_of_blockgroups * block_size);
 
@@ -379,7 +376,10 @@ void SetIndexesFromCursor(struct FCB *fcb)
 void SetBufferFromCursor(struct FCB *fcb)
 {
 	if (fcb->bufferIsDirty)
+	{
 		WriteBlock(fcb->currentBlock, fcb->buffer);
+		fcb->bufferIsDirty = 0;
+	}
 	SetIndexesFromCursor(fcb);
 	fcb->currentBlock = fcb->inode->i_block[fcb->index1];
 	ReadBlock(fcb->currentBlock, fcb->buffer);
@@ -401,6 +401,7 @@ void SetBufferFromCursor(struct FCB *fcb)
 		fcb->currentBlock = blocks[fcb->index4];
 		ReadBlock(fcb->currentBlock, fcb->buffer);
 	}
+	fcb->bufCursor = fcb->fileCursor % block_size;
 }
 
 //====================================================
@@ -410,7 +411,7 @@ void AddFirstBlockToFile(struct FCB *fcb)
 {
 	fcb->currentBlock = GetFreeBlock(fcb->inodeNumber / sb.s_inodes_per_group);
 	fcb->inode->i_block[0] = fcb->currentBlock;
-	fcb->inode->i_blocks = 2;
+	fcb->inode->i_blocks = (u_int32_t)(block_size / INODE_BLOCK_SIZE);
 }
 //=======================================================================
 // Add a new block the the file represented by fcb
@@ -422,8 +423,14 @@ void AddBlockToFile(struct FCB *fcb)
 	u_int32_t group = fcb->inodeNumber / sb.s_inodes_per_group;
 	__le32 tempBlock, tempBlock2, tempBlock3;
 	__le32 *blocks;
+	int temp = fcb->fileCursor;
 
-
+	// If we are not at the end of the file we need to go there (but save the current position!)
+	if (temp != (int)(fcb->inode->i_size) - 1)
+	{
+			fcb->fileCursor = (int)(fcb->inode->i_size) - 1;
+			SetBufferFromCursor(fcb);
+	}
 	memset(buffer, 0, 1024);
 	fcb->currentBlock = GetFreeBlock(group);
 	if (fcb->index1 < EXT2_IND_BLOCK)
@@ -432,12 +439,14 @@ void AddBlockToFile(struct FCB *fcb)
 		if (fcb->index1 < EXT2_IND_BLOCK)
 			// This is a direct block
 			fcb->inode->i_block[fcb->index1] = fcb->currentBlock;
-		else
+		else	// fcb->index1 == EXT2_IND_BLOCK
 		{
 			// This is the first indirect block. Add a block for the indirect block table
 			fcb->index2 = 0;
 			tempBlock = fcb->inode->i_block[fcb->index1] = (u_int32_t)GetFreeBlock(
 					group);
+			// Don't forget to increment the block count to count this block
+			fcb->inode->i_blocks += I_BLOCK_SIZE_RATIO;
 			// Add currentBlock as the first entry in the indirect block table
 			blocks = (__le32 *) buffer;
 			blocks[0] = fcb->currentBlock;
@@ -447,7 +456,7 @@ void AddBlockToFile(struct FCB *fcb)
 	else if (fcb->index1 == EXT2_IND_BLOCK)
 	{
 		fcb->index2++;
-		if (fcb->index2 < block_size / 32)
+		if (fcb->index2 < (int)(block_size / sizeof(__le32)))
 		{
 			// This is an indirect block, so get the indirect block table
 			ReadBlock(fcb->inode->i_block[fcb->index1], buffer);
@@ -464,10 +473,14 @@ void AddBlockToFile(struct FCB *fcb)
 			fcb->index3 = 0;
 			tempBlock = fcb->inode->i_block[fcb->index1] = (u_int32_t)GetFreeBlock(
 					group);
+			// Don't forget to increment the block count to count this block
+			fcb->inode->i_blocks += I_BLOCK_SIZE_RATIO;
 			// Add a block for the second-level indirect block table
 			blocks = (__le32 *) buffer;
 			tempBlock2 = blocks[0] = GetFreeBlock(group);
 			WriteBlock(tempBlock, buffer);
+			// Don't forget to increment the block count to count this block
+			fcb->inode->i_blocks += I_BLOCK_SIZE_RATIO;
 			// Add current block to the indirect-indirect block table
 			blocks[0] = fcb->currentBlock;
 			WriteBlock(tempBlock2, buffer);
@@ -476,7 +489,7 @@ void AddBlockToFile(struct FCB *fcb)
 	else if (fcb->index1 == EXT2_DIND_BLOCK)
 	{
 		fcb->index3++;
-		if (fcb->index3 < block_size / 32)
+		if (fcb->index3 < (int)(block_size / sizeof(__le32)))
 		{
 			// This is a double-indirect block, so get the first-level indirect block table
 			ReadBlock(fcb->inode->i_block[fcb->index1], buffer);
@@ -492,13 +505,15 @@ void AddBlockToFile(struct FCB *fcb)
 		{
 			fcb->index3 = 0;
 			fcb->index2++;
-			if (fcb->index2 < block_size / 32)
+			if (fcb->index2 < (int)(block_size / sizeof(__le32)))
 			{
 				// Still a double-indirect block, but we need to add another first-level table
 				ReadBlock(fcb->inode->i_block[fcb->index1], buffer);
 				blocks = (__le32 *) buffer;
 				tempBlock = blocks[fcb->index2] = GetFreeBlock(group);
 				WriteBlock(fcb->inode->i_block[fcb->index1], buffer);
+				// Don't forget to increment the block count to count this block
+				fcb->inode->i_blocks += I_BLOCK_SIZE_RATIO;
 				// Clear buffer
 				memset(buffer, 0, (size_t)block_size);
 				blocks[0] = fcb->currentBlock;
@@ -514,13 +529,19 @@ void AddBlockToFile(struct FCB *fcb)
 				fcb->index4 = 0;
 				tempBlock = fcb->inode->i_block[fcb->index1] =
 						(u_int32_t)GetFreeBlock(group);
+				// Don't forget to increment the block count to count this block
+				fcb->inode->i_blocks += I_BLOCK_SIZE_RATIO;
 				// Add a block for the second-level indirect block table
 				blocks = (__le32 *) buffer;
 				tempBlock2 = blocks[0] = GetFreeBlock(group);
 				WriteBlock(tempBlock, buffer);
+				// Don't forget to increment the block count to count this block
+				fcb->inode->i_blocks += I_BLOCK_SIZE_RATIO;
 				// Add a block for the third-level indirect block table
 				tempBlock3 = blocks[0] = GetFreeBlock(group);
 				WriteBlock(tempBlock2, buffer);
+				// Don't forget to increment the block count to count this block
+				fcb->inode->i_blocks += I_BLOCK_SIZE_RATIO;
 				// Add current block to the indirect-indirect-indirect block table
 				blocks[0] = fcb->currentBlock;
 				WriteBlock(tempBlock3, buffer);
@@ -532,6 +553,13 @@ void AddBlockToFile(struct FCB *fcb)
 		// *** TO DO ***
 		fcb->index4++;
 	}
-	fcb->inode->i_blocks += 2;
+	fcb->inode->i_blocks += I_BLOCK_SIZE_RATIO;
 	fcb->inodeIsDirty = 1;
+
+	// Recover the current file position;
+	if (temp != fcb->fileCursor)
+	{
+		fcb->fileCursor = temp;
+	}
+	SetBufferFromCursor(fcb);
 }
