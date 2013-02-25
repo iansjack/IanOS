@@ -292,7 +292,7 @@ long DeleteFile(char *name)
 		// Delete indirect blocks
 		ReadBlock(fcb->inode->i_block[EXT2_IND_BLOCK], buffer);
 		blocks = (__le32 *) buffer;
-		for (i = 0; i < block_size / 32; i++)
+		for (i = 0; i < block_size / sizeof(__le32); i++)
 			if (blocks[i])
 				ClearBlockBitmapBit(blocks[i]);
 		ClearBlockBitmapBit(fcb->inode->i_block[EXT2_IND_BLOCK]);
@@ -302,19 +302,19 @@ long DeleteFile(char *name)
 		// Delete double-indirect blocks
 		ReadBlock(fcb->inode->i_block[EXT2_DIND_BLOCK], buffer);
 		blocks = (__le32 *) buffer;
-		for (i = 0; i < block_size / 32; i++)
+		for (i = 0; i < block_size / sizeof(__le32); i++)
 		{
 			if (blocks[i])
 			{
 				ReadBlock(blocks[i], buffer1);
 				iblocks = (__le32 *) buffer1;
-				for (j = 0; j < block_size / 32; j++)
+				for (j = 0; j < block_size / sizeof(__le32); j++)
 					if (iblocks[j])
 						ClearBlockBitmapBit(iblocks[j]);
 				ClearBlockBitmapBit(blocks[i]);
 			}
-			ClearBlockBitmapBit(fcb->inode->i_block[EXT2_DIND_BLOCK]);
 		}
+		ClearBlockBitmapBit(fcb->inode->i_block[EXT2_DIND_BLOCK]);
 	}
 	if (fcb->inode->i_block[EXT2_TIND_BLOCK])
 	{
@@ -437,18 +437,16 @@ long Seek(struct FCB *fcb, int offset, int whence)
 	if ((u_int32_t)(fcb->fileCursor) > fcb->inode->i_size)
 	{
 		// Do we need to add more blocks
-		blocksNeeded = (u_int32_t)(fcb->fileCursor / block_size + 1);
-		int currentBlocks = fcb->inode->i_size / block_size + 1;
-		blocksNeeded -= currentBlocks;
+		u_int32_t currentBlocks = fcb->inode->i_size / block_size + 1;
+		blocksNeeded = (u_int32_t)(fcb->fileCursor / block_size + 1) - currentBlocks;
 		if (fcb->currentBlock == 0 && blocksNeeded > 0)
-			// This is a special case where the file is currently empty
 		{
+			// This is a special case where the file is currently empty
 			AddFirstBlockToFile(fcb);
 			fcb->inode->i_size += block_size;
 			blocksNeeded--;
 		}
 
-		// Remember block_size and i_blocks measure in different block sizes!
 		while (blocksNeeded--)
 		{
 			AddBlockToFile(fcb);
@@ -479,7 +477,6 @@ long Truncate(struct FCB *fcb, u_int32_t length)
 		{
 			fcb->fileCursor = (int)length;
 			SetBufferFromCursor(fcb);
-			// fcb->bufCursor = fcb->fileCursor % block_size;
 		}
 	}
 	else

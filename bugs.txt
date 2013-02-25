@@ -1,2 +1,3 @@
-1. To test. Does deleting a file account properly for all blocks and 
-inodes?
+1. Trying to copy a large file (libc.a) the system hangs and produces 
+a zero-length output file.
+
