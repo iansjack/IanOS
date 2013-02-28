@@ -243,7 +243,7 @@ gpf:
 	add $8, %rsp
 	jmp intrr
 
-pf: call Debug
+pf:
 	PUSH_ALL
 	mov %cr2, %rax
 	push %rax

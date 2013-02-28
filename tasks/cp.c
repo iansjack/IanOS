@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <fcntl.h>
 
+#define BUFF_SIZE 1024
+
 int main(int argc, char **argv)
 {
 	ssize_t ret;
@@ -16,12 +18,22 @@ int main(int argc, char **argv)
 	{
 		struct stat inf;
 		char *buffer;
+		int toCopy;
 
 		fstat(InFile, &inf);
+		toCopy = inf.st_size;
 
-		buffer = (char *)malloc((size_t) inf.st_size);
-		ret = read(InFile, buffer, (size_t) inf.st_size);
-		write(OutFile, buffer, (size_t) inf.st_size);
+		buffer = (char *)malloc((size_t) BUFF_SIZE);
+
+		while (toCopy > BUFF_SIZE)
+		{
+			read(InFile, buffer, (size_t) BUFF_SIZE);
+			write(OutFile, buffer, (size_t) BUFF_SIZE);
+			toCopy -= BUFF_SIZE;
+		}
+		read(InFile, buffer, (size_t) toCopy);
+		write(OutFile, buffer, (size_t) toCopy);
+
 		close(InFile);
 		close(OutFile);
 		free(buffer);

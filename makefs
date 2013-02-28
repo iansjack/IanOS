@@ -1,0 +1,10 @@
+#!/bin/sh
+sudo mkfs.ext2 c.hdd
+mount ~/mnt
+sudo chown ian:ian ~/mnt
+mkdir ~/mnt/bin
+cp ~/libc.a ~/mnt
+umount ~/mnt
+make clean
+make
+

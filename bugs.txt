@@ -1,3 +1,1 @@
-1. Trying to copy a large file (libc.a) the system hangs and produces 
-a zero-length output file.
-
+1. AddBlockToFile doesn't yet handle triple-indirect blocks.
