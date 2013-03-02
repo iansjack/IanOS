@@ -430,8 +430,9 @@ void AddBlockToFile(struct FCB *fcb)
 	if (temp != (int)(fcb->inode->i_size) - 1)
 	{
 			fcb->fileCursor = (int)(fcb->inode->i_size) - 1;
-			SetBufferFromCursor(fcb);
+			//SetBufferFromCursor(fcb);
 	}
+	SetBufferFromCursor(fcb);
 	memset(buffer, 0, 1024);
 	fcb->currentBlock = GetFreeBlock(group);
 	if (fcb->index1 < EXT2_IND_BLOCK)

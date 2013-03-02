@@ -219,11 +219,11 @@ long WriteFile(struct FCB *fcb, char *buffer, long noBytes)
 	for (i = 0; i < noBytes; i++)
 	{
 		// If at the end of the file increment the file size in the inode and mark the inode as dirty
-		if (fcb->fileCursor == (int)(fcb->inode->i_size))
-		{
-			fcb->inode->i_size++;
-			fcb->inodeIsDirty = 1;
-		}
+		//if (fcb->fileCursor == (int)(fcb->inode->i_size))
+		//{
+		//	fcb->inode->i_size++;
+		//	fcb->inodeIsDirty = 1;
+		//}
 
 		// If the bufCursor is at the end of the block we need to load the next block
 		if (fcb->bufCursor == block_size)
@@ -246,6 +246,9 @@ long WriteFile(struct FCB *fcb, char *buffer, long noBytes)
 		// Mark the current buffer as dirty and increment the fileCursor
 		fcb->bufferIsDirty = 1;
 		fcb->fileCursor++;
+		// If at the end of the file increment the file size in the inode and mark the inode as dirty
+		if (fcb->fileCursor > (int)(fcb->inode->i_size))
+			fcb->inode->i_size++;
 	}
 	return noBytes;
 }
@@ -437,7 +440,9 @@ long Seek(struct FCB *fcb, int offset, int whence)
 	if ((u_int32_t)(fcb->fileCursor) > fcb->inode->i_size)
 	{
 		// Do we need to add more blocks
-		u_int32_t currentBlocks = fcb->inode->i_size / block_size + 1;
+		u_int32_t currentBlocks = fcb->inode->i_size / block_size;
+		if (fcb->inode->i_size % block_size)
+			currentBlocks++;
 		blocksNeeded = (u_int32_t)(fcb->fileCursor / block_size + 1) - currentBlocks;
 		if (fcb->currentBlock == 0 && blocksNeeded > 0)
 		{
