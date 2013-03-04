@@ -218,13 +218,6 @@ long WriteFile(struct FCB *fcb, char *buffer, long noBytes)
 		AddFirstBlockToFile(fcb);
 	for (i = 0; i < noBytes; i++)
 	{
-		// If at the end of the file increment the file size in the inode and mark the inode as dirty
-		//if (fcb->fileCursor == (int)(fcb->inode->i_size))
-		//{
-		//	fcb->inode->i_size++;
-		//	fcb->inodeIsDirty = 1;
-		//}
-
 		// If the bufCursor is at the end of the block we need to load the next block
 		if (fcb->bufCursor == block_size)
 		{
@@ -248,7 +241,10 @@ long WriteFile(struct FCB *fcb, char *buffer, long noBytes)
 		fcb->fileCursor++;
 		// If at the end of the file increment the file size in the inode and mark the inode as dirty
 		if (fcb->fileCursor > (int)(fcb->inode->i_size))
+		{
 			fcb->inode->i_size++;
+			fcb->inodeIsDirty = 1;
+		}
 	}
 	return noBytes;
 }
