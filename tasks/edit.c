@@ -10,6 +10,10 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <errno.h>
+
+#undef errno
+extern int errno;
 
 void sys_truncate(int, int); // Defined in sys_truncate.s
 
@@ -20,7 +24,7 @@ void sys_truncate(int, int); // Defined in sys_truncate.s
 #define Position_Cursor printf("%c[%d;%dH", ESC, line, column)
 #define Overwrite	0
 #define Insert		1
-#define WINDOWSIZE	20
+#define WINDOWSIZE	23
 
 struct line
 {
@@ -36,21 +40,35 @@ int line, column;
 char mode;
 int count;
 
-void ReadFile(int file)
+int ReadFile(int file)
 {
 	struct line *currline;
 	size_t filesize;
 	char *buffer, *line;
+	int linecount = 0;
 
 	// First read the whole file into a buffer
 	struct stat info;
 	fstat(file, &info);
 	filesize = (size_t) (info.st_size);
-	buffer = malloc(filesize);
+	buffer = malloc(filesize + 1);
+	if (!buffer)
+	{
+		printf("Buffer allocation failed.\n");
+		close(file);
+		return 1;
+	}
 	(void) read(file, buffer, filesize);
+	buffer[filesize] = 0;
 
 	// Parse the buffer into separate lines
 	lines = malloc(sizeof(struct line));
+	if (!lines)
+	{
+		printf("Allocation of lines failed.\n");
+		close(file);
+		return 1;
+	}
 	lines->next = 0;
 	lines->prev = 0;
 	lines->lineno = 0;
@@ -59,17 +77,33 @@ void ReadFile(int file)
 	line = strtok(buffer, "\n");
 	while (line)
 	{
-		currline->line = malloc(strlen(line));
+		currline->line = malloc(strlen(line) + 1);
+		if (!currline->line)
+		{
+			printf("Allocation of currline->line failed.\n");
+			close(file);
+			return 1;
+		}
 		strcpy(currline->line, line);
+		linecount++;
+		currline->lineno = linecount;
 		line = strtok(NULL, "\n");
 		if (line)
 		{
 			currline->next = malloc(sizeof(struct line));
+			if (!currline->next)
+			{
+				printf("Allocation of currline->next failed for line %d.\n", linecount);
+				printf("Errno: %d\n", errno);
+				close(file);
+				return 1;
+			}
 			currline->next->prev = currline;
 			currline = currline->next;
 		}
 	}
 	free(buffer);
+	return 0;
 }
 
 void PrintStatusLine()
@@ -127,7 +161,8 @@ int main(int argc, char **argv)
 	if (argc == 2)
 	{
 		file = open(argv[1], O_RDWR | O_CREAT);
-		ReadFile(file);
+		if (ReadFile(file))
+			return 1;
 		windowStart = lines;
 		RedrawScreen();
 		fflush(stdout);

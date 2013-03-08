@@ -1,6 +1,8 @@
 #include <kernel.h>
 #include <pagetab.h>
 
+#define NULL 0;
+
 extern struct Task *currentTask;
 extern struct TaskList *runnableTasks;
 extern struct TaskList *blockedTasks;

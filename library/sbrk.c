@@ -6,7 +6,6 @@
 void * Alloc_Page(void *);
 
 extern int errno;
-// extern long DataLen;
 
 static char sbrk_first_time = 1;
 static int sbrk_size = 0;
@@ -25,8 +24,13 @@ void *sbrk(int size)
 	
 	if (size <= 0) return(sbrk_curbrk);
 	while (size > sbrk_size) {
-	    (void) Alloc_Page(sbrk_curbrk + sbrk_size + 10);
-	    sbrk_size += PageSize;
+	    if (Alloc_Page(sbrk_curbrk + sbrk_size)) // + 10))
+	    	sbrk_size += PageSize;
+	    else
+	    {
+	    	errno = ENOMEM;
+	    	return ((void *) -1);
+	    }
 	}
 	sbrk_curbrk += size;
 	sbrk_size -= size;
