@@ -151,6 +151,12 @@ int main(int argc, char **argv)
 	char currentLineBuffer[80], c;
 	int count, done, linelength;
 
+	if (argc ==1)
+	{
+		printf("Syntax 'edit <filename>'\n");
+		return 0;
+	}
+
 	lines = 0;
 	line = 0;
 	column = 0;

@@ -1,0 +1,5 @@
+To build binutils, download the sources from http://ftp.gnu.org/gnu/binutils, 
+and untar them in this directory. Then run the command
+
+sh buildbinutils
+
