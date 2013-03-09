@@ -1,0 +1,7 @@
+IanOS depends upon the newlib library (this is an implementation of the 
+standard C library libc.a). To build newlib, download the sources from 
+ftp://sourceware.org/pub/newlib/index.html and untar them in this 
+directory. Then run the command
+
+sh buildnewlib
+

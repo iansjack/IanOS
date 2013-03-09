@@ -14,11 +14,11 @@ all: bootdisk IanOS.o
 	$(CC) $(CFLAGS) -c $*.c
 	$(CC) -MM $(CFLAGS) $*.c > $*.d
 
-IanOS.o: $(OBJS) /usr/local/cross/x86_64-elf/lib/libc.a
-	$(LD) -Tlink2.ld $(OBJS) /usr/local/cross/x86_64-elf/lib/libc.a -oIanOS.o
+IanOS.o: $(OBJS) $(CROSS)/lib/libc.a
+	$(LD) -Tlink2.ld $(OBJS) $(CROSS)/lib/libc.a -oIanOS.o
 	
-IanOS.bin: $(OBJS) /usr/local/cross/x86_64-elf/lib/libc.a
-	$(LD) -s --print-map -Tlink.ld $(OBJS) /usr/local/cross/x86_64-elf/lib/libc.a -oIanOS.bin>linkmap 
+IanOS.bin: $(OBJS) $(CROSS)/lib/libc.a
+	$(LD) -s --print-map -Tlink.ld $(OBJS) $(CROSS)/lib/libc.a -oIanOS.bin>linkmap 
 	
 bootdisk: bootsect.bin 32sect IanOS.bin
 	cat bootsect.bin 32sect IanOS.bin floppy >I.fdd

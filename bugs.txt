@@ -1,3 +1,2 @@
 1. AddBlockToFile doesn't yet handle triple-indirect blocks.
-2. edit crashes when opening edit.s
 

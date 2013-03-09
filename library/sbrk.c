@@ -24,7 +24,7 @@ void *sbrk(int size)
 	
 	if (size <= 0) return(sbrk_curbrk);
 	while (size > sbrk_size) {
-	    if (Alloc_Page(sbrk_curbrk + sbrk_size)) // + 10))
+	    if (Alloc_Page(sbrk_curbrk + sbrk_size))
 	    	sbrk_size += PageSize;
 	    else
 	    {
