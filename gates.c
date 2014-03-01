@@ -27,11 +27,11 @@ struct Gate {
 	unsigned short offsetlo;	//   : 16;
 	unsigned short segselect;	//   : 16;
 	unsigned ist:3;
-	unsigned:1;
-	unsigned:1;
-	unsigned:3;
+	unsigned r1:1;
+	unsigned r2:1;
+	unsigned r3:3;
 	unsigned type:4;
-	unsigned:1;
+	unsigned r4:1;
 	unsigned dpl:2;
 	unsigned p:1;
 	unsigned short offsetmid;	//    : 16;
@@ -61,6 +61,10 @@ void CreateTrapGate(unsigned short int selector, long offset, long intNo, unsign
 {
 	struct Gate *theGate = (struct Gate *)IDT + intNo;
 
+	theGate->r1 = 0;
+	theGate->r2 = 0;
+	theGate->r3 = 0;
+	theGate->r4 = 0;
 	theGate->offsetlo = (unsigned short)(offset & 0xFFFF);
 	theGate->segselect = selector;
 	theGate->ist = ist;
@@ -75,6 +79,10 @@ void CreateIntGate(unsigned short int selector, long offset, long intNo, unsigne
 {
 	struct Gate *theGate = (struct Gate *)IDT + intNo;
 
+	theGate->r1 = 0;
+	theGate->r2 = 0;
+	theGate->r3 = 0;
+	theGate->r4 = 0;
 	theGate->offsetlo = (unsigned short)(offset & 0xFFFF);
 	theGate->segselect = selector;
 	theGate->ist = ist;

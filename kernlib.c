@@ -675,6 +675,11 @@ int kprintf(int row, int column, char *s, ...)
 	va_list ap;
 	va_start(ap, s);
 
+	for (i = 0; i < 256; i++)
+		sprocessed[i] = 0;
+
+	i = 0;
+
 	while (s[i])
 	{
 		minwidth = 0;
@@ -923,10 +928,10 @@ char *strcat(char *s1, char *s2)
 }
 
 //=================================================================
-// Convert the integer in i to it's ASCII representation in buffer
+// Convert the integer in i to its ASCII representation in buffer
 // The integer is of length n
 //=================================================================
-int intToAsc(int i, char *buffer, int len)
+int intToAsc(unsigned int i, char *buffer, int len)
 {
 	int count;
 
@@ -946,7 +951,7 @@ int intToAsc(int i, char *buffer, int len)
 // Convert the integer in i to it's hesadecimal ASCII representation in buffer
 // The integer is of length n
 //=============================================================================
-int intToHAsc(int i, char *buffer, int len)
+int intToHAsc(unsigned int i, char *buffer, int len)
 {
 	int count;
 

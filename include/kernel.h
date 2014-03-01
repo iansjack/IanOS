@@ -5,9 +5,9 @@
 
 #include "kstructs.h"
 #include "memory.h"
-//#include "pagetab.h"
 #include "lib.h"
 #include "tasklist.h"
+
 
 void SendMessage(struct MessagePort *MP, struct Message *Msg);
 void ReceiveMessage(struct MessagePort *MP, struct Message *Msg);

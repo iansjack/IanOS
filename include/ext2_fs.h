@@ -93,12 +93,12 @@ typedef short int16_t;
 /*
  * Special inodes numbers
  */
-#define	EXT2_BAD_INO		 1	/* Bad blocks inode */
-#define EXT2_ROOT_INO		 2	/* Root inode */
-#define EXT2_ACL_IDX_INO	 3	/* ACL inode */
-#define EXT2_ACL_DATA_INO	 4	/* ACL inode */
-#define EXT2_BOOT_LOADER_INO	 5	/* Boot loader inode */
-#define EXT2_UNDEL_DIR_INO	 6	/* Undelete directory inode */
+#define	EXT2_BAD_INO		 	1		/* Bad blocks inode */
+#define EXT2_ROOT_INO		 	2		/* Root inode */
+#define EXT2_ACL_IDX_INO	 	3		/* ACL inode */
+#define EXT2_ACL_DATA_INO	 	4		/* ACL inode */
+#define EXT2_BOOT_LOADER_INO	5		/* Boot loader inode */
+#define EXT2_UNDEL_DIR_INO	 	6		/* Undelete directory inode */
 
 /* First non-reserved inode for old ext2 filesystems */
 #define EXT2_GOOD_OLD_FIRST_INO	11

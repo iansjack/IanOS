@@ -522,7 +522,7 @@ void fsTaskCode(void)
 			break;
 
 		case OPENFILE:
-			fcb = OpenFile((char *) FSMsg->quad1);
+		fcb = OpenFile((char *) FSMsg->quad1);
 			if ((long) fcb > 0)
 				fcb->pid = FSMsg->pid;
 			FSMsg->quad1 = (long) fcb;

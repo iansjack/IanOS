@@ -84,4 +84,10 @@ HD_PORT=0x1F0
 	mov $HD_PORT+7, %dx
 	mov $0x10, %al
 	out %al, %dx
+
+# clear any pending interrupts
+	mov  $0x20, %al
+	out  %al, $0x20
+	out  %al, $0xA0
+
 	ret

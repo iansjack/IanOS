@@ -265,13 +265,15 @@ long CreatePTEWithPT(struct PML4 *pml4, void *pAddress, long lAddress,
 		unsigned short pid, short flags)
 {
 	int ptIndex = GetPTIndex(lAddress);
-	struct PT *pt = GetPT(pml4, lAddress, pid);
+	struct PT *pt = GetPT(pml4, lAddress, pid);		// <=== The return value from this looks wrong
 
 	// We don't want this function to be interrupted.
+	asm ("pushf");
 	asm ("cli");
+
 	VIRT(PT,pt) ->entries[ptIndex].value = ((long) pAddress & 0xFFFFF000)
 			| flags;
-	asm ("sti");
+	asm ("popf");
 
 	return ((long) pAddress | flags);
 }
@@ -337,6 +339,10 @@ void * AllocPage(unsigned short int PID)
 		PMap[count] = PID;
 		mem = (void *) (count << 12);
 		nPagesFree--;
+
+		// Zero-fill page
+		for (count = 0; count < PageSize; count++)
+			((char *)mem + VAddr)[count] = 0;
 
 		return (mem);
 	}

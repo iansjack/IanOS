@@ -26,7 +26,7 @@ void InitMemManagement()
 	while (1)
 	{
 		*mempos = testpattern;
-		if (*mempos != testpattern)
+		if (*mempos != testpattern || mempos > 255 * 0x100000)  // Limit RAM to 256 MB for the time being!!!
 			break;
 		mempos += 0x100000 / (sizeof *mempos);
 		nPagesFree += 256;
@@ -41,13 +41,13 @@ void InitMemManagement()
 	nPagesFree--;
 
 	// Kernel Memory
-	for (count = 1; count < 0x13; count++)
+	for (count = 1; count < 0x23; count++)
 	{
 		PMap[count] = 1;
 		nPagesFree--;
 	}
 
-	firstFreePage = 0x13;
+	firstFreePage = 0x23;
 
 	// EBDA
 	PMap[0x9E] = PMap[0x9F] = 1;

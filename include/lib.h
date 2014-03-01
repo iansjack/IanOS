@@ -8,8 +8,8 @@
 char getchar();
 void send(struct Message *msg);
 int printf(char *s, ...);
-int intToAsc(int i, char *buffer, int len);
-int intToHAsc(int i, char *buffer, int len);
+int intToAsc(unsigned int i, char *buffer, int len);
+int intToHAsc(unsigned int i, char *buffer, int len);
 char *strchr(char *string, char c);
 char *strcpy(char *dest, char *source);
 char *strcat(char *s1, char *s2);

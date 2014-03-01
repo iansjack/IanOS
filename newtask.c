@@ -35,10 +35,11 @@ unsigned short nextpid;
 //===============================
 void LinkTask(struct Task *task)
 {
+	asm("pushf");
 	asm("cli");
 	allTasks = AddToTailOfTaskList(allTasks, task);
 	runnableTasks = AddToTailOfTaskList(runnableTasks, task);
-	asm("sti");
+	asm("popf");
 }
 
 //=========================================================================
@@ -85,9 +86,10 @@ unsigned short DoFork()
 	task->FDbitmap = 7;
 
 	// Run the forked process
+	asm("pushf");
 	asm("cli");
 	LinkTask(task);
-	asm("sti");
+	asm("popf");
 
 	// We want the forked process to return to this point. So we
 	// need to save the registers from here to the new task structure.
@@ -206,7 +208,6 @@ long DoExec(char *name, char *environment)
 	strcpy(kname, "/bin/");
 	strcat(kname, name);
 
-
 	// Open file
 	FSMsg->nextMessage = 0;
 	FSMsg->byte = OPENFILE;
@@ -215,6 +216,7 @@ long DoExec(char *name, char *environment)
 	SendReceiveMessage(FSPort, FSMsg);
 
 	fHandle = (struct FCB *) FSMsg->quad1;
+
 	if ((long) fHandle > 0)
 	{
 		char magic[5];
@@ -320,6 +322,7 @@ struct Task * NewKernelTask(void *TaskCode)
 	stack[2] = 0x2202;
 	stack[3] = (long) UserStack + PageSize;
 	stack[4] = data64;
+	asm("pushf");
 	asm("cli");
 	LinkTask(task);
 	data = (long *) TempUserData;
@@ -331,7 +334,7 @@ struct Task * NewKernelTask(void *TaskCode)
 	task->currentDirName = currentTask->currentDirName;
 	task->argv = 0;
 	task->console = 0;
-	asm("sti");
+	asm("popf");
 	return (task);
 }
 
@@ -367,7 +370,7 @@ void KillTask(void)
 		DeallocMem(task->argv);*/
 
 	//Don't want to task switch whilst destroying task
-	asm("cli");
+	// asm("cli");
 
 	// Unlink task from runnable queue
 	runnableTasks = RemoveFromTaskList(runnableTasks, task);
@@ -509,6 +512,7 @@ extern void fsTaskCode(void);
 //===================================================================
 void StartTasks()
 {
+	kprintf(0, 0, "Starting tasks");
 	(void) NewLowPriTask((void *) dummyTask);
 	GoToSleep(10);
 	(void) NewKernelTask((void *) kbTaskCode);

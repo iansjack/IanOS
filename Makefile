@@ -1,6 +1,6 @@
 include Flags.mak
 
-OBJS = startup.o os.o mem32.o ptab32.o hwsetup.o gates.o messages.o memory.o pagetab.o keyboard.o \
+OBJS = startup.o os.o mem32.o ptab32.o hwsetup.o gates.o pci.o messages.o memory.o pagetab.o keyboard.o \
 		console.o vga.o filesystem.o block.o syscalls.o newtask.o tasking.o messaging.o interrupts.o \
 		ide.o kernlib.o tasklist.o btree.o clock.o tas1.o scalls.o
 

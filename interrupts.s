@@ -61,7 +61,7 @@ KbInt:
 TimerInt:
 	PUSH_ALL
 	incq Ticks
-	# Check for tasks waiting on timer
+	KWRITE_DOUBLE Ticks, $0, $68	# Write the current number of ticks
 	mov  blockedTasks, %rbx
 	cmp $0, %rbx
 	jz   .notimer
@@ -156,6 +156,7 @@ SpecificSwitchTasks:		# int 22
 
 intr:
 	KWRITE_STRING $Unknown_message, $1, $0
+	iretq
 intrr:
 	KWRITE_STRING $rax, $10, $60
 	KWRITE_DOUBLE %rax, $10, $68
@@ -276,11 +277,9 @@ notnp:
 	jmp intrr
 
 itf:
-#	movb $'f, 0x80000B8000
 	jmp intr
 
 ig:
-#	movb $'g, 0x80000B8000
 	jmp intr
 
 Pd:	mov $160, %ax

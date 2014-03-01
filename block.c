@@ -10,6 +10,8 @@ typedef int umode_t;
 #include <blocks.h>
 #include <memory.h>
 
+#define StartOfGroup(i) firstBlock + i * sb.s_blocks_per_group
+
 void ReadPSector(char *buffer, u_int32_t block_no); // Defined in ide.s
 void WritePSector(char *buffer, u_int32_t block_no); // Defined in ide.s
 
@@ -21,12 +23,17 @@ struct ext2_group_desc *group_descriptors;
 char *block_bitmap;
 char *inode_bitmap;
 u_int32_t currentDirectory = 2; // The inode # of the currentdirectory
+unsigned int PartitionStart;
+short inodeMultiplier;
+short firstBlock = 0;
 
 //=============================
 // Read a (fs) block from disk
 //=============================
 void ReadBlock(u_int32_t block, char *buffer)
 {
+	block += PartitionStart;
+
 	int i;
 	for (i = 0; i < block_size / SECTOR_SIZE; i++)
 		ReadPSector(buffer + i * SECTOR_SIZE, block * (block_size / SECTOR_SIZE) + i);
@@ -37,6 +44,8 @@ void ReadBlock(u_int32_t block, char *buffer)
 //============================
 void WriteBlock(u_int32_t block, char *buffer)
 {
+	block += PartitionStart;
+
 	int i;
 	for (i = 0; i < block_size / SECTOR_SIZE; i++)
 		WritePSector(buffer + i * SECTOR_SIZE, block * (block_size / SECTOR_SIZE) + i);
@@ -44,21 +53,46 @@ void WriteBlock(u_int32_t block, char *buffer)
 
 //===================================================================
 // Read in initial details from the superblock and group descriptors
+// Currently this assumes an unpartitioned disk
+// We need to read the partition table and find the partition
 //===================================================================
 void InitializeHD()
 {
-	char buffer[block_size];
+	char *buffer = AllocUMem(block_size);
+	struct MBR *mbr = (struct MBR *)buffer;
 	unsigned int i;
 
+	PartitionStart = 0;
+
+	// Read the MBR and Partition Table
+	ReadBlock(0, buffer);
+	PartitionStart = ((struct PartTable)(mbr->PT[0])).LBA / 2;	// MBR give offset in sectors, but we work in blocks
+
+	// Read the SuperBlock
 	ReadBlock(1, (char *) &sb);
 	block_size = block_size << sb.s_log_block_size;
-	inodes_per_block = block_size / (int)sizeof(struct ext2_inode);
+	inodes_per_block = block_size / sb.s_inode_size;
+	inodeMultiplier = sb.s_inode_size / sizeof(struct ext2_inode);
 	no_of_blockgroups = sb.s_blocks_count / sb.s_blocks_per_group + 1;
+
 	group_descriptors = AllocUMem(no_of_blockgroups * sizeof(struct ext2_group_desc));
 	block_bitmap = AllocUMem(no_of_blockgroups * block_size);
 	inode_bitmap = AllocUMem(no_of_blockgroups * block_size);
 
-	ReadBlock(2, buffer);
+	if (block_size == 1024)
+	{
+		firstBlock = 1;
+		ReadBlock(2, buffer);
+	}
+	else
+	{
+		firstBlock = 0;
+		DeallocMem(buffer);
+		buffer = AllocUMem(block_size);
+		PartitionStart /= block_size / 1024;
+		ReadBlock(1, buffer);
+	}
+
 	for (i = 0; i < no_of_blockgroups; i++)
 	{
 		memcpy((void *) &group_descriptors[i],
@@ -69,6 +103,7 @@ void InitializeHD()
 		ReadBlock(group_descriptors[i].bg_inode_bitmap,
 				&inode_bitmap[i * block_size]);
 	}
+	DeallocMem(buffer);
 }
 
 //======================================================
@@ -229,8 +264,14 @@ void FlushCaches(void)
 		if (i == 0 || i == 1 || i == 3 || i == 5 || i == 7 || i == 9)
 		{
 			sb.s_block_group_nr = (u_int16_t)i;
-			WriteBlock(i * block_size * sb.s_blocks_per_group + 1, (char *) &sb);
-			WriteBlock(i * block_size * sb.s_blocks_per_group + 2, buffer);
+			if (i == 0)
+			{
+				WritePSector((char *)&sb, PartitionStart * (block_size / SECTOR_SIZE + 2));
+				WritePSector((char *)&sb + SECTOR_SIZE, PartitionStart * (block_size / SECTOR_SIZE + 3));
+			}
+			else
+				WriteBlock(StartOfGroup(i), (char *) &sb);
+			WriteBlock(StartOfGroup(i) + 1, buffer);
 		}
 		WriteBlock(group_descriptors[i].bg_block_bitmap,
 				&block_bitmap[i * block_size]);
@@ -248,7 +289,7 @@ void GetINode(u_int32_t inodeNumber, struct ext2_inode *inode)
 	char buffer[block_size];
 	struct ext2_inode *inodes;
 
-	inodeNumber--;
+	inodeNumber--;		// inodes are numbered from 1, arrays from 0
 	group_number = inodeNumber / sb.s_inodes_per_group;
 	block_in_group = (inodeNumber % sb.s_inodes_per_group)
 			/ inodes_per_block;
@@ -257,7 +298,7 @@ void GetINode(u_int32_t inodeNumber, struct ext2_inode *inode)
 			% inodes_per_block;
 	ReadBlock(block, buffer);
 	inodes = (struct ext2_inode *) buffer;
-	memcpy((void *) inode, (void *) &inodes[number_in_block],
+	memcpy((void *) inode, (void *) &inodes[number_in_block * inodeMultiplier],
 			sizeof(struct ext2_inode));
 }
 
@@ -279,7 +320,7 @@ void PutINode(u_int32_t inodeNumber, struct ext2_inode *inode)
 			% inodes_per_block;
 	ReadBlock(block, buffer);
 	inodes = (struct ext2_inode *) buffer;
-	memcpy((void *) &inodes[number_in_block], (void *) inode,
+	memcpy((void *) &inodes[number_in_block * inodeMultiplier], (void *) inode,
 			sizeof(struct ext2_inode));
 	WriteBlock(block, buffer);
 }

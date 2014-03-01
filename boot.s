@@ -28,7 +28,7 @@ nTotalSect32:	.long 0x00000000
 bBootDrive:		.byte 0x00
 ResvdByte:		.byte 0x00
 ExtBootSig:		.byte 0x29
-nOSSectors:		.word 0x0080	# Make sure this is enough! 0x 80 sectors takes us to 0x10000 (+0x1000)
+nOSSectors:		.word 0x0100	# Make sure this is enough! 0x 80 sectors takes us to 0x10000 (+0x1000)
 ResvsWord:		.word 0x3F51
 Volname:		.ascii "RICH       "
 FatType:		.ascii "FAT12   "
@@ -112,9 +112,9 @@ PutChars:
 Done:
 	ret
 
-# Load the 0x80 sectors of OS code to 0x1000
+# Load the 0x80 sectors of OS code to 0x10000
 ContinueBoot:
-	mov $0x100, %bx
+	mov $0x1000, %bx
 	mov %bx, %es
 NextSector:
 	push %ax
@@ -188,7 +188,7 @@ IBEmm1:
 	mov %eax, %cr0
 
 # jump to the start of the OS code (startup.s)
-	jmp $0x8, $0x1000
+	jmpl $0x8, $0x10000
 
 #===================================================
 # Global Descriptor Table - will be relocated to 0x0

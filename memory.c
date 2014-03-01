@@ -1,7 +1,7 @@
 #include <kernel.h>
 #include <pagetab.h>
 
-#define NULL 0;
+// #define NULL 0;
 
 extern struct Task *currentTask;
 extern struct TaskList *runnableTasks;
@@ -117,6 +117,9 @@ void * AllocMem(size_t sizeRequested, struct MemStruct *list)
 		list->size = 0;
 	}
 	ClearSem(&memorySemaphore);
+
+	// Zero fill the allocated memory
+	memset((char *)(list + 1), 0, sizeRequested);
 
 	// Return a pointer to the memory (i.e. skip the struct)
 	return (list + 1);

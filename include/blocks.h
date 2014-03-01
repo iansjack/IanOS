@@ -7,6 +7,7 @@
 #include <ext2_fs.h>
 #include <linux/types.h>
 #include <kstructs.h>
+#include <fat.h>
 
 #ifndef BLOCKS_H_
 #define BLOCKS_H_
