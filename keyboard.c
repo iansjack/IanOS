@@ -210,18 +210,18 @@ void kbTaskCode()
 					{
 					case LSHIFT:
 					case RSHIFT:
-						modifier += SHIFTED;
+						modifier |= SHIFTED;
 						break;
 
 					case CAPSLOCK:
 						if (modifier & LOCKED)
-							modifier -= LOCKED;
+							modifier &= ~LOCKED;
 						else
-							modifier += LOCKED;
+							modifier |= LOCKED;
 						break;
 
 					case CTRL:
-						modifier += CTRLED;
+						modifier |= CTRLED;
 						break;
 
 					case F1:
@@ -269,10 +269,10 @@ void kbTaskCode()
 					{
 					case LSHIFT:
 					case RSHIFT:
-						modifier -= SHIFTED;
+						modifier &= ~SHIFTED;
 						break;
 					case CTRL:
-						modifier -= CTRLED;
+						modifier &= ~CTRLED;
 						break;
 					default:
 						break;

@@ -11,6 +11,7 @@ HDINT 		= 3
 	.global WaitForInt
 	.global Ps
 	.global intr
+	.global spr
 	.global gpf
 	.global pf
 	.global SwitchTasks
@@ -154,9 +155,10 @@ SpecificSwitchTasks:		# int 22
 	call SpecificTaskSwitch
 	iretq
 
+spr:			# We just ignore spurrious interrupts
+	iretq
 intr:
 	KWRITE_STRING $Unknown_message, $1, $0
-	iretq
 intrr:
 	KWRITE_STRING $rax, $10, $60
 	KWRITE_DOUBLE %rax, $10, $68

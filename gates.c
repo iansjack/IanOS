@@ -1,6 +1,7 @@
 
 #include <memory.h>
 
+extern spr;
 extern intr;
 extern gpf;
 extern pf;
@@ -120,6 +121,8 @@ void InitIDT(void)
 	CreateTrapGate(code64, (long)&TimerInt, 32, 0);
 	CreateIntGate(code64, (long)&KbInt, 33, 0);
 	CreateIntGate(code64, (long)&HdInt, 46, 0);
+	CreateIntGate(code64, (long)&spr, 39, 0);
+	CreateIntGate(code64, (long)&spr, 47, 0);
 }
 
 void CreateTssDesc(long base, int selector)

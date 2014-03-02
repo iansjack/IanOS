@@ -14,6 +14,7 @@ char stackfaultmessage[] = "Stack Fault Exception";
 char GPFmessage[] = "General Protection Fault";
 char PFmessage[] = "Page Fault";
 char Unknown_message[] = "Unexpected Interrupt";
+char Spurrious_message[] = "Spurrious Interrupt";
 char usererror[] = "Error in user program";
 char rip[]  	= "  rip:";
 char cs[]    	= "   cs:";

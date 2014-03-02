@@ -7,6 +7,12 @@
 	.include "hwhelp.s"
 
 HwSetup:
+# disable APIC
+#	mov $0, %edx
+#	mov $0b100000000000, %eax
+#	mov $0x1b, %ecx
+#	wrmsr
+
 # set up interrupt controller
 	mov $0b00010001, %al
 	out %al, $0x20
