@@ -31,14 +31,6 @@ start64:
 	mov $SysCalls, %eax
 	wrmsr
 
-	push %rbx
-	push %rax
-	mov $0xb8000, %eax
-	mov $0x0730, %bx
-	mov %bx, (%eax)
-	pop %rax
-	pop %rbx
-
 	call InitIDT
 	mov $TSS64, %rdi
 	mov $tssd64, %rsi
@@ -47,26 +39,10 @@ start64:
 	ltr %ax
 	lidt idt_64
 
-	push %rbx
-	push %rax
-	mov $0xb8000, %eax
-	mov $0x0731, %bx
-	mov %bx, (%eax)
-	pop %rax
-	pop %rbx
-
 # Final preparations before starting tasking
 	mov %cr3, %rax
 	mov %rax, initialCR3
 	call InitMem64
-
-	push %rbx
-	push %rax
-	mov $0xb8000, %eax
-	mov $0x0732, %bx
-	mov %bx, (%eax)
-	pop %rax
-	pop %rbx
 
 	mov currentTask, %r15
 	movq %r15, TS.r15(%r15)
@@ -86,26 +62,10 @@ start64:
 	mov $2, %rdx
 	mov $3, %rcx
 
-	push %rbx
-	push %rax
-	mov $0xb8000, %eax
-	mov $0x0733, %bx
-	mov %bx, (%eax)
-	pop %rax
-	pop %rbx
-
 	call CreatePTE
 	movq $KernelStack + 0x1000, %rax
 	mov %rax, TSS64 + 36               	# Kernel stack pointer in TSS
 	mov $2, %rdi
-
-	push %rbx
-	push %rax
-	mov $0xb8000, %eax
-	mov $0x0734, %bx
-	mov %bx, (%eax)
-	pop %rax
-	pop %rbx
 
 	call AllocPage                     	# Page for user stack
 	mov %rax, %rdi
@@ -114,39 +74,15 @@ start64:
 	mov $7, %rcx
 	call CreatePTE
 
-	push %rbx
-	push %rax
-	mov $0xb8000, %eax
-	mov $0x0735, %bx
-	mov %bx, (%eax)
-	pop %rax
-	pop %rbx
-
 	mov $UserStack + 0x1000, %rsp
 	mov $2, %rdi
 	call AllocPage                  	# Page for task code
-
-	push %rbx
-	push %rax
-	mov $0xb8000, %eax
-	mov $0x0736, %bx
-	mov %bx, (%eax)
-	pop %rax
-	pop %rbx
 
 	mov %rax, %rdi
 	mov $UserCode, %rsi
 	mov $2, %rdx
 	mov $7, %rcx
 	call CreatePTE
-
-	push %rbx
-	push %rax
-	mov $0xb8000, %eax
-	mov $0x0737, %bx
-	mov %bx, (%eax)
-	pop %rax
-	pop %rbx
 
 	mov $2, %rdi
 	call AllocPage                    	# Page for task data
@@ -156,27 +92,11 @@ start64:
 	mov $7, %rcx
 	call CreatePTE
 
-	push %rbx
-	push %rax
-	mov $0xb8000, %eax
-	mov $0x0738, %bx
-	mov %bx, (%eax)
-	pop %rax
-	pop %rbx
-
 	mov $tas1, %rsi                   	# Move the task code
 	mov $UserCode, %rdi
 	mov $0x1000, %rcx                 	# How do we find the length of tas1? It's so small
 	cld                               	# that we just assume it's under 0x1000 bytes
 	rep movsb
-
-	push %rbx
-	push %rax
-	mov $0xb8000, %eax
-	mov $0x0739, %bx
-	mov %bx, (%eax)
-	pop %rax
-	pop %rbx
 
 	call StartTasks
 	call gettime						# Set the internal clock from the RTC
