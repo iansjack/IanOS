@@ -94,6 +94,14 @@ struct Console
 	short colour;
 };
 
+struct MemoryMap
+{
+	unsigned int size;
+	unsigned long start;
+	unsigned long length;
+	unsigned int type;
+}__attribute__((packed));
+
 #define SWTASKS		asm ("int $20")
 #define SWTASKS15	asm ("mov %rdi, %r15"); asm ("int $22")
 #define CLI			asm ("pushf"); asm("cli")

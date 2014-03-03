@@ -3,6 +3,7 @@
 extern long long nPagesFree;
 extern long long nPages;
 extern long long firstFreePage;
+extern char *mMap;
 
 //========================================
 // Find out how much memory is present.
@@ -11,6 +12,11 @@ extern long long firstFreePage;
 //========================================
 void InitMemManagement()
 {
+	// move memory map
+	int i = 0;
+	char * source = (char *)0x800;
+	for (i = 0; i < 192; i++) mMap[i] = source[i];
+
 	unsigned short int *PMap = (unsigned short int *) PageMap;
 	long long count;
 	long *mempos;
@@ -26,7 +32,7 @@ void InitMemManagement()
 	while (1)
 	{
 		*mempos = testpattern;
-		if (*mempos != testpattern || mempos > 255 * 0x100000)  // Limit RAM to 256 MB for the time being!!!
+		if (*mempos != testpattern) // || mempos > 255 * 0x100000)  // Limit RAM to 256 MB for the time being!!!
 			break;
 		mempos += 0x100000 / (sizeof *mempos);
 		nPagesFree += 256;

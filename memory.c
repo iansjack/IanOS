@@ -26,9 +26,19 @@ long sec, min, hour, day, month, year, tenths, unixtime;
 struct MessagePort *KbdPort;
 struct MessagePort *ConsolePort;
 struct MessagePort *FSPort;
+struct MemoryMap mmap[16];	// This doesn't cut it, but OK for testing.
+char *mMap = (char *)mmap;
 
 void InitMem64(void)
 {
+	// Print memory map
+	int i;
+	for (i = 0; i < 8; i++)
+	{
+		kprintf(i+10, 0, "mmap start = %d", mmap[i].start);
+		kprintf(i+10, 30, "mmap length = %d", mmap[i].length);
+		kprintf(i+10, 60, "mmap type = %d", mmap[i].type);
+	}
 	PMap = (unsigned short int *) PageMap;
 	firstFreeKMem = (struct MemStruct *) OSHeap;
 	firstFreeKMem->next = 0;
