@@ -1,3 +1,2 @@
- 
-qemu-system-x86_64 -hda c.hdd -cdrom myos.iso -m 1024 -monitor stdio -usb
+ qemu-system-x86_64 -hda large.hdd -cdrom myos.iso -boot d -m 1024 -monitor stdio -usb
 

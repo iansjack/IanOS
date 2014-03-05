@@ -1,8 +1,6 @@
 #include <kernel.h>
 #include <pagetab.h>
 
-// #define NULL 0;
-
 extern struct Task *currentTask;
 extern struct TaskList *runnableTasks;
 extern struct TaskList *blockedTasks;
@@ -31,15 +29,6 @@ char *mMap = (char *)mmap;
 
 void InitMem64(void)
 {
-	// Print memory map
-	int i;
-	for (i = 0; i < 8; i++)
-	{
-		kprintf(i+10, 0, "mmap start = %d", mmap[i].start);
-		kprintf(i+10, 30, "mmap length = %d", mmap[i].length);
-		kprintf(i+10, 60, "mmap type = %d", mmap[i].type);
-	}
-	PMap = (unsigned short int *) PageMap;
 	firstFreeKMem = (struct MemStruct *) OSHeap;
 	firstFreeKMem->next = 0;
 	firstFreeKMem->size = (long)(PageSize - sizeof(struct MemStruct));

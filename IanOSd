@@ -1,2 +1,2 @@
- qemu-system-x86_64 -s -S -cdrom myos.iso -hda large.hdd -boot d -monitor stdio -m 2048
+ qemu-system-x86_64 -s -S -cdrom myos.iso -hda large.hdd -boot d -monitor stdio -m 1024
 

@@ -30,26 +30,6 @@ here:
 	mov $0, %eax
 	rep stosw
 	call InitMemManagement
-# Zero unused pages
-	mov nPages, %edx
-	mov $0, %ebx
-	mov $PageMap, %esi
-	mov $0, %eax
-again:
-	movw (%esi), %bx
-	cmpw $0, %bx
-	jne nextpage
-	mov %esi, %edi
-	sub $PageMap,%edi
-	sal $11,%edi
-	mov PageSize / 2, %ecx
-	rep stosw
-nextpage:
-	sub $1, %edx
-	jz  finished
-	add $2, %esi
-	jmp again
-finished:
 	call HwSetup
 
 	# create 64-bit page tables

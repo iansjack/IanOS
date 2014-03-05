@@ -14,6 +14,30 @@ void Debug()
 {
 }
 
+void SetBit(int count)
+{
+	int i = count / 8;
+	int j = count % 8;
+	PMap[i] |= 1 << j;
+}
+
+void ClearBit(int count)
+{
+	int i = count /8;
+	int j = count % 8;
+	PMap[i] &= ~(1 << j);
+}
+
+int GetBit(int count)
+{
+	int i = count / 8;
+	int j = count % 8;
+	if (PMap[i] & (1 << j))
+		return 1;
+	else
+		return 0;
+}
+
 GetPTIndex(long lAddress)
 {
 	return lAddress >> 12 & 0x1FF;
@@ -169,7 +193,6 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 		struct PT *pt = GetPT(pml4, UserCode, pid);
 		struct PT *currentPT = GetPT(current_pml4, UserCode, parentPid);
 		int i = GetPTIndex(UserCode);
-		//long c = TempUserCode;
 		while (VIRT(PT,currentPT) ->entries[i].value)
 		{
 			// Create a page table entry in the new Page Table and also point TempUserCode to it.
@@ -303,7 +326,7 @@ void ClearUserMemory(void)
 	int i = 0;
 	while (VIRT(PT, pt) ->entries[i].value)
 	{
-		PMap[VIRT(PT,pt) ->entries[i].value >> 12] = 0;
+		ClearBit(VIRT(PT,pt) ->entries[i].value >> 12);
 		nPagesFree++;
 		VIRT(PT,pt) ->entries[i++].value = 0;
 	}
@@ -314,7 +337,7 @@ void ClearUserMemory(void)
 	i = 0;
 	while (VIRT(PT, pt) ->entries[i].value)
 	{
-		PMap[VIRT(PT,pt) ->entries[i].value >> 12] = 0;
+		ClearBit(VIRT(PT,pt) ->entries[i].value >> 12);
 		nPagesFree++;
 		VIRT(PT,pt) ->entries[i++].value = 0;
 	}
@@ -334,9 +357,9 @@ void * AllocPage(unsigned short int PID)
 		long count = firstFreePage;
 		void *mem;
 
-		while (PMap[count])
+		while (GetBit(count))
 			count++;
-		PMap[count] = PID;
+		SetBit(count);
 		mem = (void *) (count << 12);
 		nPagesFree--;
 

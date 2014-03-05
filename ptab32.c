@@ -1,7 +1,7 @@
 #include <memory.h>
 #include <pagetab32.h>
 
-void CreatePT164(struct PT *);
+void CreatePT164(struct PT *, int i);
 void CreatePhysicalToVirtual(struct PML4 *, long);
 
 extern long long virtualPDP;
@@ -28,7 +28,7 @@ struct PML4 * CreatePageDir()
 	pdp->entries[0].Lo = (long) pd | P | RW | US;
 	pd->entries[0].Lo = (long) pt1 | P | RW;
 	pd->entries[1].Lo = (long) pt2 | P | RW;
-	CreatePT164(pt1);
+	CreatePT164(pt1, 0);
 	CreatePhysicalToVirtual(pml4, (long) nPages);
 	kernelPT = (long long) ((long) pt1);
 	return pml4;
@@ -39,32 +39,32 @@ struct PML4 * CreatePageDir()
 // This does no remapping - each Logical Address is mapped to the same
 // Physical Address. This covers Physical Addresses from 0 to 0x200000.
 //=====================================================================
-void CreatePT164(struct PT * pt)
+void CreatePT164(struct PT * pt, int i)
 {
-	unsigned short int *PMap = (unsigned short int *) PageMap;
+//	unsigned char *PMap = (unsigned char *) PageMap;
 	int count;
 
 	pt->entries[0].Hi = 0;
 	pt->entries[0].Lo = P | RW;
-	for (count = 1; count < 0x10; count++)
-	{
-		pt->entries[count].Hi = 0;
-		pt->entries[count].Lo = (count << 12) | P | RW | G;
-	}
+	//for (count = 1; count < 0x10; count++)
+	//{
+	//	pt->entries[count].Hi = 0;
+	//	pt->entries[count].Lo = (count << 12) | P | RW | G;
+	//}
 	// Kernel initialized datadata
-	for (count = 0x10; count < 0x200; count++)
-		if (PMap[count] == 1)
+	//for (count = 0x10; count < 0x100; count++)
+	//	if (PMap[count] == 1)
+	//	{
+	//		pt->entries[count].Hi = 0;
+	//		pt->entries[count].Lo = (count << 12) | P | RW | G;
+	//	}
+	// PageTab
+	for (count = 0x0 + i * 0x200; count < 0x200 + i * 0x200; count++)
+		if (GetBit32(count))
 		{
 			pt->entries[count].Hi = 0;
 			pt->entries[count].Lo = (count << 12) | P | RW | G;
 		}
-	// PageTab
-//	for (count = 0x100; count < 0x200; count++)
-//		if (PMap[count] == 1)
-//		{
-//			pt->entries[count].Hi = 0;
-//			pt->entries[count].Lo = (count << 12) | P | RW | G;
-//		}
 }
 
 //==========================================================
@@ -75,7 +75,6 @@ void CreatePhysicalToVirtual(struct PML4 * pml4, long noOfPages)
 {
 	int PTsNeeded = (noOfPages / 512);
 	int PDsNeeded = (PTsNeeded / 512) + 1;
-	// int PDPsNeeded = (PDsNeeded / 512) + 1;
 	int count1, count2, count3;
 
 	struct PDP * pdp = (struct PDP *) AllocPage32(1);

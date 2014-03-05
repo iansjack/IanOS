@@ -17,6 +17,9 @@ tasks/ls
 tasks/edit
 tasks/sh
 tasks/rm
+tasks/cp
+tasks/editd
+tasks/test
 .settings/
 .project*
 .cproject*

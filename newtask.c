@@ -22,7 +22,7 @@ struct TaskList *deadTasks;
 long canSwitch;
 long pass;
 
-extern unsigned short int *PMap;
+extern unsigned char *PMap;
 extern long nPagesFree;
 extern long nPages;
 extern long firstFreePage;
@@ -456,17 +456,6 @@ void dummyTask()
 			pid = t->task->pid;
 			DeallocMem(t->task);
 			DeallocMem(t);
-			for (count = 0; count < nPages; count++)
-			{
-				if (PMap[count] == pid)
-				{
-					PMap[count] = 0;
-					ZeroPage(count);
-					if (count < firstFreePage)
-						firstFreePage = count;
-					nPagesFree++;
-				}
-			}
 		}
 		else
 			asm("hlt");
