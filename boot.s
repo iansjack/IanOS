@@ -1,194 +1,66 @@
-#===============================================================================
-# This Boot Sector borrows heavily from "Write Your Own 32-bit Operating System
-#===============================================================================
-	.include "macros.s"
-	.include "include/memory.inc"
+.include "macros.s"
 
-	.code16
-	.org	0
-	.global _start
+# Declare constants used for creating a multiboot header.
+.set ALIGN,    1<<0             # align loaded modules on page boundaries
+.set MEMINFO,  1<<1             # provide memory map
+.set FLAGS,    ALIGN | MEMINFO  # this is the Multiboot 'flag' field
+.set MAGIC,    0x1BADB002       # 'magic number' lets bootloader find the header
+.set CHECKSUM, -(MAGIC + FLAGS) # checksum of above, to prove we are multiboot
 
+# Declare a header as in the Multiboot Standard. We put this into a special
+# section so we can force the header to be in the start of the final program.
+# You don't need to understand all these details as it is just magic values that
+# is documented in the multiboot standard. The bootloader will search for this
+# magic sequence and recognize us as a multiboot kernel.
+.section .multiboot
+.align 4
+.long MAGIC
+.long FLAGS
+.long CHECKSUM
+
+# Currently the stack pointer register (esp) points at anything and using it may
+# cause massive harm. Instead, we'll provide our own stack. We will allocate
+# room for a small temporary stack by creating a symbol at the bottom of it,
+# then allocating 16384 bytes for it, and finally creating a symbol at the top.
+.section .bootstrap_stack
+stack_bottom:
+.skip 16384 # 16 KiB
+stack_top:
+
+# The linker script specifies _start as the entry point to the kernel and the
+# bootloader will jump to this position once the kernel has been loaded. It
+# doesn't make sense to return from this function as the bootloader is gone.
+.section .text
+.global _start
+.type _start, @function
 _start:
-	jmp Bootup
-	nop
-
-Herald:			.ascii "MYOSVER1"
-nBytesPerSect:	.word 0x0200
-nSectPerClstr:	.byte 0x01
-nRsvdSect:		.word 0x0001
-nFATS:			.byte 0x02
-nRootDirEnts:	.word 0x00E0
-nTotalSectors:	.word 0x0B40
-bMedia:			.byte 0xF0
-nSectPerFAT:	.word 0x0009
-nSectPerTrack:	.word 0x0012
-nHeads:			.word 0x0002
-nHidden: 		.long 0x00000000
-nTotalSect32:	.long 0x00000000
-bBootDrive:		.byte 0x00
-ResvdByte:		.byte 0x00
-ExtBootSig:		.byte 0x29
-nOSSectors:		.word 0x0100	# Make sure this is enough! 0x 80 sectors takes us to 0x10000 (+0x1000)
-ResvsWord:		.word 0x3F51
-Volname:		.ascii "RICH       "
-FatType:		.ascii "FAT12   "
-
-# Relocate boot sector to 0x90000
-Bootup:
-	cli
-	mov $0x9000, %ax
-	mov %ax, %ss
-	mov $0x8000, %sp
-	mov $0x9000, %ax
-	mov %ax, %es
-	xor %di, %di
-	mov $0x7C0, %ax
-	mov %ax, %ds
-	xor %si, %si
-	mov $512, %cx
-	rep movsb
-
-# The next 5 instructions effect a long jump to 0x9000:here
-	mov $0x9000, %ax
-	push %ax
-	mov $here, %ax #6fh
-	push %ax
-	lret
-
-# The following code calculates the start sector of the first data file and put it in register ax
-# This will work out as 0x21, which could have been hard-coded. Doing the calculation makes it
-# easier to extend this floppy boot sector to a hard-disk boot sector.
-here:
-	push %es
-	pop %ds
-	mov nSectPerTrack, %cx
-	xor %ax, %ax
-	mov %ax, %ds
-	mov $0x0078, %bx
-	lds (%bx), %si
-	mov %cl, 4(%si)
-	movb $0x0f, 9(%si)
-	push %es
-	pop %ds
-	push %ds
-	sti
-	mov (bBootDrive), %dl
-	xor %ax, %ax
-	int $0x13
-	jc BadBoot
-	pop %ds
-	mov $MsgLoad, %si
-	call PutChars
-	xor %ax, %ax
-	mov (nFATS), %al
-	mulw (nSectPerFAT)
-	add (nHidden), %ax
-	adc (nHidden+2), %dx
-	add (nRsvdSect), %ax
-	mov %ax, %cx
-	mov $0x20, %ax
-	mulw (nRootDirEnts)
-	mov (nBytesPerSect), %bx
-	div %bx
-	add %cx, %ax
-	mov (nOSSectors), %cx
-	jmp ContinueBoot
-
-BadBoot:
-	mov $MsgBadDisk, %si
-	call PutChars
-	xor %ax, %ax
-	int $16
-	int $19
-
-PutChars:
-	lodsb
-	or %al, %al
-	jz Done
-	mov $0xe, %ah
-	mov $0x7, %bx
-	int $0x10
-	jmp PutChars
-Done:
-	ret
-
-# Load the 0x80 sectors of OS code to 0x10000
-ContinueBoot:
-	mov $0x1000, %bx
-	mov %bx, %es
-NextSector:
-	push %ax
-	push %cx
-	push %dx
-	push %es
-	xor %bx, %bx
-	mov (nSectPerTrack), %si
-	div %si
-	inc %dl
-	mov %dl, (ResvdByte)
-	xor %dx, %dx
-	divw (nHeads)
-	mov (bBootDrive), %dh
-	xchg %dl, %dh
-	mov %ax, %cx
-	xchg %cl, %ch
-	shl $6, %cl
-	or (ResvdByte), %cl
-	mov $1, %al
-	mov $2, %ah
-	int $0x13
-	jc  BadBoot
-	mov $MsgDot, %si
-	call PutChars		# Print a "." for each sector loaded
-	pop %es
-	pop %dx
-	pop %cx
-	pop %ax
-	mov %es, %bx
-	add $0x20, %bx
-	mov %bx, %es
-	inc %ax
-	loop NextSector
-	mov $0x9000, %ax
-	mov %ax, %ds
-
 # relocate GDT
-	mov $GDT, %ax
-	mov %ax, %es
 	mov $0, %di
 	lea (mygdt), %si
 	mov $0x40, %cx
 	cld
 	rep movsb
 
-#enable_a20:
-	xor %cx, %cx
-IBEmm0:
-	cli
-	in  $0x64, %al
-	test $2, %al
-	jnz IBEmm0
-	mov $0xD1, %al
-	out %al, $0x64
-	xor %cx, %cx
-
-IBEmm1:
-	cli
-	in  $0x64, %al
-	test $2, %al
-	jnz IBEmm1
-	mov $0xDF, %al
-	out %al, $0x60
-	xor %cx, %cx
-
-# load register gdt and enable Protected Mode
+# load register gdt
 	lgdt (gdt_48)
-	mov %cr0, %eax
-	bts $0x0, %eax
-	mov %eax, %cr0
 
-# jump to the start of the OS code (startup.s)
-	jmpl $0x8, $0x10000
+# Save memory size
+	mov 8(%ebx), %ecx
+	mov $0x900, %eax
+	mov %ecx, (%eax)
+
+    mov 0x18(%ebx), %eax	# address of module
+
+# relocate OS
+	mov $0x12000, %ecx
+    mov (%eax), %esi
+    mov $0x10000, %edi
+#    sub %ebx, %ecx
+    cld
+    rep movsb
+
+    mov $0x10000, %eax
+    jmp *%eax
 
 #===================================================
 # Global Descriptor Table - will be relocated to 0x0
@@ -205,18 +77,3 @@ GDTlength = . - mygdt
 
 gdt_48: 	.word	0x800	  # allow up to 512 entries in GDT
 		.double	0x00000000
-
-MsgBadDisk:	.byte 0x0D,0x0A
-		.ascii "Bad Boot Disk!"
-		.byte 0x00
-MsgLoad: 	.byte 0x0D,0x0A
-		.ascii "Loading IanOS"
-		.byte 0x00
-MsgDot:		.byte '.',0
-
-#====================================================================================
-# Ensure that the bootsector is 512 bytes and add a boot signature at the end of it
-#====================================================================================
-
-		.org  510
-BootSig:	.word 0xAA55

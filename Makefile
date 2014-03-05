@@ -4,11 +4,14 @@ OBJS = startup.o os.o mem32.o ptab32.o hwsetup.o gates.o pci.o messages.o memory
 		console.o vga.o filesystem.o block.o syscalls.o newtask.o tasking.o messaging.o interrupts.o \
 		ide.o kernlib.o tasklist.o btree.o clock.o tas1.o scalls.o
 
-all: bootdisk IanOS.o
+all: IanOS
+
+IanOS: IanOS.o IanOS.bin
 	mount /home/ian/mnt
 	cd library; make all; make install; cd ..
 	cd tasks; make all; make install; cd ..
 	umount /home/ian/mnt
+	make -f Makefile2 myos.iso
 
 %.o : %.c
 	$(CC) $(CFLAGS) -c $*.c
@@ -20,17 +23,6 @@ IanOS.o: $(OBJS) $(CROSS)/lib/libc.a
 IanOS.bin: $(OBJS) $(CROSS)/lib/libc.a
 	$(LD) -s --print-map -Tlink.ld $(OBJS) $(CROSS)/lib/libc.a -oIanOS.bin>linkmap 
 	
-bootdisk: bootsect.bin 32sect IanOS.bin
-	cat bootsect.bin 32sect IanOS.bin floppy >I.fdd
-	dd if=I.fdd of=IanOS.fdd count=2880
-	rm I.fdd
-	qemu-img convert IanOS.fdd -O raw IanOS.vfd
-
-bootsect.bin: boot.o
-	$(LD) -s -Tbootlink.ld boot.o -obootsect.bin
-
-boot.o: boot.s $(INC)/memory.inc
-
 startup.o: startup.s $(INC)/memory.inc
 
 hwsetup.o: hwsetup.s hwhelp.s
@@ -62,6 +54,7 @@ ptab32.o: ptab32.c $(INC)/memory.h
 -include $(OBJS:.o=.d)
 
 clean:
-	rm -f linkmap *.o *.d *.bin *~
+	rm -f linkmap *.o *.d *.bin *~ *.iso
 	cd library; make clean
 	cd tasks; make clean
+
