@@ -1,2 +1,1 @@
- qemu-system-x86_64 -s -S -cdrom myos.iso -hda large.hdd -boot d -monitor stdio -m 1024
-
+ qemu-system-x86_64 -s -S -cdrom myos.iso -hda large.hdd -boot d -monitor stdio -m 1024 -net nic,model=e1000 -net user -net dump -redir tcp:5555::80

@@ -24,6 +24,7 @@ long sec, min, hour, day, month, year, tenths, unixtime;
 struct MessagePort *KbdPort;
 struct MessagePort *ConsolePort;
 struct MessagePort *FSPort;
+struct MessagePort *NetPort;
 struct MemoryMap mmap[16];	// This doesn't cut it, but OK for testing.
 char *mMap = (char *)mmap;
 
@@ -47,6 +48,7 @@ void InitMem64(void)
 	canSwitch = 0;
 	tenths = 0;
 	pass = 0;
+	NetPort = AllocMessagePort();
 }
 
 //=========================================================================================

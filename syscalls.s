@@ -51,6 +51,11 @@ CallNo:
 	.quad	Sys_MkDir
 	.quad	Alloc_Page
 	.quad	Sys_Truncate
+	.quad	Sys_QueuePacket
+	.quad	Sys_ReceivePacket
+	.quad	Sys_GetNetPort
+	.quad	Sys_AllocMessagePort
+	.quad	Alloc_Shared_Page
 
 SysCalls:
 	jmp *(CallNo - 8)(,%r9, 8)
@@ -369,5 +374,38 @@ GoToSleep:
 Sys_Truncate:
 	push %rcx
 	call DoTruncate
+	pop %rcx
+	sysretq
+
+Sys_QueuePacket:
+	push %rcx
+	call queue_packet
+	pop %rcx
+	sysretq
+
+Sys_ReceivePacket:
+	push %rcx
+	call receive_packet
+	pop %rcx
+	sysretq
+
+Sys_GetNetPort:
+	mov NetPort, %rax
+	sysretq
+
+Sys_AllocMessagePort:
+	push %rcx
+	call AllocMessagePort
+	pop %rcx
+	sysretq
+
+#=================================================================
+# Allocate a page of memory and map it to the logical address RSI
+# Also map the page to the process RDI
+# Map it in that process to logical address RDX
+#=================================================================
+Alloc_Shared_Page:
+	push %rcx
+	call AllocSharedPage
 	pop %rcx
 	sysretq

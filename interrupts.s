@@ -18,6 +18,7 @@ HDINT 		= 3
 	.global SpecificSwitchTasks
 	.global TimerInt
 	.global KbInt
+	.global NicInt
 	.global HdInt
 	.global SetSem
 	.global ClearSem
@@ -135,6 +136,20 @@ HdInt:	PUSH_ALL
 	POP_ALL
 	SWITCH_TASKS
 .done2:
+	mov  $0x20, %al
+	out  %al, $0x20
+	out  %al, $0xA0
+	POP_ALL
+	iretq
+
+#===============
+# NIC interrupt
+#===============
+NicInt:
+	PUSH_ALL
+	mov registers, %rax
+	mov 0xC0(%rax), %bx
+	call packetReceived
 	mov  $0x20, %al
 	out  %al, $0x20
 	out  %al, $0xA0
@@ -259,7 +274,7 @@ pf:
 	jg notnp
 	mov %rax, %rdi
 	mov  currentTask, %r15
-	movw TS.pid(%r15), %rsi
+	mov TS.pid(%r15), %rsi
 	mov $7, %rdx
 	call AllocAndCreatePTE	# Allocate a new page
 	invlpg 0(%rsp)			# We'll get another page fault if we don't do this

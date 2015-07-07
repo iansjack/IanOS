@@ -12,6 +12,11 @@ struct TaskList *AddToHeadOfTaskList(struct TaskList *list, struct Task *task)
 	struct TaskList *temp;
 
 	canSwitch++;
+	if (IsTaskInList(task, list))
+	{
+		canSwitch--;
+		return list;
+	}
 	temp = (struct TaskList *)AllocKMem(sizeof(struct TaskList));
 	temp->task = task;
 	temp->next = list;
@@ -24,6 +29,11 @@ struct TaskList *AddToTailOfTaskList(struct TaskList *list, struct Task *task)
 	struct TaskList *temp, *start;
 
 	canSwitch++;
+	if (IsTaskInList(task, list))
+	{
+		canSwitch--;
+		return list;
+	}
 	temp = (struct TaskList *)AllocKMem(sizeof(struct TaskList));
 	start = list;
 
@@ -46,6 +56,11 @@ struct TaskList *RemoveFromTaskList(struct TaskList *list, struct Task *task)
 	struct TaskList *start, *temp;
 
 	canSwitch++;
+	if (!IsTaskInList(task, list))
+	{
+		canSwitch--;
+		return list;
+	}
 	if (list == 0) {
 		KWriteString("The list is empty!", 17, 0);
 		while (1) ;
@@ -75,9 +90,12 @@ struct TaskList *RemoveFromTaskList(struct TaskList *list, struct Task *task)
 
 		while (list->next->task != task)
 			list = list->next;
-		temp = list->next;
-		list->next = list->next->next;
-		DeallocMem(temp);
+		if (list)
+		{
+			temp = list->next;
+			list->next = list->next->next;
+			DeallocMem(temp);
+		}
 		canSwitch--;
 		return start;
 	}
@@ -109,4 +127,18 @@ struct TaskList *MoveTaskToEndOfList(struct TaskList *list)
 	start->next = 0;
 	canSwitch--;
 	return list;
+}
+
+//======================================
+// Check if a task is in the given list
+//======================================
+int IsTaskInList(struct Task *task, struct TaskList *list)
+{
+	while (list)
+	{
+		if (list->task == task)
+			return 1;
+		list = list->next;
+	}
+	return 0;
 }

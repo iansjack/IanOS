@@ -7,6 +7,13 @@
 
 int sys_lstat(char *, struct FileInfo *);
 
+#undef __mode_t
+typedef mode_t __mode_t;
+
+#undef __ino_t
+typedef ino_t __ino_t;
+
+
 #undef errno
 extern int errno;
 

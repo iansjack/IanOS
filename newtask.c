@@ -6,7 +6,9 @@
 #include <blocks.h>
 #include <pagetab.h>
 
-void ZeroPage(long);	// Defined in tasking.s
+extern void *registers;
+
+//void ZeroPage(long);	// Defined in tasking.s
 void GoToSleep(long);	// Defined in syscalls.s
 
 void SaveRegisters(struct Task *);	// Defined in tasking.s
@@ -22,10 +24,10 @@ struct TaskList *deadTasks;
 long canSwitch;
 long pass;
 
-extern unsigned char *PMap;
-extern long nPagesFree;
-extern long nPages;
-extern long firstFreePage;
+//extern unsigned char *PMap;
+//extern long nPagesFree;
+//extern long nPages;
+//extern long firstFreePage;
 extern struct MessagePort *FSPort;
 
 unsigned short nextpid;
@@ -41,7 +43,7 @@ void LinkTask(struct Task *task)
 	runnableTasks = AddToTailOfTaskList(runnableTasks, task);
 	asm("popf");
 }
-
+extern void *registers;
 //=========================================================================
 // Fork the current process.
 // Return the pid of the new process
@@ -61,6 +63,14 @@ unsigned short DoFork()
 
 	// Copy Page Table and pages
 	task->cr3 = (long) VCreatePageDir(pid, currentTask->pid);
+
+	//Page Tables to allow access to E1000
+	CreatePTEWithPT((struct PML4 *)task->cr3, registers, (long)registers, 0, 7);
+	CreatePTEWithPT((struct PML4 *)task->cr3, registers + 0x1000, (long)registers + 0x1000, 0, 7);
+	CreatePTEWithPT((struct PML4 *)task->cr3, registers + 0x2000, (long)registers + 0x2000, 0, 7);
+	CreatePTEWithPT((struct PML4 *)task->cr3, registers + 0x3000, (long)registers + 0x3000, 0, 7);
+	CreatePTEWithPT((struct PML4 *)task->cr3, registers + 0x4000, (long)registers + 0x4000, 0, 7);
+	CreatePTEWithPT((struct PML4 *)task->cr3, registers + 0x5000, (long)registers + 0x5000, 0, 7);
 	task->forking = 1;
 
 	// Create FCBs for STDI, STDOUT, and STDERR
@@ -313,6 +323,13 @@ struct Task * NewKernelTask(void *TaskCode)
 	task->pid = nextpid++;
 	task->waiting = 0;
 	task->cr3 = (long) VCreatePageDir(task->pid, 0);
+	//Page Tables to allow access to E1000
+	CreatePTEWithPT((struct PML4 *)task->cr3, registers, (long)registers, 0, 7);
+	CreatePTEWithPT((struct PML4 *)task->cr3, registers + 0x1000, (long)registers + 0x1000, 0, 7);
+	CreatePTEWithPT((struct PML4 *)task->cr3, registers + 0x2000, (long)registers + 0x2000, 0, 7);
+	CreatePTEWithPT((struct PML4 *)task->cr3, registers + 0x3000, (long)registers + 0x3000, 0, 7);
+	CreatePTEWithPT((struct PML4 *)task->cr3, registers + 0x4000, (long)registers + 0x4000, 0, 7);
+	CreatePTEWithPT((struct PML4 *)task->cr3, registers + 0x5000, (long)registers + 0x5000, 0, 7);
 	task->ds = data64;
 	stack = (long *) (TempUStack + PageSize) - 5;
 	task->rsp = (long) ((long *) (UserStack + PageSize) - 5);
@@ -503,11 +520,11 @@ void StartTasks()
 {
 	kprintf(0, 0, "Starting tasks");
 	(void) NewLowPriTask((void *) dummyTask);
-	GoToSleep(10);
+	GoToSleep(1);
 	(void) NewKernelTask((void *) kbTaskCode);
-	GoToSleep(10);
+	GoToSleep(1);
 	(void) NewKernelTask((void *) consoleTaskCode);
-	GoToSleep(10);
+	GoToSleep(1);
 	(void) NewKernelTask((void *) fsTaskCode);
-	GoToSleep(10);
+	GoToSleep(1);
 }

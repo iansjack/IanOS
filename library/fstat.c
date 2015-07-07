@@ -5,6 +5,12 @@
 #include <types.h>
 #include "filesystem.h"
 
+#undef __mode_t
+typedef mode_t __mode_t;
+
+#undef __ino_t
+typedef ino_t __ino_t;
+
 int sys_fstat(int, struct FileInfo *);
 
 #undef errno

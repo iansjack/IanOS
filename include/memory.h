@@ -20,6 +20,7 @@
 #define UserData        0x0000000010000000L
 #define UserStack     	0x00000000ffffe000L
 #define KernelStack     0x00000000fffff000L
+#define SharedMemory	0x000000000f000000L
 #define VAddr			0x0000008000000000L
 
 // Free                 0x0000000000C00000 - 0x0000007FFFFFFFFF

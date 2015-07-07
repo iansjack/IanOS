@@ -2,12 +2,13 @@ include ../Flags.mak
 INC = -I /home/ian/IanOS/include
 CFLAGS = -fno-stack-protector -fno-builtin -ffixed-r15 -mno-red-zone -g \
 		-I $(CROSS)/include $(INC) 
-OBJS = _exit.o access.o alloc_page.o chdir.o chmod.o close.o creat.o execve.o fcntl.o fork.o \
+OBJS = _exit.o access.o alloc_page.o alloc_shared_page.o chdir.o chmod.o close.o creat.o execve.o fcntl.o fork.o \
 		fstat.o getcwd.o \
 		getpid.o gettimeofday.o getwd.o isatty.o kill.o lseek.o lstat.o mkdir.o open.o pathconf.o read.o \
 		sbrk.o stat.o sys_close.o sys_execve.o sys_lstat.o \
 		sys_fstat.o sys_open.o sys_time.o sys_truncate.o sys_unlink.o sys_write.o umask.o unlink.o \
-		waitpid.o write.o dummies.o
+		waitpid.o write.o dummies.o sys_queuepacket.o sys_receivepacket.o sys_getnetport.o sys_receivemessage.o \
+		sys_allocmessageport.o sys_sendmessage.o sys_sendreceive.o sys_nanosleep.o
 
 all: $(OBJS) crt0
 

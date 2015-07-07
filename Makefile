@@ -2,13 +2,14 @@ include Flags.mak
 
 OBJS = startup.o os.o mem32.o ptab32.o hwsetup.o gates.o pci.o messages.o memory.o pagetab.o keyboard.o \
 		console.o vga.o filesystem.o block.o syscalls.o newtask.o tasking.o messaging.o interrupts.o \
-		ide.o kernlib.o tasklist.o btree.o clock.o tas1.o scalls.o
+		ide.o kernlib.o tasklist.o btree.o clock.o tas1.o scalls.o e1000.o net.o
 
 all: IanOS
 
 IanOS: IanOS.o IanOS.bin
 	mount /home/ian/mnt
 	cd library; make all; make install; cd ..
+	cd netlib; make all; make install; cd ..
 	cd tasks; make all; make install; cd ..
 	umount /home/ian/mnt
 	make -f Makefile2 myos.iso
@@ -55,6 +56,7 @@ ptab32.o: ptab32.c $(INC)/memory.h
 
 clean:
 	rm -f linkmap *.o *.d *.bin *~ *.iso
-	cd library; make clean
+	cd library; make clean; cd ..
+	cd netlib; make clean; cd ..
 	cd tasks; make clean
 

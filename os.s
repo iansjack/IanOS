@@ -98,13 +98,11 @@ start64:
 	cld                               	# that we just assume it's under 0x1000 bytes
 	rep movsb
 
+	call enumeratePCIBus
+
 	call StartTasks
 	call gettime						# Set the internal clock from the RTC
 	call setclock						# Set the unixtime counter
-
-	#call enumeratePCIBus
-	#cli
-	#hlt
 
 	mov $UserCode, %rcx					# Tas1
 	pushfq

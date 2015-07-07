@@ -8,6 +8,7 @@ extern struct Task *currentTask;
 void SendMessage(struct MessagePort *MP, struct Message *Msg)
 {
 	struct Message *temp = (struct Message *)ALLOCMSG;
+	Msg->nextMessage = 0;
 
 	copyMem((char *)Msg, (char *)temp, sizeof(struct Message));
 	temp->pid = currentTask->pid;

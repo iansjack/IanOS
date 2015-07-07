@@ -13,7 +13,7 @@ int main(int argc, char **argv)
 	char environment[81];
 
 	printf("%c[2J", ESC);
-	printf("IanOS Version 0.2.0 - 2014  Improved Shell\n#>");
+	printf("IanOS Version 0.2.1 - 2015  Improved Shell\n#>");
 	environment[80] = 0;
 	memset(commandline, ' ', 80);
 	while (1)
@@ -59,7 +59,7 @@ int main(int argc, char **argv)
 					pid_t pid = fork();
 					if (!pid)
 					{
-						if (execve(name, (char **)environment, NULL))
+						if (execve(name, (char **)environment, 0))
 						{
 							if (errno == ENOENT)
 								printf("Command not found\n");
@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 						}
 					}
 					else
-						(void) waitpid(pid, NULL, 0);
+						(void) waitpid(pid, 0, 0);
 				}
 			}
 

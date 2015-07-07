@@ -68,7 +68,7 @@ HwSetup:
 #	mov $0b00000100, %al
 #	out %al, $0x3f6
 # enable hd interrupt
-	mov $0b10111111, %al
+	mov $0b10110011, %al
 	out %al, $0xa1
 
 # set up timer hardware for interrupts every 10ms

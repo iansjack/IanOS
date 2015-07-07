@@ -70,10 +70,11 @@
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 		<nature>org.eclipse.linuxtools.rpm.rpmlint.rpmlintNature</nature>
 		<nature>org.eclipse.cdt.codan.core.codanNature</nature>
+		<nature>org.eclipse.cdt.core.ccnature</nature>
 	</natures>
 	<filteredResources>
 		<filter>
-			<id>1360152082293</id>
+			<id>1432716967062</id>
 			<name></name>
 			<type>21</type>
 			<matcher>
@@ -82,7 +83,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1360152082296</id>
+			<id>1432716967063</id>
 			<name></name>
 			<type>21</type>
 			<matcher>
@@ -91,7 +92,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1360152082300</id>
+			<id>1432716967064</id>
 			<name></name>
 			<type>21</type>
 			<matcher>
@@ -100,7 +101,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1360152082304</id>
+			<id>1432716967065</id>
 			<name></name>
 			<type>21</type>
 			<matcher>
@@ -109,16 +110,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1360152082309</id>
-			<name></name>
-			<type>21</type>
-			<matcher>
-				<id>org.eclipse.ui.ide.multiFilter</id>
-				<arguments>1.0-name-matches-false-false-*.ld</arguments>
-			</matcher>
-		</filter>
-		<filter>
-			<id>1360152082313</id>
+			<id>1432716967066</id>
 			<name></name>
 			<type>21</type>
 			<matcher>
@@ -127,81 +119,18 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1360152082317</id>
+			<id>1432716967067</id>
 			<name></name>
 			<type>21</type>
 			<matcher>
 				<id>org.eclipse.ui.ide.multiFilter</id>
-				<arguments>1.0-name-matches-false-false-linkmap</arguments>
+				<arguments>1.0-name-matches-false-false-*.mak</arguments>
 			</matcher>
 		</filter>
 		<filter>
-			<id>1360152082322</id>
+			<id>1432716967068</id>
 			<name></name>
-			<type>10</type>
-			<matcher>
-				<id>org.eclipse.ui.ide.multiFilter</id>
-				<arguments>1.0-name-matches-false-false-doc</arguments>
-			</matcher>
-		</filter>
-		<filter>
-			<id>1360152082327</id>
-			<name></name>
-			<type>5</type>
-			<matcher>
-				<id>org.eclipse.ui.ide.multiFilter</id>
-				<arguments>1.0-name-matches-false-false-Flags.mak</arguments>
-			</matcher>
-		</filter>
-		<filter>
-			<id>1360152082332</id>
-			<name></name>
-			<type>5</type>
-			<matcher>
-				<id>org.eclipse.ui.ide.multiFilter</id>
-				<arguments>1.0-name-matches-false-false-foo</arguments>
-			</matcher>
-		</filter>
-		<filter>
-			<id>1335196869508</id>
-			<name>tasks</name>
-			<type>5</type>
-			<matcher>
-				<id>org.eclipse.ui.ide.multiFilter</id>
-				<arguments>1.0-name-matches-false-false-*.c</arguments>
-			</matcher>
-		</filter>
-		<filter>
-			<id>1335196869516</id>
-			<name>tasks</name>
-			<type>5</type>
-			<matcher>
-				<id>org.eclipse.ui.ide.multiFilter</id>
-				<arguments>1.0-name-matches-false-false-*.s</arguments>
-			</matcher>
-		</filter>
-		<filter>
-			<id>1335196869527</id>
-			<name>tasks</name>
-			<type>5</type>
-			<matcher>
-				<id>org.eclipse.ui.ide.multiFilter</id>
-				<arguments>1.0-name-matches-false-false-Makefile</arguments>
-			</matcher>
-		</filter>
-		<filter>
-			<id>1335196869535</id>
-			<name>tasks</name>
-			<type>5</type>
-			<matcher>
-				<id>org.eclipse.ui.ide.multiFilter</id>
-				<arguments>1.0-name-matches-false-false-*.ld</arguments>
-			</matcher>
-		</filter>
-		<filter>
-			<id>1335196869542</id>
-			<name>tasks</name>
-			<type>5</type>
+			<type>21</type>
 			<matcher>
 				<id>org.eclipse.ui.ide.multiFilter</id>
 				<arguments>1.0-name-matches-false-false-linkmap</arguments>

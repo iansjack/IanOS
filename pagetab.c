@@ -264,6 +264,7 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 			i--;
 		}
 	}
+
 	return (void *) pml4;
 }
 
@@ -370,4 +371,15 @@ void * AllocPage(unsigned short int PID)
 		return (mem);
 	}
 	return (0);
+}
+
+//=================================================================
+// Allocate a page of memory and map it to the logical address RSI
+// Also map the page to the process RDI
+// Map it in that process to logical address RDX
+//=================================================================
+void AllocSharedPage(unsigned short pid, long lAddress1, long lAddress2)
+{
+	long page = AllocAndCreatePTE(lAddress1, currentTask->pid, 7);
+	CreatePTEWithPT((struct PML4 *)(PidToTask(pid)->cr3), (void *)page, lAddress2, pid, 7);
 }

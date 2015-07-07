@@ -29,6 +29,7 @@ here:
 	mov $PageSize  / 2, %ecx
 	mov $0, %eax
 	rep stosw
+
 	call InitMemManagement
 	call HwSetup
 

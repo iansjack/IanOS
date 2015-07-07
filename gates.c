@@ -9,6 +9,7 @@ extern SwitchTasks;
 extern SpecificSwitchTasks;
 extern TimerInt;
 extern KbInt;
+// extern NicInt;
 extern HdInt;
 extern div0;
 extern i1;
@@ -120,6 +121,8 @@ void InitIDT(void)
 	CreateTrapGate(code64, (long)&SpecificSwitchTasks, 22, 0);
 	CreateTrapGate(code64, (long)&TimerInt, 32, 0);
 	CreateIntGate(code64, (long)&KbInt, 33, 0);
+	// CreateIntGate(code64, (long)&NicInt, 42, 0);
+	// CreateIntGate(code64, (long)&NicInt, 43, 0);
 	CreateIntGate(code64, (long)&HdInt, 46, 0);
 	CreateIntGate(code64, (long)&spr, 39, 0);
 	CreateIntGate(code64, (long)&spr, 47, 0);

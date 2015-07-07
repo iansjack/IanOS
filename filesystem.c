@@ -497,7 +497,7 @@ void fsTaskCode(void)
 	struct FileInfo info;
 
 	FSPort = AllocMessagePort();
-	FSMsg = (struct Message *) ALLOCMSG;
+	FSMsg = ALLOCMSG;
 
 
 	kprintf(3, 0, "Starting Filesystem Task");
