@@ -20,10 +20,16 @@ tasks/rm
 tasks/cp
 tasks/editd
 tasks/test
+tasks/dhcp
+tasks/netserver
+tasks/nettest
 .settings/
 .project*
 .cproject*
 binutils/
 newlib/
 myos.iso
+large
+packet.dat
+*.pcap
 
