@@ -24,6 +24,8 @@
 #define	GET_BUFFER				7
 #define CLOSE_UDP_SOCKET		8
 #define PACKET_READY			9
+#define READ_SOCKET				10
+#define WRITE_SOCKET			11
 
 #define MAX_PACKET_SIZE 4096
 

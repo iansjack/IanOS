@@ -51,7 +51,10 @@ struct TCB
 	long int dest_ip;
 	long int dest_port;
 	unsigned char state;
+	unsigned char *transfer_buffer;
 	unsigned char *buffer;
+	unsigned char *buffer_start;
+	unsigned char *buffer_end;
 	struct MessagePort *msgport;
 	unsigned int snd_una;
 	unsigned int snd_nxt;
@@ -59,6 +62,13 @@ struct TCB
 	unsigned int rcv_nxt;
 	unsigned int rcv_wnd;
 	struct TCB *next;
+};
+
+struct TCPSocket
+{
+	struct MessagePort *messagePort;
+	unsigned char *transfer_buffer;
+	struct TCB *tcb;
 };
 
 #endif /* TCP_H_ */

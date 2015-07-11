@@ -17,6 +17,6 @@ long mac_to_long(struct mac_address mac);
 struct ip_address long_to_ip(long ip);
 long GetMyIP();
 void openUDPSocket(struct udp_handle *handle, long ip, long port);
-struct MessagePort *openListeningSocket(int port);
+void openListeningSocket(struct TCPSocket *socket, int port);
 
 #endif /* NETLIB_H_ */

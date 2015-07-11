@@ -167,7 +167,6 @@ int main(int argc, char **argv)
 			break;
 
 		case OPEN_TCP_SOCKET_PASSIVE:
-			printf("Got here\n");
 			newtcb = (struct TCB *)malloc(sizeof(struct TCB));
 			newtcb->source_ip = ip_to_long(my_ip);
 			newtcb->source_port = NetMsg->quad2;
@@ -178,8 +177,13 @@ int main(int argc, char **argv)
 			newtcb->state = LISTEN;
 			tcbs = newtcb;
 			Alloc_Shared_Page(NetMsg->pid, server_shared_memory, (void *)NetMsg->quad3);
-			newtcb->buffer = server_shared_memory;
+			newtcb->transfer_buffer = server_shared_memory;
+			newtcb->buffer = (unsigned char *)malloc(1024);
+			newtcb->buffer_start = newtcb->buffer;
+			newtcb->buffer_end = newtcb->buffer;
 			server_shared_memory += 0x1000;
+			NetMsg->quad1 = (long)newtcb;
+			sys_sendmessage(NetMsg->tempPort, NetMsg);
 			break;
 
 		case GETMACOFIP:
@@ -211,6 +215,14 @@ int main(int argc, char **argv)
 
 		case SETMYIP:
 			set_ip_address(&my_ip, NetMsg->quad1);
+			break;
+
+		case READ_SOCKET:
+			;
+			struct TCB *tcb = (struct TCB *)(NetMsg->quad2);
+			memcpy(tcb->transfer_buffer, tcb->buffer, 10);
+			NetMsg->quad1 = 10;
+			sys_sendmessage(NetMsg->tempPort, NetMsg);
 			break;
 
 		default:

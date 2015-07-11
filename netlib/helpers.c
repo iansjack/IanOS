@@ -169,19 +169,32 @@ void closeUDPSocket(long ip, long port)
 	free(message);
 }
 
-struct MessagePort *openListeningSocket(int port)
+void openListeningSocket(struct TCPSocket *socket, int port)
 {
 	struct MessagePort *NetPort = sys_getnetport();
-	struct MessagePort *msgport = sys_allocmessageport();
+	socket->messagePort = sys_allocmessageport();
 	struct Message *message = (struct Message *)malloc(sizeof(struct Message));
 	message->byte = OPEN_TCP_SOCKET_PASSIVE;
-	message->tempPort = msgport;
+	message->tempPort = socket->messagePort;
 	message->quad1 = 0;
 	message->quad2 = port;
+	socket->transfer_buffer = shared_memory;
 	message->quad3 = (long)shared_memory;
 	sys_sendmessage(NetPort, message);
-	//Alloc_Shared_Page(message->quad1, shared_memory, (void *)message->quad2);
+	sys_receivemessage(socket->messagePort, message);
+	socket->tcb = (struct TCB *)(message->quad1);
 	shared_memory += 0x1000;
 	free(message);
-	return msgport;
+}
+
+int readTCPSocket(struct TCPSocket *socket, unsigned char *buffer, unsigned int size)
+{
+	struct MessagePort *NetPort = sys_getnetport();
+	struct Message *message = (struct Message *)malloc(sizeof(struct Message));
+	message->byte = READ_SOCKET;
+	message->quad1 = size;
+	message->quad2 = (long)(socket->tcb);
+	sys_sendreceive(NetPort, message);
+	memcpy(buffer, socket->transfer_buffer, message->quad1);
+	return (message->quad1);
 }
