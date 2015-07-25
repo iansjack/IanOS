@@ -4,7 +4,7 @@ SECTIONS
 {
 	. = 0x10000;
 	.text : { *(.text)  }
-	. = 0x20000;
+	. = 0x22000;
 	.data : 
 	{ 
 		*(.data) 

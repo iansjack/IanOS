@@ -44,6 +44,8 @@ struct __attribute__ ((__packed__)) tcp_packet
 	unsigned char * data;
 };
 
+#define TCP_BUFFER_SIZE	1024
+
 struct TCB
 {
 	long int source_ip;

@@ -108,8 +108,20 @@ void HandleTCP(struct tcp_packet *packet)
 		temp->snd_nxt = 1;
 
 		int length = be(packet->ip.length);
-		memcpy(temp->buffer, &(packet->data), length);
-		temp->buffer_end += length;
+		unsigned char acknowledge = 0;
+		if (temp->buffer_start == temp->buffer_end)
+			acknowledge = 1;
+		if ((long)(temp->buffer_start - temp->buffer + length) < TCP_BUFFER_SIZE)
+		{
+			memcpy(temp->buffer_start, &(packet->data), length);
+			temp->buffer_end += length;
+		}
+		else
+		{
+			memcpy(temp->buffer_start, &(packet->data), TCP_BUFFER_SIZE - (long)(temp->buffer_start));
+			memcpy(temp->buffer, (long)&(packet->data) + TCP_BUFFER_SIZE - (long)(temp->buffer_start), length - (TCP_BUFFER_SIZE - (long)(temp->buffer_start)));
+			temp->buffer_end += (length - TCP_BUFFER_SIZE);
+		}
 
 		prepareReturn(packet);
 		packet->tcp.control = ACK;
@@ -122,8 +134,11 @@ void HandleTCP(struct tcp_packet *packet)
 		packet->tcp.windows = be(temp->snd_wnd);
 		packet->tcp.checksum = be(tcp_checksum(packet));
 		sys_queuepacket(packet, packetLength(packet));
-		struct Message msg;
-		sys_sendmessage(temp->msgport, &msg);
+		if (acknowledge)
+		{
+			struct Message msg;
+			sys_sendmessage(temp->msgport, &msg);
+		}
 		break;
 	default:
 		break;

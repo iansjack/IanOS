@@ -178,7 +178,7 @@ int main(int argc, char **argv)
 			tcbs = newtcb;
 			Alloc_Shared_Page(NetMsg->pid, server_shared_memory, (void *)NetMsg->quad3);
 			newtcb->transfer_buffer = server_shared_memory;
-			newtcb->buffer = (unsigned char *)malloc(1024);
+			newtcb->buffer = (unsigned char *)malloc(TCP_BUFFER_SIZE);
 			newtcb->buffer_start = newtcb->buffer;
 			newtcb->buffer_end = newtcb->buffer;
 			server_shared_memory += 0x1000;
@@ -220,8 +220,28 @@ int main(int argc, char **argv)
 		case READ_SOCKET:
 			;
 			struct TCB *tcb = (struct TCB *)(NetMsg->quad2);
-			memcpy(tcb->transfer_buffer, tcb->buffer, 10);
-			NetMsg->quad1 = 10;
+			int available = tcb->buffer_end - tcb->buffer_start;
+			int requested = NetMsg->quad1;
+			if (requested > available)
+				requested = available;
+			if (available)
+			{
+				if ((long)(tcb->buffer_start - tcb->buffer + requested) < TCP_BUFFER_SIZE)
+				{
+					memcpy(tcb->transfer_buffer, tcb->buffer_start, requested);
+					tcb->buffer_start += requested;
+				}
+				else
+				{
+					memcpy(tcb->transfer_buffer, tcb->buffer_start, TCP_BUFFER_SIZE - (long)(tcb->buffer_start));
+					memcpy((long)(tcb->transfer_buffer) + TCP_BUFFER_SIZE - (long)tcb->buffer_start, tcb->buffer, length - (TCP_BUFFER_SIZE - (long)(tcb->buffer_start)));
+					tcb->buffer_start += requested - TCP_BUFFER_SIZE;
+				}
+
+				NetMsg->quad1 = requested;
+			}
+			else
+				NetMsg->quad1 = 0;
 			sys_sendmessage(NetMsg->tempPort, NetMsg);
 			break;
 

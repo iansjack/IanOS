@@ -195,6 +195,16 @@ int readTCPSocket(struct TCPSocket *socket, unsigned char *buffer, unsigned int 
 	message->quad1 = size;
 	message->quad2 = (long)(socket->tcb);
 	sys_sendreceive(NetPort, message);
+	// If no data is returned wait for a message saying data is available and try again
+	if (!message->quad1)
+	{
+		sys_receivemessage(socket->messagePort, message);
+		message->byte = READ_SOCKET;
+		message->quad1 = size;
+		message->quad2 = (long)(socket->tcb);
+		sys_sendreceive(NetPort, message);
+	}
+
 	memcpy(buffer, socket->transfer_buffer, message->quad1);
 	return (message->quad1);
 }

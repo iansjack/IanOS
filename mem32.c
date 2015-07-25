@@ -60,13 +60,13 @@ void InitMemManagement()
 	nPagesFree--;
 
 	// Kernel Memory
-	for (count = 1; count < 0x23; count++)
+	for (count = 1; count <= (OSHeap >> 12); count++)
 	{
 		SetBit32(count);
 		nPagesFree--;
 	}
 
-	firstFreePage = 0x23;
+	firstFreePage = (OSHeap >> 12) + 1;
 
 	// EBDA
 	SetBit32(0x9E); SetBit32(0x9F);

@@ -63,7 +63,6 @@ KbInt:
 TimerInt:
 	PUSH_ALL
 	incq Ticks
-#	KWRITE_DOUBLE Ticks, $0, $68	# Write the current number of ticks
 	mov  blockedTasks, %rbx
 	cmp $0, %rbx
 	jz   .notimer

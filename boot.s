@@ -52,7 +52,7 @@ _start:
     mov 0x18(%ebx), %eax	# address of module
 
 # relocate OS
-	mov $0x12000, %ecx
+	mov $0x14000, %ecx
     mov (%eax), %esi
     mov $0x10000, %edi
 #    sub %ebx, %ecx

@@ -17,11 +17,12 @@ int main(int argc, char **argv)
 
 	struct Message msg;
 
-	// Wait until there is data to read
-	sys_receivemessage(socket->messagePort, &msg);
-	readTCPSocket(socket, buffer, 10);
+	int read = 0;
 
-	printf("Data read from socket:\n%s\n", buffer);
+	read = readTCPSocket(socket, buffer, 1000);
+	buffer[1000] = 0;
+
+	printf("Data read from socket (%d bytes):\n%s\n", read, buffer);
 
 	return (0);
 }
