@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <kernel.h>
 #include <net.h>
+#include <timer.h>
 #include <netlib.h>
 
 struct arp_table_entry *arp_table = 0;
@@ -243,6 +244,10 @@ int main(int argc, char **argv)
 			else
 				NetMsg->quad1 = 0;
 			sys_sendmessage(NetMsg->tempPort, NetMsg);
+			break;
+
+		case TIMER_MSG:
+			printf("Timer message received by netserver task from timer %d\n", NetMsg->quad1);
 			break;
 
 		default:

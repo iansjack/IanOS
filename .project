@@ -69,12 +69,11 @@
 		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 		<nature>org.eclipse.linuxtools.rpm.rpmlint.rpmlintNature</nature>
-		<nature>org.eclipse.cdt.codan.core.codanNature</nature>
 		<nature>org.eclipse.cdt.core.ccnature</nature>
 	</natures>
 	<filteredResources>
 		<filter>
-			<id>1432716967062</id>
+			<id>1437988416105</id>
 			<name></name>
 			<type>21</type>
 			<matcher>
@@ -83,7 +82,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1432716967063</id>
+			<id>1437988416107</id>
 			<name></name>
 			<type>21</type>
 			<matcher>
@@ -92,7 +91,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1432716967064</id>
+			<id>1437988416109</id>
 			<name></name>
 			<type>21</type>
 			<matcher>
@@ -101,7 +100,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1432716967065</id>
+			<id>1437988416112</id>
 			<name></name>
 			<type>21</type>
 			<matcher>
@@ -110,7 +109,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1432716967066</id>
+			<id>1437988416114</id>
 			<name></name>
 			<type>21</type>
 			<matcher>
@@ -119,7 +118,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1432716967067</id>
+			<id>1437988416120</id>
 			<name></name>
 			<type>21</type>
 			<matcher>
@@ -128,7 +127,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1432716967068</id>
+			<id>1437988416124</id>
 			<name></name>
 			<type>21</type>
 			<matcher>

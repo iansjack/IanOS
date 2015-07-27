@@ -10,6 +10,11 @@
 
 int main(int argc, char **argv)
 {
+	struct MessagePort *NetPort = sys_getnetport();
+	setalarm(100, NetPort);
+	setalarm(150, NetPort);
+	setalarm(120, NetPort);
+
 	struct TCPSocket *socket = (struct TCPSocket *)malloc(sizeof(struct TCPSocket));
 	openListeningSocket(socket, 80);
 

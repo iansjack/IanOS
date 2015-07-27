@@ -7,12 +7,14 @@
 #include <filesystem.h>
 #include "blocks.h"
 
+typedef long unsigned int size_t;
+
 extern struct Task *currentTask;
 extern struct MessagePort *FSPort;
 extern struct MessagePort *KbdPort;
 extern struct MessagePort *ConsolePort;
 
-extern long sec, min, hour, day, month, year, unixtime;
+/* extern long sec, min, hour, day, month, year, unixtime;
 
 void PrintClock()
 {
@@ -35,6 +37,7 @@ void setclock()
 	//tm.tm_gmtoff = 0;
 	unixtime = (long) mktime(&tm);
 }
+*/
 
 long FindFirstFreeFD()
 {
@@ -87,7 +90,7 @@ long ReadFromFile(struct FCB *fHandle, char *buffer, long noBytes)
 		FSMsg->quad2 = (long) buff;
 		FSMsg->quad3 = PageSize;
 		SendReceiveMessage(FSPort, FSMsg);
-		copyMem(buff, buffer + bytesRead, (size_t) (FSMsg->quad1));
+		memcpy(buffer + bytesRead, buff, (size_t) (FSMsg->quad1));
 		bytesRead += FSMsg->quad1;
 		noBytes -= PageSize;
 		if (FSMsg->quad1 < PageSize)
@@ -101,7 +104,7 @@ long ReadFromFile(struct FCB *fHandle, char *buffer, long noBytes)
 		FSMsg->quad2 = (long) buff;
 		FSMsg->quad3 = noBytes;
 		SendReceiveMessage(FSPort, FSMsg);
-		copyMem(buff, buffer + bytesRead, (size_t) (FSMsg->quad1));
+		memcpy(buffer + bytesRead, buff, (size_t) (FSMsg->quad1));
 		bytesRead += FSMsg->quad1;
 	}
 
@@ -109,25 +112,6 @@ long ReadFromFile(struct FCB *fHandle, char *buffer, long noBytes)
 	DeallocMem(buff);
 	DeallocMem(FSMsg);
 	return (retval);
-}
-
-//===========================================
-// A utility function to copy a memory range
-//===========================================
-void copyMem(char *source, char *dest, size_t size)
-{
-	size_t i;
-
-	if (dest < (char *) 0x10000)
-	{
-		KWriteString("OOps!!!", 20, 40);
-		asm("cli;" "hlt;");
-	}
-
-	for (i = 0; i < size; i++)
-	{
-		dest[i] = source[i];
-	}
 }
 
 //===========================================================================
@@ -280,7 +264,7 @@ int DoStat(char *path, struct FileInfo *info)
 		msg->quad1 = (long) fcb;
 		msg->quad2 = (long) buff;
 		SendReceiveMessage(FSPort, msg);
-		copyMem(buff, (char *) info, sizeof(struct FileInfo));
+		memcpy((char *) info, buff, sizeof(struct FileInfo));
 		DeallocMem(buff);
 		msg->nextMessage = 0;
 		msg->byte = CLOSEFILE;
@@ -314,7 +298,7 @@ int DoFStat(FD fileDescriptor, struct FileInfo *info)
 			msg->quad1 = (long) temp;
 			msg->quad2 = (long) buff;
 			SendReceiveMessage(FSPort, msg);
-			copyMem(buff, (char *) info, sizeof(struct FileInfo));
+			memcpy((char *) info, buff, sizeof(struct FileInfo));
 			DeallocMem(buff);
 			DeallocMem(msg);
 			return 0;
@@ -380,7 +364,7 @@ long DoWrite(FD fileDescriptor, char *buffer, long noBytes)
 			char *buff = AllocKMem((size_t) noBytes + 1);
 			struct Message *msg = ALLOCMSG;
 
-			copyMem(buffer, buff, (size_t) noBytes);
+			memcpy(buff, buffer, (size_t) noBytes);
 			buff[noBytes] = 0;
 			msg->nextMessage = 0;
 			msg->byte = WRITESTR;
@@ -400,7 +384,7 @@ long DoWrite(FD fileDescriptor, char *buffer, long noBytes)
 
 			FSMsg = ALLOCMSG;
 			buff = AllocKMem((size_t) noBytes);
-			copyMem(buffer, buff, (size_t) noBytes);
+			memcpy(buff, buffer, (size_t) noBytes);
 
 			FSMsg->nextMessage = 0;
 			FSMsg->byte = WRITEFILE;

@@ -8,7 +8,6 @@
 #include "lib.h"
 #include "tasklist.h"
 
-
 void SendMessage(struct MessagePort *MP, struct Message *Msg);
 void ReceiveMessage(struct MessagePort *MP, struct Message *Msg);
 void SendReceiveMessage(struct MessagePort *MP, struct Message *Msg);
@@ -18,7 +17,7 @@ void WriteSector(unsigned int SectorNo);
 void WaitForInt(long interrupt);
 long ReadFromFile(struct FCB *fHandle, char *buffer, long noBytes);
 long SeekFile(struct Message *FSMsg, struct FCB * fHandle, long offset, long whence);
-void copyMem(char *source, char *dest, size_t size);
+//void copyMem(char *source, char *dest, size_t size);
 void copyString(char *source, char *destination);
 void BlockTask(struct Task *task);
 void UnBlockTask(struct Task *task);

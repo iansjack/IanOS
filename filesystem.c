@@ -1,7 +1,5 @@
 #include <kernel.h>
 
-//typedef int umode_t;
-
 #include <linux/types.h>
 #include <sys/errno.h>
 #include "ext2_fs.h"
@@ -569,7 +567,7 @@ void fsTaskCode(void)
 			info.atime = (long) fcb->inode->i_atime;
 			info.ctime = (long) fcb->inode->i_ctime;
 			info.mtime = (long) fcb->inode->i_mtime;
-			copyMem((char *) (&info), (char *) FSMsg->quad2,
+			memcpy((char *) FSMsg->quad2, (char *) (&info),
 					sizeof(struct FileInfo));
 			break;
 

@@ -102,7 +102,7 @@ start64:
 
 	call StartTasks
 	call gettime						# Set the internal clock from the RTC
-	call setclock						# Set the unixtime counter
+	#call setclock						# Set the unixtime counter
 
 	mov $UserCode, %rcx					# Tas1
 	pushfq

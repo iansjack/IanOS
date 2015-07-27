@@ -1,4 +1,5 @@
 .include "macros.s"
+.include "include/memory.inc"
 
 # Declare constants used for creating a multiboot header.
 .set ALIGN,    1<<0             # align loaded modules on page boundaries
@@ -52,14 +53,13 @@ _start:
     mov 0x18(%ebx), %eax	# address of module
 
 # relocate OS
-	mov $0x14000, %ecx
+	mov $(OSHeap - OSCode), %ecx
     mov (%eax), %esi
-    mov $0x10000, %edi
-#    sub %ebx, %ecx
+    mov $OSCode, %edi
     cld
     rep movsb
 
-    mov $0x10000, %eax
+    mov $OSCode, %eax
     jmp *%eax
 
 #===================================================

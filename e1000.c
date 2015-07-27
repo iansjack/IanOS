@@ -85,7 +85,7 @@ void queue_packet(void *packet, int length)
 		nexttxpacket = 0;
 		checkDD = 1;
 	}
-	memmove((void *)((physaddr_t *)KADDR(buffers[i])), packet, length);
+	memcpy((void *)((physaddr_t *)KADDR(buffers[i])), packet, length);
 	descriptor[i].addr = buffers[i];
 	descriptor[i].length = length;
 	descriptor[i].cso = 0;
@@ -104,7 +104,7 @@ int receive_packet(void *buffer, int *length)
 	// if (i == PageSize / sizeof(struct rx_desc)) i = 0;
 	if (!(descriptor[i].status & 0x1)) return -1;
 	nextrxpacket++;
-	memmove(buffer, (void *)((physaddr_t *)KADDR(descriptor[i].buffer_addr)), descriptor[i].length);
+	memcpy(buffer, (void *)((physaddr_t *)KADDR(descriptor[i].buffer_addr)), descriptor[i].length);
 	*length = descriptor[i].length;
 	registers[RDT / sizeof(int)] = i;
 	descriptor[i].status = 0;

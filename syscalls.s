@@ -37,7 +37,7 @@ CallNo:
 	.quad	Unimplemented	#Sys_GetUID
 	.quad	Unimplemented	#Sys_Stime
 	.quad	Unimplemented	#Sys_Ptrace
-	.quad	Unimplemented	#Sys_Alarm
+	.quad	Sys_Alarm
 	.quad	Sys_FStat
 	.quad	GetTicks
 	.quad	Sys_Nanosleep
@@ -396,6 +396,12 @@ Sys_GetNetPort:
 Sys_AllocMessagePort:
 	push %rcx
 	call AllocMessagePort
+	pop %rcx
+	sysretq
+
+Sys_Alarm:
+	push %rcx
+	call newtimer
 	pop %rcx
 	sysretq
 

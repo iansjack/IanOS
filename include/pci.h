@@ -11,20 +11,20 @@ struct pci_bus;
 struct pci_func {
     struct pci_bus *bus;	// Primary bus for bridges
 
-    uint32_t dev;
-    uint32_t func;
+    uint_32 dev;
+    uint_32 func;
 
-    uint32_t dev_id;
-    uint32_t dev_class;
+    uint_32 dev_id;
+    uint_32 dev_class;
 
-    uint32_t reg_base[6];
-    uint32_t reg_size[6];
-    uint8_t irq_line;
+    uint_32 reg_base[6];
+    uint_32 reg_size[6];
+    uint_8 irq_line;
 };
 
 struct pci_bus {
     struct pci_func *parent_bridge;
-    uint32_t busno;
+    uint_32 busno;
 };
 
 int  pci_init(void);

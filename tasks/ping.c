@@ -1,18 +1,20 @@
+#include <net.h>
+
 struct ping *ping_packet(struct mac mac, struct ip_address ip)
 {
 	struct ping *packet = (struct ping *)malloc(sizeof(struct ping));
 	construct_eth_header(&packet->eth, mac, TYPE_IP);
-	construct_ip_header(&packet->ip, 0x01, my_ip, server_ip);
+	construct_ip_header(&packet->ip, 0x01, my_ip, ip);
 	packet->data.type = 8;
 	packet->data.code = 0;
 	packet->data.checksum = 0;
 	packet->data.identifier = 0x0883;
 	packet->data.sequence = 0;
-    packet->ip.total_length = be(sizeof(struct ip_header) + sizeof(struct ping_data));
-    packet->ip.dscp_ecn = 0;
+    packet->ip.length = be(sizeof(struct ip_header) + sizeof(struct ping_data));
+    packet->ip.dsp_ecn = 0;
     packet->ip.identification = 0x0800;
-    packet->ip.header_checksum = 0;
-    packet->ip.header_checksum = checksum((unsigned char *)(&packet->ip), 20);
+    packet->ip.checksum = 0;
+    packet->ip.checksum = checksum((unsigned char *)(&packet->ip), 20);
     unsigned char data[40] = {
     		0x2a, 0x7f, 0x0a, 0x00, 0x00, 0x00,
     		0x00, 0x00, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05,

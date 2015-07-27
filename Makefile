@@ -2,7 +2,7 @@ include Flags.mak
 
 OBJS = startup.o os.o mem32.o ptab32.o hwsetup.o gates.o pci.o messages.o memory.o pagetab.o keyboard.o \
 		console.o vga.o filesystem.o block.o syscalls.o newtask.o tasking.o messaging.o interrupts.o \
-		ide.o kernlib.o tasklist.o btree.o clock.o tas1.o scalls.o e1000.o net.o
+		ide.o kernlib.o tasklist.o btree.o clock.o timer.o tas1.o scalls.o e1000.o net.o
 
 all: IanOS
 
@@ -53,6 +53,8 @@ ptab32.o: ptab32.c $(INC)/memory.h
 	rm tptab32.s ptab32.s
 
 -include $(OBJS:.o=.d)
+
+timer.o: timer.c $(INC)/timer.h
 
 clean:
 	rm -f linkmap *.o *.d *.bin *~ *.iso

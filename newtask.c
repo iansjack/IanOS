@@ -55,7 +55,7 @@ unsigned short DoFork()
 
 	// Copy task structure, with adjustments
 	struct Task *task = (struct Task *) AllocKMem(sizeof(struct Task));
-	copyMem((char *) currentTask, (char *) task, sizeof(struct Task));
+	memcpy((char *) task, (char *) currentTask, sizeof(struct Task));
 	pid = task->pid = nextpid++;
 	task->currentDirName = AllocKMem((size_t)strlen(currentTask->currentDirName) + 1);
 	strcpy(task->currentDirName, currentTask->currentDirName);
@@ -135,9 +135,9 @@ void LoadFlat(struct FCB * fHandle)
 		size -= PageSize;
 		currentPage += PageSize;
 	}
-	copyMem((char *) header, (char *) UserCode, 14);
-	copyMem((char *) &codelen, (char *) UserCode + 14, 8);
-	copyMem((char *) &datalen, (char *) UserCode + 22, 8);
+	memcpy((char *) UserCode, (char *) header, 14);
+	memcpy((char *) UserCode + 14, (char *) &codelen, 8);
+	memcpy((char *) UserCode + 22, (char *) &datalen, 8);
 	location = (char *) UserCode + 30;
 
 	// Load the user code
@@ -268,7 +268,7 @@ long DoExec(char *name, char *environment)
 			// Copy environment string to user data space
 			// It occupies the 81 bytes after the current first free memory
 			currentTask->environment = (void *) currentTask->firstfreemem;
-			copyMem(environment, currentTask->environment, 80);
+			memcpy(currentTask->environment, environment, 80);
 			currentTask->firstfreemem += 80;
 			argv = (long) currentTask->environment;
 			argc = ParseEnvironmentString(&argv);
@@ -404,7 +404,8 @@ void KillTask(void)
 	}
 
 	// Deallocate currentDirName - bit of a kludge here!!!
-	if (currentTask->pid != 2)
+	//if (currentTask->pid != 2)
+	if (currentTask->currentDirName)
 		DeallocMem(currentTask->currentDirName);
 
 	// Add the task to the Dead Tasks queue

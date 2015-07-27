@@ -1,6 +1,6 @@
 // This file contains various functions for dealing with ext2fs blocks
 
-typedef int umode_t;
+//typedef int umode_t;
 
 #include <linux/types.h>
 #include <sys/errno.h>
@@ -455,6 +455,7 @@ void AddFirstBlockToFile(struct FCB *fcb)
 	fcb->inode->i_block[0] = fcb->currentBlock;
 	fcb->inode->i_blocks = (u_int32_t)(block_size / INODE_BLOCK_SIZE);
 }
+
 //=======================================================================
 // Add a new block the the file represented by fcb
 // This is quite complicated because of the various level of indirection

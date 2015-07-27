@@ -199,11 +199,12 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 			VIRT(PT,pt) ->entries[i].value = AllocAndCreatePTE(TempUserCode,
 					pid, US | RW | P);
 			// Copy the physical memory
-			copyMem(
+			memcpy(
+					(void *) ((VIRT(PT, pt) ->entries[i].value) & 0xFFFFF000)
+							+ VAddr,
 					(void *) ((VIRT(PT, currentPT) ->entries[i].value)
 							& 0xFFFFF000) + VAddr,
-					(void *) ((VIRT(PT, pt) ->entries[i].value) & 0xFFFFF000)
-							+ VAddr, PageSize);
+					PageSize);
 			i++;
 		}
 
@@ -218,11 +219,12 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 			VIRT(PT,pt) ->entries[i].value = AllocAndCreatePTE(TempUserCode,
 					pid, US | RW | P);
 			// Copy the physical memory
-			copyMem(
+			memcpy(
+					(void *) ((VIRT(PT, pt) ->entries[i].value) & 0xFFFFF000)
+							+ VAddr,
 					(void *) ((VIRT(PT, currentPT) ->entries[i].value)
 							& 0xFFFFF000) + VAddr,
-					(void *) ((VIRT(PT, pt) ->entries[i].value) & 0xFFFFF000)
-							+ VAddr, PageSize);
+					PageSize);
 			i++;
 		}
 
@@ -237,11 +239,12 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 			VIRT(PT,pt) ->entries[i].value = AllocAndCreatePTE(TempUserCode,
 					pid, US | RW | P);
 			// Copy the physical memory
-			copyMem(
+			memcpy(
+					(void *) ((VIRT(PT, pt) ->entries[i].value) & 0xFFFFF000)
+							+ VAddr,
 					(void *) ((VIRT(PT, currentPT) ->entries[i].value)
 							& 0xFFFFF000) + VAddr,
-					(void *) ((VIRT(PT, pt) ->entries[i].value) & 0xFFFFF000)
-							+ VAddr, PageSize);
+					PageSize);
 			i--;
 		}
 
@@ -256,11 +259,12 @@ void * VCreatePageDir(unsigned short pid, unsigned short parentPid)
 			VIRT(PT,pt) ->entries[i].value = AllocAndCreatePTE(TempUserCode,
 					pid, US | RW | P);
 			// Copy the physical memory
-			copyMem(
+			memcpy(
+					(void *) ((VIRT(PT, pt) ->entries[i].value) & 0xFFFFF000)
+							+ VAddr,
 					(void *) ((VIRT(PT, currentPT) ->entries[i].value)
 							& 0xFFFFF000) + VAddr,
-					(void *) ((VIRT(PT, pt) ->entries[i].value) & 0xFFFFF000)
-							+ VAddr, PageSize);
+					PageSize);
 			i--;
 		}
 	}

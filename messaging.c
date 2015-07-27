@@ -10,7 +10,7 @@ void SendMessage(struct MessagePort *MP, struct Message *Msg)
 	struct Message *temp = (struct Message *)ALLOCMSG;
 	Msg->nextMessage = 0;
 
-	copyMem((char *)Msg, (char *)temp, sizeof(struct Message));
+	memcpy((char *)temp, (char *)Msg, sizeof(struct Message));
 	temp->pid = currentTask->pid;
 	asm("cli");
 	if (MP->msgQueue == 0) {
@@ -50,7 +50,7 @@ void ReceiveMessage(struct MessagePort *MP, struct Message *Msg)
 	MP->msgQueue = temp->nextMessage;
 	temp->nextMessage = 0;
 	asm("sti");
-	copyMem((char *)temp, (char *)Msg, sizeof(struct Message));
+	memcpy((char *)Msg, (char *)temp, sizeof(struct Message));
 	DeallocMem(temp);
 }
 

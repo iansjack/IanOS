@@ -8,12 +8,13 @@
 int main(int argc, char **argv)
 {
 		long allocated = 0;
-		char *buffer;
+		char *buffer = malloc(1025 * 1025);;
 
-		while (buffer = (char *)malloc(1025 * 1025))
+		while (buffer)
 		{
 			allocated += 1025 * 1025;
 			printf("Allocated: %ld\n", allocated);
+			char *buffer = malloc(1025 * 1025);;
 		}
 	return (0);
 }

@@ -4,7 +4,7 @@ extern long long nPagesFree;
 extern long long nPages;
 extern long long firstFreePage;
 extern char *mMap;
-extern struct MemoryMap mmap[16];	// This doesn't cut it, but OK for testing.
+// extern struct MemoryMap mmap[16];	// This doesn't cut it, but OK for testing.
 
 unsigned char *PMap;
 
