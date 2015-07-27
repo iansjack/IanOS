@@ -521,11 +521,11 @@ void StartTasks()
 {
 	kprintf(0, 0, "Starting tasks");
 	(void) NewLowPriTask((void *) dummyTask);
-	GoToSleep(1);
+	GoToSleep(100);
 	(void) NewKernelTask((void *) kbTaskCode);
-	GoToSleep(1);
+	GoToSleep(100);
 	(void) NewKernelTask((void *) consoleTaskCode);
-	GoToSleep(1);
+	GoToSleep(100);
 	(void) NewKernelTask((void *) fsTaskCode);
-	GoToSleep(1);
+	GoToSleep(100);
 }

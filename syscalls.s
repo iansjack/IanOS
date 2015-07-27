@@ -7,7 +7,6 @@
 	.text
 
 	.global SysCalls
-	.global GoToSleep
 	.global SetCurrentDirectory
 
 CallNo:
@@ -243,18 +242,11 @@ GetTicks:
 	sysretq
 
 #=====================================================
-# Suspend the current task for for RDI 1ms intervals
+# Suspend the current task for for RDI 10ms intervals
 #=====================================================
 Sys_Nanosleep:	
 	push %rcx
-	push %r15
-	mov currentTask, %r15
-	movb $SLEEPINT, TS.waiting(%r15)
-	mov %rdi, TS.timer(%r15)
-	mov %r15, %rdi
-	call BlockTask
-	SWITCH_TASKS		       # The current task is no longer runnable
-	pop %r15
+	call GoToSleep
 	pop %rcx
 	sysretq
 
@@ -351,22 +343,6 @@ Sys_Time:
 	mov unixtime, %rax
 #	mov %rax, (%rdi)
 	sysretq
-
-#========================================================
-# Tell the current task to sleep for RDI nanoseconds
-#========================================================
-GoToSleep:
-	push %rdx
-	push %r15
-	mov currentTask, %r15
-	movb $SLEEPINT, TS.waiting(%r15)
-	mov %rdi, TS.timer(%r15)
-	mov %r15, %rdi
-	call BlockTask
-	pop %r15
-	pop %rdx
-	SWITCH_TASKS		       # The current task is no longer runnable
-	ret
 
 #=========================================================
 # Truncates file RDI to length RSI

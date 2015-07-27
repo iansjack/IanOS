@@ -953,3 +953,12 @@ int intToHAsc(unsigned int i, char *buffer, int len)
 	} while (i > 0);
 	return 0;
 }
+
+void GoToSleep(long timeout)
+{
+	struct MessagePort *port = AllocMessagePort();
+	struct Message msg;
+
+	newtimer(timeout, port);
+	ReceiveMessage(port, &msg);
+}

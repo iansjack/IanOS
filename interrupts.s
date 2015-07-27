@@ -64,25 +64,6 @@ TimerInt:
 	PUSH_ALL
 	call checktimers
 	incq Ticks
-	mov  blockedTasks, %rbx
-	cmp $0, %rbx
-	jz   .notimer
-.again:
-	mov currentTask, %r15
-	mov 8(%rbx), %r15
-	cmpb $SLEEPINT, TS.waiting(%r15)
-	jne  .next
-	decq TS.timer(%r15)
-	jnz  .next
-	mov  %r15, %rdi
-	push %rbx
-   	call UnBlockTask
-   	pop %rbx
-.next:
-	mov  (%rbx), %rbx
-	cmp $0, %rbx
-   jne  .again
-.notimer:
 	decb TimeSliceCount
 	jnz  .tdone
 	incb tenths
@@ -103,7 +84,7 @@ TimerInt:
 	jl noupdate
 	call gettime
 noupdate:
-#	call PrintClock
+	call PrintClock
 nosecupdate:
 	movb $10, TimeSliceCount
 	cmp $0, canSwitch
