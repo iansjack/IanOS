@@ -59,7 +59,7 @@ void CreatePT164(struct PT * pt, int i)
 //==========================================================
 void CreatePhysicalToVirtual(struct PML4 * pml4, long noOfPages)
 {
-	int PTsNeeded = (noOfPages / 512);
+	int PTsNeeded = (noOfPages / 512) + 1;
 	int PDsNeeded = (PTsNeeded / 512) + 1;
 	int count1, count2, count3;
 
@@ -75,7 +75,7 @@ void CreatePhysicalToVirtual(struct PML4 * pml4, long noOfPages)
 		pd = (struct PD *) AllocPage32(1);
 		pdp->entries[count3].Lo = (long) pd | P | RW;
 
-		for (count2 = 0; count2 < PTsNeeded; count2++)
+		for (count2 = 0; count2 < 0x200; count2++) //PTsNeeded; count2++)
 		{
 			pt = (struct PT *) AllocPage32(1);
 			pd->entries[count2].Lo = (long) pt | P | RW;
