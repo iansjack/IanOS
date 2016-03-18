@@ -1,6 +1,7 @@
 	.include "../include/syscalls.inc"
 	
 	.global read
+	.type read, @function
 
 	.text
 

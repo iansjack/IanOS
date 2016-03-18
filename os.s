@@ -4,12 +4,14 @@
 
 	.text
 
-	.global start64
+	.global _start
+	.global good
+	.global bad
 
 #======================================
 # From here on we are using 64 bit code
 #======================================
-start64:
+_start:
 	mov $data64, %ax
 	mov %ax, %ds
 	mov %ax, %ss
@@ -31,6 +33,10 @@ start64:
 	mov $SysCalls, %eax
 	wrmsr
 
+# Final preparations before starting tasking
+	mov %cr3, %rax
+	mov %rax, initialCR3
+	call InitMem64
 	call InitIDT
 	mov $TSS64, %rdi
 	mov $tssd64, %rsi
@@ -38,11 +44,6 @@ start64:
 	mov $tssd64, %ax
 	ltr %ax
 	lidt idt_64
-
-# Final preparations before starting tasking
-	mov %cr3, %rax
-	mov %rax, initialCR3
-	call InitMem64
 
 	mov currentTask, %r15
 	movq %r15, TS.r15(%r15)
@@ -55,6 +56,10 @@ start64:
 	mov  %rax, TS.cr3(%r15)
 	mov	%r15, currentTask
 
+#	call mp_init
+#	call lapic_init
+#	call boot_aps
+
 	mov $2, %rdi
 	call AllocPage                     	# Page for kernel stack
 	mov %rax, %rdi
@@ -63,10 +68,10 @@ start64:
 	mov $3, %rcx
 
 	call CreatePTE
-	movq $KernelStack + 0x1000, %rax
-	mov %rax, TSS64 + 36               	# Kernel stack pointer in TSS
-	mov $2, %rdi
+#	movq $KernelStack + 0x1000, %rax
+#	mov %rax, TSS64 + 36               	# Kernel stack pointer in TSS
 
+	mov $2, %rdi
 	call AllocPage                     	# Page for user stack
 	mov %rax, %rdi
 	mov $UserStack, %rsi
@@ -101,7 +106,7 @@ start64:
 	call enumeratePCIBus
 
 	call StartTasks
-	call gettime						# Set the internal clock from the RTC
+#	call gettime						# Set the internal clock from the RTC
 	#call setclock						# Set the unixtime counter
 
 	mov $UserCode, %rcx					# Tas1
@@ -118,13 +123,26 @@ cd:	.byte '/', 0
 	.global tempstack
 
 gdt_48:	.word 0x800						# Allow up to 512 entries in GDT
-	.long GDT
+		.long GDT
 
 idt_64:	.word 0x800						# Allow up to 512 entries in IDT
-	.quad IDT
+		.quad IDT
 
 # A minimal stack whilst the system is being initialized
 .rept 128
 	.quad 0
 .endr
 tempstack:
+
+TSS64:
+	.long 0
+	.long 0
+	.long 0x1
+	.rept 6
+	.long 0
+	.endr
+	.long tempstack
+	.long 0
+	.rept 15
+	.long 0
+	.endr

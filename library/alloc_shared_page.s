@@ -1,6 +1,7 @@
 	.include "../include/syscalls.inc"
 	
 	.global Alloc_Shared_Page;
+	.type Alloc_Shared_Page, @function
 
 	.text
 

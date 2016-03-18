@@ -4,6 +4,7 @@
 #include <net.h>
 #include <timer.h>
 #include <netlib.h>
+#include <stdint.h>
 
 struct arp_table_entry *arp_table = 0;
 struct ip_address my_ip = {0, 0, 0, 0};
@@ -76,7 +77,7 @@ void HandleIP4(struct ip4_packet *packet)
 
 void HandleArp(struct ARP_Packet *packet)
 {
-	uint_16 op = be(packet->data.arp_opcode);
+	uint16_t op = be(packet->data.arp_opcode);
 	switch (op)
 	{
 	case ARP_REQUEST:

@@ -1,6 +1,7 @@
 	.include "../include/syscalls.inc"
 	
 	.global mkdir
+	.type mkdir, @function
 
 	.text
 

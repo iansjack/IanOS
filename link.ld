@@ -2,9 +2,9 @@ OUTPUT_FORMAT("binary")
 ENTRY(_start)
 SECTIONS
 {
-	. = 0x10000;
+	. = 0x180000;
 	.text : { *(.text)  }
-	. = 0x28000;
+	. = 0x1A8000;
 	.data : 
 	{ 
 		*(.data) 

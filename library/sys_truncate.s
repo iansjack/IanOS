@@ -1,6 +1,7 @@
 	.include "../include/syscalls.inc"
 	
 	.global sys_truncate
+	.type sys_truncate,@function
 
 	.text
 

@@ -143,14 +143,14 @@ ZeroPage:
 	pop %rcx
 	ret
 	
-	.data
-
-	.global currentTask
-	.global TSS64
-
-TSS64:	
-	.long 0
-	.long tempstack
-	.rept 0x2C
-	.long 0
-	.endr
+#	.data
+#
+#	.global currentTask
+#	.global TSS64
+#
+#TSS64:
+#	.long 0
+#	.long tempstack
+#	.rept 0x2C
+#	.long 0
+#	.endr

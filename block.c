@@ -251,7 +251,7 @@ void FlushCaches(void)
 {
 	// We need to test whether we are dealing with SPARSE_SUPERBLOCKS or not. Assume yes for the time being
 	u_int32_t i;
-	char buffer[block_size];
+	char *buffer = AllocUMem(block_size);
 	memset(buffer, 0, (size_t)block_size);
 
 	for (i = 0; i < no_of_blockgroups; i++)
@@ -266,8 +266,8 @@ void FlushCaches(void)
 			sb.s_block_group_nr = (u_int16_t)i;
 			if (i == 0)
 			{
-				WritePSector((char *)&sb, PartitionStart * (block_size / SECTOR_SIZE + 2));
-				WritePSector((char *)&sb + SECTOR_SIZE, PartitionStart * (block_size / SECTOR_SIZE + 3));
+				WritePSector((char *)&sb, PartitionStart * (block_size / SECTOR_SIZE) + 2);
+				WritePSector((char *)&sb + SECTOR_SIZE, PartitionStart * (block_size / SECTOR_SIZE) + 3);
 			}
 			else
 				WriteBlock(StartOfGroup(i), (char *) &sb);
@@ -278,6 +278,7 @@ void FlushCaches(void)
 		WriteBlock(group_descriptors[i].bg_inode_bitmap,
 				&inode_bitmap[i * block_size]);
 	}
+	DeallocMem(buffer);
 }
 
 //===================================================================
@@ -286,7 +287,7 @@ void FlushCaches(void)
 void GetINode(u_int32_t inodeNumber, struct ext2_inode *inode)
 {
 	u_int32_t group_number, block_in_group, block, number_in_block;
-	char buffer[block_size];
+	char *buffer = AllocUMem(block_size);
 	struct ext2_inode *inodes;
 
 	inodeNumber--;		// inodes are numbered from 1, arrays from 0
@@ -300,6 +301,7 @@ void GetINode(u_int32_t inodeNumber, struct ext2_inode *inode)
 	inodes = (struct ext2_inode *) buffer;
 	memcpy((void *) inode, (void *) &inodes[number_in_block * inodeMultiplier],
 			sizeof(struct ext2_inode));
+	DeallocMem(buffer);
 }
 
 //===================================================================
@@ -308,7 +310,7 @@ void GetINode(u_int32_t inodeNumber, struct ext2_inode *inode)
 void PutINode(u_int32_t inodeNumber, struct ext2_inode *inode)
 {
 	u_int32_t group_number, block_in_group, block, number_in_block;
-	char buffer[block_size];
+	char *buffer = AllocUMem(block_size);
 	struct ext2_inode *inodes;
 
 	inodeNumber--;
@@ -323,6 +325,7 @@ void PutINode(u_int32_t inodeNumber, struct ext2_inode *inode)
 	memcpy((void *) &inodes[number_in_block * inodeMultiplier], (void *) inode,
 			sizeof(struct ext2_inode));
 	WriteBlock(block, buffer);
+	DeallocMem(buffer);
 }
 
 //===========================================================
@@ -331,7 +334,7 @@ void PutINode(u_int32_t inodeNumber, struct ext2_inode *inode)
 __le32 GetFileINode(char *path)
 {
 	char *temp, *name;
-	char buffer[block_size];
+	char *buffer = AllocUMem(block_size);
 	u_int32_t startingDirectory = currentDirectory;
 
 	temp = AllocUMem(strlen(path) + 1);
@@ -350,7 +353,7 @@ __le32 GetFileINode(char *path)
 		int dir_pos;
 
 		GetINode(startingDirectory, &parentINode);
-		ReadBlock(parentINode.i_block[0], (char *) &buffer);
+		ReadBlock(parentINode.i_block[0], buffer);
 		dir = (struct ext2_dir_entry_2 *) buffer;
 		dir_pos = 0;
 		while (1)
@@ -363,6 +366,7 @@ __le32 GetFileINode(char *path)
 			if (dir_pos >= (int)(parentINode.i_size))
 			{
 				DeallocMem(temp);
+				DeallocMem(buffer);
 				return 0;
 			}
 		}
@@ -370,6 +374,7 @@ __le32 GetFileINode(char *path)
 		name = strtok(/*NULL*/ 0, "/");
 	}
 	DeallocMem(temp);
+	DeallocMem(buffer);
 	return startingDirectory;
 }
 
@@ -606,4 +611,5 @@ void AddBlockToFile(struct FCB *fcb)
 		fcb->fileCursor = temp;
 	}
 	SetBufferFromCursor(fcb);
+	DeallocMem(buffer);
 }

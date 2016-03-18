@@ -1,6 +1,7 @@
 	.include "../include/syscalls.inc"
 
 	.global sys_sendmessage
+	.type sys_sendmessage, @function
 
 	.text
 

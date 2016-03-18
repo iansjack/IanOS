@@ -1,6 +1,7 @@
 	.include "../include/syscalls.inc"
 
 	.global sys_allocmessageport
+	.type sys_allocmessageport, @function
 
 	.text
 

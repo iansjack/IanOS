@@ -1,11 +1,7 @@
 #include <errno.h>
 #include <kernel.h>
 
-#undef errno
-
 void * Alloc_Page(void *);
-
-extern int errno;
 
 static char sbrk_first_time = 1;
 static int sbrk_size = 0;

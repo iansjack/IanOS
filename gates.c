@@ -102,24 +102,24 @@ void InitIDT(void)
 	for (i = 0; i < 48; i++) {
 		CreateTrapGate(code64, (long)&intr, i, 0);
 	}
-	CreateTrapGate(code64, (long)&div0, 0, 1);
-	CreateTrapGate(code64, (long)&i1, 1, 1);
-	CreateTrapGate(code64, (long)&i2, 2, 1);
-	CreateTrapGate(code64, (long)&i3, 3, 1);
-	CreateTrapGate(code64, (long)&i4, 4, 1);
-	CreateTrapGate(code64, (long)&i5, 5, 1);
-	CreateTrapGate(code64, (long)&i6, 6, 1);
-	CreateTrapGate(code64, (long)&i7, 7, 1);
+	CreateTrapGate(code64, (long)&div0, 0, 0);
+	CreateTrapGate(code64, (long)&i1, 1, 0);
+	CreateTrapGate(code64, (long)&i2, 2, 0);
+	CreateTrapGate(code64, (long)&i3, 3, 0);
+	CreateTrapGate(code64, (long)&i4, 4, 0);
+	CreateTrapGate(code64, (long)&i5, 5, 0);
+	CreateTrapGate(code64, (long)&i6, 6, 0);
+	CreateTrapGate(code64, (long)&i7, 7, 0);
 	CreateTrapGate(code64, (long)&df, 8, 1);
-	CreateTrapGate(code64, (long)&i9, 9, 1);
-	CreateTrapGate(code64, (long)&ia, 10, 1);
-	CreateTrapGate(code64, (long)&ib, 11, 1);
-	CreateTrapGate(code64, (long)&ic, 12, 1);
-	CreateTrapGate(code64, (long)&gpf, 13, 1);
-	CreateTrapGate(code64, (long)&pf, 14, 1);
+	CreateTrapGate(code64, (long)&i9, 9, 0);
+	CreateTrapGate(code64, (long)&ia, 10, 0);
+	CreateTrapGate(code64, (long)&ib, 11, 0);
+	CreateTrapGate(code64, (long)&ic, 12, 0);
+	CreateTrapGate(code64, (long)&gpf, 13, 0);
+	CreateTrapGate(code64, (long)&pf, 14, 0);
 	CreateTrapGate(code64, (long)&SwitchTasks, 20, 0);
 	CreateTrapGate(code64, (long)&SpecificSwitchTasks, 22, 0);
-	CreateTrapGate(code64, (long)&TimerInt, 32, 0);
+	CreateTrapGate(code64, (long)&TimerInt, 32, 1);
 	CreateIntGate(code64, (long)&KbInt, 33, 0);
 	// CreateIntGate(code64, (long)&NicInt, 42, 0);
 	// CreateIntGate(code64, (long)&NicInt, 43, 0);
@@ -143,6 +143,6 @@ void CreateTssDesc(long base, int selector)
 	desc->p = 1;
 	desc->baselo = (unsigned short)(base & 0xFFFF);
 	desc->basemid1 = (unsigned char)((base >> 16) & 0xFF);
-	desc->basemid2 = (unsigned char)((base >> 20) & 0xFF);
-	desc->basehi = (unsigned int)((base >> 24) & 0xFFFFFFFF);
+	desc->basemid2 = (unsigned char)((base >> 24) & 0xFF);
+	desc->basehi = (unsigned int)((base >> 32) & 0xFFFFFFFF);
 }

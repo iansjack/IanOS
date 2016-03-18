@@ -253,8 +253,8 @@ long WriteFile(struct FCB *fcb, char *buffer, long noBytes)
 //===============================================
 long DeleteFile(char *name)
 {
-	char buffer[block_size];
-	char buffer1[block_size];
+	char *buffer = AllocKMem(block_size);
+	char *buffer1 = AllocKMem(block_size);
 	__le32 *blocks;
 	__le32 *iblocks;
 	int i, j;
@@ -272,6 +272,8 @@ long DeleteFile(char *name)
 	parentINodeNo = GetFileINode(parentDirectory);
 	if (parentINodeNo == (u_int32_t) -ENOENT)
 	{
+		DeallocMem(buffer);
+		DeallocMem(buffer1);
 		DeallocMem(parentDirectory);
 		return -ENOENT;
 	}
@@ -279,7 +281,13 @@ long DeleteFile(char *name)
 	// Now free the blocks allocated to this file
 	fcb = OpenFile(name);
 	if ((long)fcb < 0)
+	{
+		DeallocMem(buffer);
+		DeallocMem(buffer1);
+		DeallocMem(parentDirectory);
 		return (long) fcb;
+	}
+
 	// Delete all direct blocks
 	for (i = 0; i < EXT2_IND_BLOCK; i++)
 		if (fcb->inode->i_block[i])
@@ -327,23 +335,28 @@ long DeleteFile(char *name)
 	while (strlen(fileName) != entry->name_len
 			|| strncmp(entry->name, fileName, entry->name_len))
 	{
-		if ((long)entry + entry->name_len - (long)buffer
+		if ((long)entry + entry->name_len - (long)dirBuffer
 				> (long)dirFcb->inode->i_size)
 		{
 			DeallocMem(dirBuffer);
 			(void)CloseFile(dirFcb);
+			DeallocMem(buffer);
+			DeallocMem(buffer1);
 			DeallocMem(parentDirectory);
 			return -ENOENT;
 		}
 		prevEntry = entry;
 		entry = (struct ext2_dir_entry_2 *) ((char *) entry + entry->rec_len);
 	}
+
 	// Entry now points to the directory entry for this file, prevEntry to the previous one
 	prevEntry->rec_len += entry->rec_len;
 	(void)Seek(dirFcb, 0, SEEK_SET);
 	(void)WriteFile(dirFcb, dirBuffer, (long)dirFcb->inode->i_size);
 	DeallocMem(dirBuffer);
 	(void)CloseFile(dirFcb);
+	DeallocMem(buffer);
+	DeallocMem(buffer1);
 	DeallocMem(parentDirectory);
 
 	// Finally, delete the inode

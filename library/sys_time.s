@@ -1,7 +1,7 @@
 	.include "../include/syscalls.inc"
 	
 	.global sys_time
-
+	.type	sys_time, @function
 	.text
 
 sys_time:

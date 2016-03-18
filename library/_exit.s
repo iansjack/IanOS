@@ -1,6 +1,6 @@
 	.include "../include/syscalls.inc"
 	.global _exit;
-
+	.type _exit, @function
 	.text
 
 _exit:

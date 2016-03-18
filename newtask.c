@@ -5,15 +5,21 @@
 #include <elf.h>
 #include <blocks.h>
 #include <pagetab.h>
+#include <elffunctions.h>
+#include <reent.h>
 
-extern void *registers;
+// extern void *registers;
 
 //void ZeroPage(long);	// Defined in tasking.s
-void GoToSleep(long);	// Defined in syscalls.s
+void
+GoToSleep(long);	// Defined in syscalls.s
 
-void SaveRegisters(struct Task *);	// Defined in tasking.s
-struct Task *NewKernelTask(void *TaskCode);
-long ParseEnvironmentString(long *);
+void
+SaveRegisters(struct Task *);	// Defined in tasking.s
+struct Task *
+NewKernelTask(void *TaskCode);
+long
+ParseEnvironmentString(long *);
 
 struct Task *currentTask;
 struct TaskList *runnableTasks;
@@ -23,11 +29,9 @@ struct TaskList *allTasks;
 struct TaskList *deadTasks;
 long canSwitch;
 long pass;
+void *entrypoint;
 
-//extern unsigned char *PMap;
-//extern long nPagesFree;
-//extern long nPages;
-//extern long firstFreePage;
+extern long nPagesFree;
 extern struct MessagePort *FSPort;
 
 unsigned short nextpid;
@@ -43,7 +47,41 @@ void LinkTask(struct Task *task)
 	runnableTasks = AddToTailOfTaskList(runnableTasks, task);
 	asm("popf");
 }
-extern void *registers;
+//extern void *registers;
+
+//=========================================================
+// Copy the given page and all consecutive subsequent ones
+//=========================================================
+void CopyPages(long address, struct Task *task)
+{
+	address &= PageMask;
+	// Get physical address of current PT
+
+	struct PML4 *pml4 = (struct PML4 *) (task->cr3);
+	struct PML4 *current_pml4 = (struct PML4 *) (currentTask->cr3);
+
+	while (1)
+	{
+		struct PT *pt = GetPT(pml4, address, task->pid);
+		struct PT *currentPT = GetPT(current_pml4, address, currentTask->pid);
+
+		int i = GetPTIndex(address);
+		if (!(VIRT(PT,currentPT) ->entries[i].value))
+			break;
+
+		// Copy the physical memory
+		p_Address data = AllocPage(task->pid);
+		//data += VAddr / 8;
+		CreatePTEWithPT((struct PML4 *)task->cr3, data, address, task->pid,
+				US | RW | P | 0x800);
+		memcpy(
+				(void *) PAGE(((VIRT(PT, pt)) ->entries[i].value)) + VAddr,
+				(void *) PAGE(((VIRT(PT, currentPT)) ->entries[i].value)) + VAddr, PageSize);
+		address += PageSize;
+	}
+
+}
+
 //=========================================================================
 // Fork the current process.
 // Return the pid of the new process
@@ -55,22 +93,50 @@ unsigned short DoFork()
 
 	// Copy task structure, with adjustments
 	struct Task *task = (struct Task *) AllocKMem(sizeof(struct Task));
+
 	memcpy((char *) task, (char *) currentTask, sizeof(struct Task));
 	pid = task->pid = nextpid++;
-	task->currentDirName = AllocKMem((size_t)strlen(currentTask->currentDirName) + 1);
+	task->currentDirName = AllocKMem(
+			(size_t) strlen(currentTask->currentDirName) + 1);
 	strcpy(task->currentDirName, currentTask->currentDirName);
 	task->parentPort = 0;
 
-	// Copy Page Table and pages
+	// Create Page Directory
 	task->cr3 = (long) VCreatePageDir(pid, currentTask->pid);
 
+	Elf64_Ehdr *header = (Elf64_Ehdr *)UserCode;
+	if ((header->e_ident)[1] != 'E')// Not the best of tests, but good enough
+		CopyPages(UserCode, task);
+	else
+	{
+
+		Elf64_Phdr *pheadertable = (Elf64_Phdr *)(UserCode + header->e_phoff);
+		int i;
+
+		for (i = 0; i < header->e_phnum; i++)
+		{
+			if (pheadertable[i].p_type == PT_LOAD)
+			{
+				CopyPages(pheadertable[i].p_vaddr, task);
+			}
+		}
+	}
+
+	// Copy user stack and kernel stack
+	CopyPages(UserStack, task);
+
 	//Page Tables to allow access to E1000
-	CreatePTEWithPT((struct PML4 *)task->cr3, registers, (long)registers, 0, 7);
-	CreatePTEWithPT((struct PML4 *)task->cr3, registers + 0x1000, (long)registers + 0x1000, 0, 7);
-	CreatePTEWithPT((struct PML4 *)task->cr3, registers + 0x2000, (long)registers + 0x2000, 0, 7);
-	CreatePTEWithPT((struct PML4 *)task->cr3, registers + 0x3000, (long)registers + 0x3000, 0, 7);
-	CreatePTEWithPT((struct PML4 *)task->cr3, registers + 0x4000, (long)registers + 0x4000, 0, 7);
-	CreatePTEWithPT((struct PML4 *)task->cr3, registers + 0x5000, (long)registers + 0x5000, 0, 7);
+	/*CreatePTEWithPT((struct PML4 *) task->cr3, registers, (long) registers, 0, 7);
+	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x1000,
+	 (long) registers + 0x1000, 0, 7);
+	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x2000,
+	 (long) registers + 0x2000, 0, 7);
+	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x3000,
+	 (long) registers + 0x3000, 0, 7);
+	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x4000,
+	 (long) registers + 0x4000, 0, 7);
+	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x5000,
+	 (long) registers + 0x5000, 0, 7);*/
 	task->forking = 1;
 
 	// Create FCBs for STDI, STDOUT, and STDERR
@@ -142,6 +208,7 @@ void LoadFlat(struct FCB * fHandle)
 
 	// Load the user code
 	(void) ReadFromFile(fHandle, location, codelen - 30);
+	entrypoint = (void *) UserCode;
 
 	// Allocate pages for user data
 	currentPage = UserData;
@@ -168,37 +235,8 @@ void LoadFlat(struct FCB * fHandle)
 
 void LoadElf(struct Message *FSMsg, struct FCB * fHandle)
 {
-	Elf64_Ehdr header;
-	Elf64_Phdr pheader;
-	long currentPage, size, sizetoallocate, sizetoload, loadlocation;
-	char *c;
-
-	(void) ReadFromFile(fHandle, (char *) &header, (long) sizeof(Elf64_Ehdr));
-	(void) SeekFile(FSMsg, fHandle, (long) header.e_phoff, SEEK_SET);
-	(void) ReadFromFile(fHandle, (char *) &pheader, (long) sizeof(Elf64_Phdr));
-	sizetoallocate = (long) pheader.p_memsz;
-	sizetoload = (long) pheader.p_filesz;
-	loadlocation = (long) pheader.p_offset;
-	(void) SeekFile(FSMsg, fHandle, loadlocation, SEEK_SET);
-	currentPage = UserCode;
-	size = sizetoallocate;
 	ClearUserMemory();
-	while (size > 0)
-	{
-		(void) AllocAndCreatePTE(currentPage, currentTask->pid, RW | US | P);
-		size -= PageSize;
-		currentPage += PageSize;
-	}
-	(void) ReadFromFile(fHandle, (char *)UserCode, sizetoload);
-	// zero .bss
-	c = (char *)(UserCode + sizetoload);
-	while (sizetoload < size)
-	{
-		*c = 0;
-		c++;
-		sizetoload++;
-	}
-
+	ReadElf(FSMsg, fHandle, 0, &entrypoint, currentTask->pid);
 	(void) AllocAndCreatePTE(UserData, currentTask->pid, RW | US | P);
 	currentTask->firstfreemem = UserData;
 }
@@ -278,9 +316,10 @@ long DoExec(char *name, char *environment)
 			currentTask->firstfreemem += argc * sizeof(char *);
 
 			// Build the first MemStruct struct. Is all this necessary? User tasks don't use the kernel memory allocation, do they?
-			l = (long *)(currentTask->firstfreemem);
+			l = (long *) (currentTask->firstfreemem);
 			*l = 0;
-			*(l + 1) = -(long)(((sizeof(struct MemStruct) + currentTask->firstfreemem)) % PageSize);
+			*(l + 1) = -(long) (((sizeof(struct MemStruct)
+					+ currentTask->firstfreemem)) % PageSize);
 			asm("mov %0,%%rdi;" "mov %1,%%rsi":
 					: "r"(argc), "r"(argv):"%rax", "%rdi");
 			return 0;
@@ -314,7 +353,8 @@ void Do_Wait(unsigned short pid)
 //==========================
 // Create a new Kernel task
 //==========================
-struct Task * NewKernelTask(void *TaskCode)
+struct Task *
+NewKernelTask(void *TaskCode)
 {
 	long *stack;
 	struct Task *task = (struct Task *) AllocKMem(sizeof(struct Task));
@@ -324,14 +364,24 @@ struct Task * NewKernelTask(void *TaskCode)
 	task->waiting = 0;
 	task->cr3 = (long) VCreatePageDir(task->pid, 0);
 	//Page Tables to allow access to E1000
-	CreatePTEWithPT((struct PML4 *)task->cr3, registers, (long)registers, 0, 7);
-	CreatePTEWithPT((struct PML4 *)task->cr3, registers + 0x1000, (long)registers + 0x1000, 0, 7);
-	CreatePTEWithPT((struct PML4 *)task->cr3, registers + 0x2000, (long)registers + 0x2000, 0, 7);
-	CreatePTEWithPT((struct PML4 *)task->cr3, registers + 0x3000, (long)registers + 0x3000, 0, 7);
-	CreatePTEWithPT((struct PML4 *)task->cr3, registers + 0x4000, (long)registers + 0x4000, 0, 7);
-	CreatePTEWithPT((struct PML4 *)task->cr3, registers + 0x5000, (long)registers + 0x5000, 0, 7);
+	/*  CreatePTEWithPT((struct PML4 *) task->cr3, registers, (long) registers, 0, 7);
+	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x1000,
+	 (long) registers + 0x1000, 0, 7);
+	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x2000,
+	 (long) registers + 0x2000, 0, 7);
+	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x3000,
+	 (long) registers + 0x3000, 0, 7);
+	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x4000,
+	 (long) registers + 0x4000, 0, 7);
+	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x5000,
+	 (long) registers + 0x5000, 0, 7);*/
 	task->ds = data64;
-	stack = (long *) (TempUStack + PageSize) - 5;
+	//stack = (long *) (TempUStack + PageSize) - 5;
+	stack = (long *)AllocPage(task->pid);
+	CreatePTEWithPT((struct PML4 *)task->cr3, (p_Address)stack, UserStack, task->pid, RW | P);
+	stack += VAddr / 8;
+	stack += PageSize / 8;
+	stack -= 5;
 	task->rsp = (long) ((long *) (UserStack + PageSize) - 5);
 	task->r15 = (long) task;
 	stack[0] = (long) TaskCode;
@@ -342,7 +392,10 @@ struct Task * NewKernelTask(void *TaskCode)
 	asm("pushf");
 	asm("cli");
 	LinkTask(task);
-	data = (long *) TempUserData;
+	//data = (long *) TempUserData;
+	data = (long *)AllocPage(task->pid);
+	data += VAddr / 8;
+	CreatePTEWithPT((struct PML4 *)task->cr3, (p_Address)data, UserData, task->pid, RW | P);
 	data[0] = 0;
 	data[1] = (long) (PageSize - sizeof(struct MemStruct));
 	task->firstfreemem = UserData;
@@ -382,13 +435,13 @@ void KillTask(void)
 	}
 
 	/*if (task->environment)
-		DeallocMem(task->environment);
-	if (task->argv)
-		DeallocMem(task->argv);*/
+	 DeallocMem(task->environment);
+	 if (task->argv)
+	 DeallocMem(task->argv);
+	 */
 
 	//Don't want to task switch whilst destroying task
 	// asm("cli");
-
 	// Unlink task from runnable queue
 	runnableTasks = RemoveFromTaskList(runnableTasks, task);
 
@@ -408,13 +461,12 @@ void KillTask(void)
 	if (currentTask->currentDirName)
 		DeallocMem(currentTask->currentDirName);
 
-	// Add the task to the Dead Tasks queue
-	deadTasks = AddToHeadOfTaskList(deadTasks, currentTask);
-
 	// Remove task from allTasks queue;
 	allTasks = RemoveFromTaskList(allTasks, currentTask);
 
-//	task->pid = 0;
+	// Add the task to the Dead Tasks queue
+	deadTasks = AddToHeadOfTaskList(deadTasks, currentTask);
+
 	SWTASKS;
 }
 
@@ -443,7 +495,8 @@ void UnBlockTask(struct Task *task)
 //=========================================
 // Returns the task structure with PID pid
 //=========================================
-struct Task * PidToTask(unsigned short pid)
+struct Task *
+PidToTask(unsigned short pid)
 {
 	struct TaskList *tempTask = allTasks;
 
@@ -456,6 +509,15 @@ struct Task * PidToTask(unsigned short pid)
 	return tempTask->task;
 }
 
+ClearIfUser(long n)
+{
+	if (n & 0x800)
+	{
+		ClearBit(n >> 12);
+		nPagesFree++;
+	}
+}
+
 //=====================================
 // The one task that is always runnable
 //=====================================
@@ -463,7 +525,8 @@ void dummyTask()
 {
 	unsigned short int pid;
 	struct TaskList *t;
-	long count;
+	unsigned long cr3;
+	unsigned long i, j, k, l;
 
 	while (1)
 	{
@@ -471,12 +534,50 @@ void dummyTask()
 		{
 			t = deadTasks;
 			deadTasks = deadTasks->next;
-			pid = t->task->pid;
+
+			// Release user pages
+			struct PML4 *pml4 = (struct PML4 *) (PAGE(t->task->cr3));
+			for (i = 0; i < 512; i++)
+			{
+				unsigned long temp = (VIRT(PML4,pml4) ->entries[i].value);
+				if (temp)
+				{
+					for (j = 0; j < 512; j++)
+					{
+						unsigned long temp2 =
+								(VIRT(PDP,(PAGE(temp))) ->entries[j].value);
+						if (temp2)
+						{
+							for (k = 0; k < 512; k++)
+							{
+								unsigned long temp3 =
+										(VIRT(PD,(PAGE(temp2))) ->entries[k].value);
+								if (temp3)
+								{
+									for (l = 0; l < 512; l++)
+									{
+										unsigned long temp4 =
+												(VIRT(PT,(PAGE(temp3))) ->entries[l].value);
+										ClearIfUser(temp4);
+									}
+								}
+								ClearIfUser(temp3);
+							}
+						}
+						ClearIfUser(temp2);
+					}
+				}
+				ClearIfUser(temp);
+			}
+			ClearBit((long) pml4 >> 12);
+			nPagesFree++;
+
 			DeallocMem(t->task);
 			DeallocMem(t);
 		}
 		else
 			asm("hlt");
+		kprintf(1, 40, "Free Pages = %d", nPagesFree);
 	}
 }
 
@@ -507,9 +608,12 @@ long ParseEnvironmentString(long *l)
 	return argc;
 }
 
-extern void kbTaskCode(void);
-extern void consoleTaskCode(void);
-extern void fsTaskCode(void);
+extern void
+kbTaskCode(void);
+extern void
+consoleTaskCode(void);
+extern void
+fsTaskCode(void);
 
 //===================================================================
 // This starts the dummy task and the services

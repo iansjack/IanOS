@@ -1,6 +1,7 @@
 	.include "../include/syscalls.inc"
 	
 	.global sys_execve
+	.type sys_execve, @function
 
 	.text
 

@@ -1,6 +1,7 @@
 	.include "../include/syscalls.inc"
 	
 	.global sys_open
+	.type sys_open,@function
 
 	.text
 

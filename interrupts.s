@@ -82,9 +82,9 @@ TimerInt:
 	incb hour
 	cmp $24, hour
 	jl noupdate
-	call gettime
+#	call gettime
 noupdate:
-	call PrintClock
+#	call PrintClock
 nosecupdate:
 	movb $10, TimeSliceCount
 	cmp $0, canSwitch
@@ -203,8 +203,6 @@ i5:	KWRITE_STRING $boundmessage, $0, $0
 	jmp intrr
 
 i6:	KWRITE_STRING $invalidopcodemessage, $0, $0
-	cli
-	hlt
 	jmp intrr
 
 i7:	KWRITE_STRING $devnotavailmessage, $0, $0

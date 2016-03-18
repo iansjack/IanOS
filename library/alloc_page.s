@@ -1,7 +1,7 @@
 	.include "../include/syscalls.inc"
 	
 	.global Alloc_Page;
-
+	.type Alloc_Page, @function
 	.text
 
 Alloc_Page:

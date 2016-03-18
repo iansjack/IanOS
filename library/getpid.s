@@ -1,6 +1,7 @@
 	.include "../include/syscalls.inc"
 	
 	.global getpid
+	.type getpid, @function
 
 	.text
 

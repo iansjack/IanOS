@@ -1,6 +1,8 @@
 	.include "../include/syscalls.inc"
 
 	.global sys_getnetport
+	.type sys_getnetport, @function
+
 	.text
 
 sys_getnetport:

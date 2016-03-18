@@ -1,6 +1,7 @@
 	.include "../include/syscalls.inc"
 	
 	.global waitpid
+	.type waitpid,@function
 
 	.text
 

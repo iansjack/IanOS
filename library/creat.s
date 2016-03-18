@@ -1,6 +1,7 @@
 	.include "../include/syscalls.inc"
 	
 	.global creat
+	.type creat, @function
 
 	.text
 

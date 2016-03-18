@@ -1,8 +1,6 @@
 /*
  * Stub version of isatty.
  */
-//#include <errno.h>
-//extern int errno;
 
 int isatty(int file)
 {

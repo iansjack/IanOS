@@ -1,7 +1,7 @@
 	.include "../include/syscalls.inc"
 	
 	.global sys_write
-
+	.type sys_write, @function
 	.text
 
 sys_write:

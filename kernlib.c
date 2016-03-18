@@ -890,6 +890,7 @@ char *strcpy(char *destination, char *source)
 //===============================================================
 long strcmp(char *s1, char *s2)
 {
+	if (s1 == s2) return 0;
 	long retval = 1;
 	int count = 0;
 	while (s1[count] == s2[count])

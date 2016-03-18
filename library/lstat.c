@@ -2,7 +2,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <errno.h>
-#include <types.h>
 #include "filesystem.h"
 
 int sys_lstat(char *, struct FileInfo *);
@@ -12,10 +11,6 @@ typedef mode_t __mode_t;
 
 #undef __ino_t
 typedef ino_t __ino_t;
-
-
-#undef errno
-extern int errno;
 
 int lstat(char *path, struct stat *st)
 {

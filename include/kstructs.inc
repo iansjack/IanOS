@@ -34,4 +34,5 @@ TS.gs				= 232			# dw 0
 TS.ss				= 234			# dw 0
 TS.forking			= 236			# db 0
 TS.waiting			= 237			# db 0	; 0 = free to run, 1 = waiting
-TS.size				= 238
+TS.reent			= 238
+TS.size				= 246

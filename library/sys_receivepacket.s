@@ -1,6 +1,7 @@
 	.include "../include/syscalls.inc"
 
 	.global sys_receivepacket
+	.type sys_receivepacket, @function
 
 	.text
 

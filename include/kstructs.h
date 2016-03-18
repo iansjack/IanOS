@@ -50,6 +50,7 @@ struct Task
 	short int ss;
 	unsigned char forking;
 	unsigned char waiting;
+	long data;
 };
 
 struct Message

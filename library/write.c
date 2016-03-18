@@ -3,9 +3,6 @@
 
 long sys_write(int, const void *, size_t);
 
-#undef errno
-extern int errno;
-
 int write(int fd, const void *buf, size_t count)
 {
 	long retvalue = sys_write(fd, buf, count);

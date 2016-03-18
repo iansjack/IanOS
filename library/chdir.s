@@ -1,6 +1,7 @@
 	.include "../include/syscalls.inc"
 	
 	.global chdir
+	.type chdir, @function
 	.text
 
 chdir:

@@ -1,6 +1,7 @@
 	.include "../include/syscalls.inc"
 	
 	.global lseek
+	.type lseek, @function
 
 	.text
 

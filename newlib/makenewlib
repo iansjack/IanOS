@@ -1,8 +1,8 @@
 rm -rf build-newlib
 mkdir build-newlib
 cd build-newlib
-export CFLAGS='-fno-stack-protector -fno-builtin -ffixed-r15 -Wno-error -mno-red-zone -g'
-../newlib*/configure --target=x86_64-elf --prefix=/usr/local/cross/IanOS
+export CFLAGS='-fno-stack-protector -fno-builtin -ffixed-r15 -Wno-error -mno-red-zone -g -fPIC'
+../newlib*/configure --with-newlib --target=x86_64-elf --prefix=/usr/local/cross/IanOS
 make
 make install
 cp /usr/local/cross/IanOS/x86_64-elf/lib/libc.a /usr/local/cross/x86_64-elf/lib

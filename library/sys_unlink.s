@@ -1,6 +1,7 @@
 	.include "../include/syscalls.inc"
 	
 	.global sys_unlink
+	.type sys_unlink,@function
 
 	.text
 

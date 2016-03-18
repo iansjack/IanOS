@@ -8,23 +8,23 @@
 #ifndef ETH_H_
 #define ETH_H_
 
-#include <types.h>
+#include <stdint.h>
 
 struct mac_address
 {
-	uint_8	add1;
-	uint_8	add2;
-	uint_8	add3;
-	uint_8	add4;
-	uint_8	add5;
-	uint_8	add6;
+	uint8_t	add1;
+	uint8_t	add2;
+	uint8_t	add3;
+	uint8_t	add4;
+	uint8_t	add5;
+	uint8_t	add6;
 };
 
 struct eth_header
 {
 	struct mac_address	destination;
 	struct mac_address	source;
-	uint_16		type;
+	uint16_t		type;
 };
 
 #define ETH_TYPE_IP4	0x0008

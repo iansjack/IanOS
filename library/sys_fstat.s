@@ -1,6 +1,7 @@
 	.include "../include/syscalls.inc"
 	
 	.global sys_fstat
+	.type sys_fstat, @function
 
 	.text
 

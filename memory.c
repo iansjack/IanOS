@@ -1,5 +1,6 @@
 #include <kernel.h>
 #include <pagetab.h>
+#include <transfer.h>
 
 extern struct Task *currentTask;
 extern struct TaskList *runnableTasks;
@@ -11,25 +12,37 @@ extern long canSwitch;
 extern long pass;
 extern unsigned short nextpid;
 unsigned char *oMemMax;
+
 long nPagesFree;
 long nPages;
 long firstFreePage;
+long kernelPT;
+long virtualPDP;
+
 struct MemStruct *firstFreeKMem;
-unsigned short int *PMap;
+unsigned short int *PMap = (unsigned short *)PageMap;
 long memorySemaphore;
 long initialCR3;
-
 long sec, min, hour, day, month, year, tenths, unixtime;
 
 struct MessagePort *KbdPort;
 struct MessagePort *ConsolePort;
 struct MessagePort *FSPort;
 struct MessagePort *NetPort;
-struct MemoryMap mmap[16];	// This doesn't cut it, but OK for testing.
-char *mMap = (char *)mmap;
+
+//int ncpu;
+//uint32_t lapicaddr;
 
 void InitMem64(void)
 {
+	struct transfer *t;
+	t = (struct transfer *)0x910;
+	nPages = t->nPages;
+	nPagesFree = t->nPagesFree;
+	firstFreePage = t->firstFreePage;
+	kernelPT = t->kernelPT;
+	virtualPDP = t->virtualPDP;
+
 	firstFreeKMem = (struct MemStruct *) OSHeap;
 	firstFreeKMem->next = 0;
 	firstFreeKMem->size = (long)(PageSize - sizeof(struct MemStruct));
@@ -81,7 +94,7 @@ void * AllocMem(size_t sizeRequested, struct MemStruct *list)
 			// Find first unmapped address
 			long temp = (long) list + sizeof(struct MemStruct) + list->size;
 			if (kernel)
-				(void) AllocAndCreatePTE(temp, 1, RW | G | P);
+				(void) AllocAndCreatePTE(temp, 0, RW | G | P);
 			else
 				(void) AllocAndCreatePTE(temp, currentTask->pid, RW | US | P);
 			list->size += PageSize;

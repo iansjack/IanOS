@@ -8,6 +8,7 @@
 
 	.global SysCalls
 	.global SetCurrentDirectory
+	.global reloc
 
 CallNo:
 	.quad	Sys_Exit
@@ -189,7 +190,8 @@ Sys_Execve:
 	cmp $0,%rax
 	jne notLoaded
 	mov $(UserStack + PageSize), %rsp
-	push $UserCode
+#	push $UserCode
+	push entrypoint
 notLoaded:
 	pop %rcx
 	sysretq
@@ -391,3 +393,11 @@ Alloc_Shared_Page:
 	call AllocSharedPage
 	pop %rcx
 	sysretq
+
+reloc:
+	push %rcx
+	mov	$64, %rcx
+	cld
+	rep movsb
+	pop %rcx
+	ret

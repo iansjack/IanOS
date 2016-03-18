@@ -1,6 +1,7 @@
 	.include "../include/syscalls.inc"
 	
 	.global getcwd
+	.type getcwd, @function
 
 	.text
 

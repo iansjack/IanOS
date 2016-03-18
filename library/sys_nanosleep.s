@@ -1,6 +1,7 @@
 	.include "../include/syscalls.inc"
 	
 	.global sys_nanosleep
+	.type sys_nanosleep,@function
 
 	.text
 

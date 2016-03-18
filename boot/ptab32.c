@@ -1,12 +1,11 @@
 #include <memory.h>
 #include <pagetab32.h>
+#include <transfer.h>
 
 void CreatePT164(struct PT *, int i);
 void CreatePhysicalToVirtual(struct PML4 *, long);
 
-extern long long virtualPDP;
-extern long long kernelPT;
-extern long nPages;
+struct transfer *t = (struct transfer *)0x910;
 
 //================================================================================
 // Create a Page Directory with the necessary entries in the first Page Table.
@@ -29,8 +28,8 @@ struct PML4 * CreatePageDir()
 	pd->entries[0].Lo = (long) pt1 | P | RW;
 	pd->entries[1].Lo = (long) pt2 | P | RW;
 	CreatePT164(pt1, 0);
-	CreatePhysicalToVirtual(pml4, (long) nPages);
-	kernelPT = (long long) ((long) pt1);
+	CreatePhysicalToVirtual(pml4, (long) t->nPages);
+	t->kernelPT = (long long) ((long) pt1);
 	return pml4;
 }
 
@@ -41,26 +40,13 @@ struct PML4 * CreatePageDir()
 //=====================================================================
 void CreatePT164(struct PT * pt, int i)
 {
-//	unsigned char *PMap = (unsigned char *) PageMap;
 	int count;
 
 	pt->entries[0].Hi = 0;
 	pt->entries[0].Lo = P | RW;
-	//for (count = 1; count < 0x10; count++)
-	//{
-	//	pt->entries[count].Hi = 0;
-	//	pt->entries[count].Lo = (count << 12) | P | RW | G;
-	//}
-	// Kernel initialized datadata
-	//for (count = 0x10; count < 0x100; count++)
-	//	if (PMap[count] == 1)
-	//	{
-	//		pt->entries[count].Hi = 0;
-	//		pt->entries[count].Lo = (count << 12) | P | RW | G;
-	//	}
-	// PageTab
+
 	for (count = 0x0 + i * 0x200; count < 0x200 + i * 0x200; count++)
-		if (GetBit32(count))
+		//if (GetBit32(count))
 		{
 			pt->entries[count].Hi = 0;
 			pt->entries[count].Lo = (count << 12) | P | RW | G;
@@ -81,8 +67,8 @@ void CreatePhysicalToVirtual(struct PML4 * pml4, long noOfPages)
 	struct PD * pd;
 	struct PT * pt;
 
-	virtualPDP = (long long) ((long) pdp);
-	pml4->entries[1].Lo = (long) pdp | P | RW;
+	t->virtualPDP = (long long) ((long) pdp);
+	pml4->entries[1].Lo = (long) pdp | P | RW | US;
 
 	for (count3 = 0; count3 < PDsNeeded; count3++)
 	{

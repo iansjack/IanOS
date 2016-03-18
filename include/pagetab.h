@@ -67,12 +67,16 @@ struct PT {
 	struct PTE entries[64];
 };
 
-void *AllocPage(unsigned short int pid);
-long CreatePTE(void *pAddress, long lAddress, unsigned short pid, short flags);
-long AllocAndCreatePTE(long lAddress, unsigned short pid, short flags);
-long CreatePTEWithPT(struct PML4 *pml4, void *pAddress, long lAddress,
+p_Address AllocPage(unsigned short int pid);
+p_Address CreatePTE(p_Address pAddress, l_Address lAddress, unsigned short pid, short flags);
+p_Address AllocAndCreatePTE(l_Address lAddress, unsigned short pid, short flags);
+p_Address CreatePTEWithPT(struct PML4 *pml4, p_Address pAddress, l_Address lAddress,
 		     unsigned short pid, short flags);
-void *VCreatePageDir(unsigned short pid, unsigned short parentPid);
+p_Address VCreatePageDir(unsigned short pid, unsigned short parentPid);
 void ClearUserMemory(void);
+void AllocateRange(l_Address lAddress, long size, unsigned short pid);
+struct PT *GetPT(struct PML4 *, l_Address, unsigned short);
+
+#define VIRT(type, name) ((struct type *) ((long) name + VAddr))
 
 #endif

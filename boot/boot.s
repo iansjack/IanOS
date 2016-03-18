@@ -1,5 +1,5 @@
-.include "macros.s"
-.include "include/memory.inc"
+.include "../macros.s"
+.include "../include/memory.inc"
 
 # Declare constants used for creating a multiboot header.
 .set ALIGN,    1<<0             # align loaded modules on page boundaries
@@ -35,8 +35,9 @@ stack_top:
 .global _start
 .type _start, @function
 _start:
+#	call mp_init
 # relocate GDT
-	mov $0, %di
+	mov $0x2000, %di
 	lea (mygdt), %si
 	mov $0x40, %cx
 	cld
@@ -59,12 +60,11 @@ _start:
     cld
     rep movsb
 
-    mov $OSCode, %eax
-    jmp *%eax
+.include "startup.s"
 
-#===================================================
-# Global Descriptor Table - will be relocated to 0x0
-#===================================================
+#======================================================
+# Global Descriptor Table - will be relocated to 0x2000
+#======================================================
 mygdt:	.quad	0x0	       					# null descriptor - first entry in GDT must be null
 	CODE_SEG_DESCR OsCodeSeg,0x0,0xfffff,0	# 32-bit descriptors
 	DATA_SEG_DESCR OsDataSeg,0x0,0xfffff
@@ -75,5 +75,20 @@ mygdt:	.quad	0x0	       					# null descriptor - first entry in GDT must be null
 
 GDTlength = . - mygdt
 
-gdt_48: 	.word	0x800	  # allow up to 512 entries in GDT
-		.double	0x00000000
+gdt_48: .word	0x0800	  # allow up to 512 entries in GDT
+		.word	0x2000
+		.word	0x0000
+
+
+# A minimal stack whilst the system is being initialized
+.rept 128
+	.quad 0
+.endr
+tempstack:
+
+		.bss
+
+		.global startofbss
+
+startofbss:
+

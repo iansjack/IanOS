@@ -1,4 +1,4 @@
-.include "include/memory.inc"
+#.include "include/memory.inc"
 OsCodeSeg 	= 0x8
 OsDataSeg 	= 0x10
 code64	  	= 0x18
@@ -16,7 +16,7 @@ code64	  	= 0x18
 #=====================
 # Protected Mode code
 #=====================
-_start:
+#_start:
 here:
 	mov $OsDataSeg, %eax
 	mov %eax, %ds
@@ -26,10 +26,12 @@ here:
 # Zero .bss data
 	cld
 	mov $startofbss, %edi
-	mov $PageSize  / 2, %ecx
+#	mov $PageSize  / 2, %ecx
+	mov $0x512, %ecx
 	mov $0, %eax
 	rep stosw
 
+#	call mp_init
 	call InitMemManagement
 	call HwSetup
 
@@ -53,10 +55,4 @@ here:
 	bts $31, %eax                  # Enable write protection
 	mov %eax, %cr0
 
-	jmp $code64, $start64
-
-		.bss
-
-		.global startofbss
-
-startofbss:
+	jmp $code64, $0x180000 			# $start64

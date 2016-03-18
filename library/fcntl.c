@@ -1,7 +1,7 @@
 #include <errno.h>
 //#include <sys/fcntl.h>
-#undef errno
-extern int errno;
+//#undef errno
+//extern int errno;
 
 int fcntl(int filedes, int cmd, ...)
 {

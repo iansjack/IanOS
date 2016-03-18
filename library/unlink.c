@@ -3,9 +3,6 @@
 
 long sys_unlink(const char *);
 
-#undef errno
-extern int errno;
-
 int unlink(const char *filename)
 {
 	long retvalue = sys_unlink(filename);

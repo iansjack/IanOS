@@ -1,6 +1,7 @@
 	.include "../include/syscalls.inc"
 	
 	.global fork
+	.type fork, @function
 
 	.text
 

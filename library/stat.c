@@ -3,9 +3,6 @@
 #include <fcntl.h>
 #include "filesystem.h"
 
-#undef errno
-extern int errno;
-
 int stat(const char *filename, struct stat *st)
 {
 	int fd = open(filename, O_RDONLY);

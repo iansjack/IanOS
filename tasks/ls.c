@@ -4,9 +4,15 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include "ext2_fs.h"
+#include <reent.h>
+
+//static struct _reent reent;
 
 int main(int argc, char **argv)
-{
+{//	_REENT_INIT_PTR((&reent));
+//	long *p = (long *)0x8100261d20;
+//	*p = &reent;
+
 	char *buffer;
 	char *cwd = malloc(256);
 
