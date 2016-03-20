@@ -6,7 +6,7 @@ LDFLAGS = -Xlinker -Tlinker.script
 
 LDLIBS = ~/IanOS/netlib/libnet.a
 
-TASKS = pwd ls cat edit sh rm cp nettest netserver dhcp
+TASKS = pwd ls cat edit sh rm cp nettest netserver dhcp memory
 
 all : $(TASKS)
 

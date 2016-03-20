@@ -27,9 +27,10 @@ tasks/nettest
 .project*
 .cproject*
 binutils/
+gcc/
 newlib/
 myos.iso
 large
 packet.dat
 *.pcap
-
+*.so

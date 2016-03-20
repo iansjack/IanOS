@@ -56,9 +56,9 @@ _start:
 	mov  %rax, TS.cr3(%r15)
 	mov	%r15, currentTask
 
-#	call mp_init
-#	call lapic_init
-#	call boot_aps
+	call mp_init
+	call lapic_init
+	call boot_aps
 
 	mov $2, %rdi
 	call AllocPage                     	# Page for kernel stack

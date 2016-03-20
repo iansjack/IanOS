@@ -10,6 +10,9 @@ extern long virtualPDP;
 
 extern struct Task *currentTask;
 
+//long allocations[32];
+//long currAlloc;
+
 void Debug()
 {
 }
@@ -23,6 +26,12 @@ void SetBit(int count)
 
 void ClearBit(int count)
 {
+//	long mem = count << 12;
+//	int n;
+//	for (n = 0; n < 32; n++)
+//		if (allocations[n] == mem)
+//			allocations[n] = 0;
+
 	int i = count / 8;
 	int j = count % 8;
 	PMap[i] &= ~(1 << j);
@@ -63,13 +72,17 @@ unsigned int GetPML4Index(l_Address lAddress)
 //=========================================================================
 p_Address checkPTE(l_Address lAddress)
 {
+	struct PML4 *pml4 = (struct PML4 *)currentTask->cr3;
+	return checkPTEWithPT(pml4, lAddress);
+}
+
+p_Address checkPTEWithPT(struct PML4 *pml4, l_Address lAddress)
+{
 	unsigned int ptIndex = GetPTIndex(lAddress);
 	unsigned int pdIndex = GetPDIndex(lAddress);
 	unsigned int pdpIndex = GetPDPIndex(lAddress);
 	unsigned int pml4Index = GetPML4Index(lAddress);
 	p_Address pdp, pd, pt;
-
-	struct PML4 *pml4 = (struct PML4 *) (PAGE(currentTask->cr3));
 
 	pdp = PAGE(VIRT(PML4,pml4) ->entries[pml4Index].value);
 	if (!pdp)
@@ -78,7 +91,8 @@ p_Address checkPTE(l_Address lAddress)
 	if (!pd)
 		return 0;
 	pt = PAGE(VIRT(PD,pd) ->entries[pdIndex].value);
-	return 0;
+	if (!pt)
+		return 0;
 	if ((VIRT(PT,pt) ->entries[ptIndex].value))
 		return PAGE((VIRT(PT,pt) ->entries[ptIndex].value));
 	return 0;
@@ -307,6 +321,10 @@ p_Address AllocPage(unsigned short int PID)
 		// Zero-fill page
 		for (count = 0; count < PageSize; count++)
 			((char *) mem + VAddr)[count] = 0;
+
+//		if (currAlloc < 32) allocations[currAlloc++] = mem;
+//		if (mem == 0x8e1000)
+//			asm("jmp .");
 
 		return (mem);
 	}

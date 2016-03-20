@@ -166,7 +166,6 @@ ReadElf(struct Message * FSMsg, struct FCB *fHandle, struct library *lib,
 		lib->size = baseinc;
 		lib->symbols = dynsymtab;
 		lib->symbolnames = (char *)dynstrtab;
-//		lib->_impure_ptr = 0x8100261d20;
 	}
 
 	if (dynamicsize)
@@ -247,6 +246,7 @@ ReadElf(struct Message * FSMsg, struct FCB *fHandle, struct library *lib,
 			default:
 				asm("jmp .");
 			}
+			DeallocMem(needed);
 		}
 		// Now do the procedure relocations
 		for (i = 0; i < relapltsize; i++)
@@ -293,6 +293,7 @@ LoadLibrary(struct library *lib)
 	DeallocMem(kname);
 
 	ReadElf(FSMsg, fHandle, lib, 0, 0);
+	DeallocMem(FSMsg);
 }
 
 DoRelocation(struct library *lib, char *name, Elf64_Rela rela, l_Address base)

@@ -76,6 +76,8 @@ p_Address VCreatePageDir(unsigned short pid, unsigned short parentPid);
 void ClearUserMemory(void);
 void AllocateRange(l_Address lAddress, long size, unsigned short pid);
 struct PT *GetPT(struct PML4 *, l_Address, unsigned short);
+p_Address checkPTEWithPT(struct PML4 *, l_Address);
+p_Address checkPTE(l_Address lAddress);
 
 #define VIRT(type, name) ((struct type *) ((long) name + VAddr))
 

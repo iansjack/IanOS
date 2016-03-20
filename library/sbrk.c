@@ -12,7 +12,7 @@ void *sbrk(int size)
 	if (sbrk_first_time) 
 	{
 		sbrk_first_time = 0;
-		sbrk_curbrk = Alloc_Page(0);
+		sbrk_curbrk = Alloc_Page(1);
 		sbrk_size = PageSize - ((long) sbrk_curbrk % PageSize);
 		while (sbrk_size < 0)
 			sbrk_size += PageSize;

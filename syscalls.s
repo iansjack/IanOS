@@ -70,7 +70,7 @@ Alloc_Page:
 	sysretq
 alloc:
 	mov  TS.pid(%r15), %rsi
-	mov	 $7, %rdx
+	mov	 $0x807, %rdx
 	call AllocAndCreatePTE
 	pop %rcx
 	sysretq
