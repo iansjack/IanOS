@@ -9,7 +9,7 @@
 
 extern struct MessagePort *FSPort;
 struct library *libs = 0;
-l_Address base = 0x000008100000000L;
+l_Address base = 0x000000040000000L;
 
 struct library *GetLib(char *libName)
 {
@@ -24,6 +24,7 @@ struct library *GetLib(char *libName)
 		lib->name = AllocKMem(strlen(libName));
 		strcpy(lib->name, libName);
 		lib->base = base;
+		lib->data_base = 0;
 		lib->next = 0;
 		libs = lib;
 	}
@@ -89,8 +90,21 @@ ReadElf(struct Message * FSMsg, struct FCB *fHandle, struct library *lib,
 		{
 		case PT_LOAD:
 		{
+			unsigned char user = 0;
+			if (pheadertable[i].p_flags & PF_W)
+			{
+				user = 1;
+				if (lib)
+				{
+					lib->data_base = base2 + pheadertable[i].p_vaddr;
+					lib->data_size = pheadertable[i].p_memsz;
+				}
+			}
+			else
+				if (lib)
+					lib->code_size = pheadertable[i].p_memsz;
 			AllocateRange(base2 + pheadertable[i].p_vaddr,
-					pheadertable[i].p_memsz, pid);
+					pheadertable[i].p_memsz, pid, user);
 			loadlocation = (long) pheadertable[i].p_offset;
 			SeekFile(FSMsg, fHandle, loadlocation, SEEK_SET);
 			ReadFromFile(fHandle, (char *) (base2 + pheadertable[i].p_vaddr),
@@ -156,16 +170,16 @@ ReadElf(struct Message * FSMsg, struct FCB *fHandle, struct library *lib,
 	// zero .bss
 	while (bsssize)
 	{
-		*((char *)bssptr) = 0;
+		*((char *) bssptr) = 0;
 		bssptr++;
 		bsssize--;
 	}
 
 	if (lib)
 	{
-		lib->size = baseinc;
+//		lib->size = baseinc;
 		lib->symbols = dynsymtab;
-		lib->symbolnames = (char *)dynstrtab;
+		lib->symbolnames = (char *) dynstrtab;
 	}
 
 	if (dynamicsize)
@@ -188,7 +202,8 @@ ReadElf(struct Message * FSMsg, struct FCB *fHandle, struct library *lib,
 		for (i = 0; i < dynamicsize; i++)
 			if (dynamic[i].d_tag == DT_NEEDED)
 			{
-				needed[j].lib = GetLib(((char *)(dynstrtab + dynamic[i].d_un.d_val)));
+				needed[j].lib = GetLib(
+						((char *) (dynstrtab + dynamic[i].d_un.d_val)));
 				needed[j].name = dynamic[i].d_un.d_val;
 				j++;
 			}
@@ -255,7 +270,7 @@ ReadElf(struct Message * FSMsg, struct FCB *fHandle, struct library *lib,
 			for (j = 0; 1; j++)
 				if (name < needed[j + 1].name || name < needed[0].name)
 					break;
-			DoRelocation(needed[j].lib, (char *)(dynstrtab + name), relaplt[i],
+			DoRelocation(needed[j].lib, (char *) (dynstrtab + name), relaplt[i],
 					(long) base2);
 		}
 	}

@@ -3,9 +3,6 @@
 
 long sys_open(char *, int);
 
-#undef errno
-extern int errno;
-
 int open(char *filepath, int flags, ...)
 {
 	long retvalue = sys_open(filepath, flags);

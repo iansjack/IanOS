@@ -60,7 +60,7 @@ int packetLength(struct tcp_packet *packet)
 	return sizeof(struct eth_header) + be(packet->ip.length);
 }
 
-void HandleTCP(struct tcp_packet *packet)
+void HandleTCP(struct tcp_packet *packet, struct TCB *tcbs)
 {
 	unsigned short port = be(packet->tcp.destination_port);
 	struct TCB *temp = tcbs;

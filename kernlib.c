@@ -1,5 +1,5 @@
 #include <console.h>
-#include <sys/errno.h>
+#include <errno.h>
 #include <linux/types.h>
 #include <time.h>
 #include <fcntl.h>

@@ -2,11 +2,10 @@ include ../Flags.mak
 INC = -I /home/ian/IanOS/include
 CFLAGS = -fno-stack-protector -fno-builtin -ffixed-r15 -mno-red-zone -g \
 		-I $(CROSS)/include $(INC) 
-LDFLAGS = -Xlinker -Tlinker.script  
+LDFLAGS = -Xlinker -Tlinker.script -lc
 
-LDLIBS = ~/IanOS/netlib/libnet.a
-
-TASKS = pwd ls cat edit sh rm cp nettest netserver dhcp memory
+TASKS = pwd ls cat edit sh rm cp 
+# nettest netserver dhcp
 
 all : $(TASKS)
 

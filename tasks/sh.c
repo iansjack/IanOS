@@ -7,10 +7,6 @@
 
 int main(int argc, char **argv)
 {
-	// init();
-	// struct _reent temp;
-	// _REENT_INIT_PTR(&temp);
-
 	int column = 0;
 	char commandline[81];
 	char environment[81];

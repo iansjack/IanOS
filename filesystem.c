@@ -1,7 +1,7 @@
 #include <kernel.h>
 
 #include <linux/types.h>
-#include <sys/errno.h>
+#include <errno.h>
 #include "ext2_fs.h"
 #include "blocks.h"
 

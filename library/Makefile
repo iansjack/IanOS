@@ -18,7 +18,7 @@ crt0: crt0.s
 	$(AS) crt0.s -ocrt0.o
 	
 libc.so: $(OBJS)
-	ld -Tlinker.script -shared -o libc.so $(NEWLIB_OBJS) $(OBJS)
+	ld -shared -o libc.so $(NEWLIB_OBJS) $(OBJS)
 
 install: $(OBJS) libc.so	
 	cp crt0.o $(CROSS)/lib

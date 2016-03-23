@@ -14,7 +14,7 @@ struct socket *udp_sockets = 0;
 struct TCB *tcbs = 0;
 void *server_shared_memory;
 
-void HandleTCP(struct tcp_packet *packet);
+void HandleTCP(struct tcp_packet *packet, struct TCB *tcbs);
 
 void HandleUDP(struct udp_packet *packet)
 {
@@ -65,7 +65,7 @@ void HandleIP4(struct ip4_packet *packet)
 		HandleUDP((struct udp_packet *)packet);
 		break;
 	case PROTOCOL_TCP:
-		HandleTCP((struct tcp_packet *)packet);
+		HandleTCP((struct tcp_packet *)packet, tcbs);
 		break;
 	case PROTOCOL_ICMP:
 		HandleICMP((struct icmp_packet *)packet);

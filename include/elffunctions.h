@@ -13,7 +13,9 @@ struct library
 {
 	char *name;
 	l_Address base;
-	unsigned long size;
+	l_Address data_base;
+	unsigned long code_size;
+	unsigned long data_size;
 	Elf64_Sym *symbols;
 	char *symbolnames;
 //	struct _reent *_impure_ptr;

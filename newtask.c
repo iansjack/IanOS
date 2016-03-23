@@ -8,7 +8,7 @@
 #include <elffunctions.h>
 #include <reent.h>
 
-// extern void *registers;
+extern void *registers;
 
 void GoToSleep(long);	// Defined in syscalls.s
 
@@ -80,6 +80,7 @@ void CopyPages(l_Address address, struct Task *task)
 }
 
 extern long currAlloc;
+extern struct library *libs;
 
 //=========================================================================
 // Fork the current process.
@@ -111,7 +112,6 @@ unsigned short DoFork()
 		CopyPages(UserCode, task);
 	else
 	{
-
 		Elf64_Phdr *pheadertable = (Elf64_Phdr *) (UserCode + header->e_phoff);
 		int i;
 
@@ -122,23 +122,33 @@ unsigned short DoFork()
 				CopyPages(pheadertable[i].p_vaddr, task);
 			}
 		}
+		struct library *lib = libs;
+		while (lib)
+		{
+			CopyPages(lib->base, task);
+			CopyPages(lib->data_base, task);
+			lib = lib->next;
+		}
 	}
 
 	// Copy user stack and kernel stack
 	CopyPages(UserStack, task);
 
+	// Copy data area
+	CopyPages(UserData, task);
+
 	//Page Tables to allow access to E1000
-	/*CreatePTEWithPT((struct PML4 *) task->cr3, registers, (long) registers, 0, 7);
-	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x1000,
-	 (long) registers + 0x1000, 0, 7);
-	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x2000,
-	 (long) registers + 0x2000, 0, 7);
-	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x3000,
-	 (long) registers + 0x3000, 0, 7);
-	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x4000,
-	 (long) registers + 0x4000, 0, 7);
-	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x5000,
-	 (long) registers + 0x5000, 0, 7);*/
+	CreatePTEWithPT((struct PML4 *) task->cr3, registers, (long) registers, 0, 7);
+	CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x1000,
+			(long) registers + 0x1000, 0, 7);
+	CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x2000,
+			(long) registers + 0x2000, 0, 7);
+	CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x3000,
+			(long) registers + 0x3000, 0, 7);
+	CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x4000,
+			(long) registers + 0x4000, 0, 7);
+	CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x5000,
+			(long) registers + 0x5000, 0, 7);
 	task->forking = 1;
 
 	// Create FCBs for STDI, STDOUT, and STDERR
@@ -240,10 +250,10 @@ void LoadFlat(struct FCB * fHandle)
 //======================================
 void LoadElf(struct Message *FSMsg, struct FCB * fHandle)
 {
-	ClearUserMemory();
+//	ClearUserMemory();
 	ReadElf(FSMsg, fHandle, 0, &entrypoint, currentTask->pid);
-	(void) AllocAndCreatePTE(UserData, currentTask->pid, RW | US | P);
-	currentTask->firstfreemem = UserData;
+//	(void) AllocAndCreatePTE(UserData, currentTask->pid, RW | US | P);
+//	currentTask->firstfreemem = UserData;
 }
 
 //===============================================================================
@@ -310,21 +320,21 @@ long DoExec(char *name, char *environment)
 			// Process the arguments for argc and argv
 			// Copy environment string to user data space
 			// It occupies the 81 bytes after the current first free memory
-			currentTask->environment = (void *) currentTask->firstfreemem;
+			currentTask->environment = UserData; //(void *) currentTask->firstfreemem;
 			memcpy(currentTask->environment, environment, 80);
-			currentTask->firstfreemem += 80;
+			currentTask->firstfreemem = UserData + PageSize; //+= 80;
 			argv = (long) currentTask->environment;
 			argc = ParseEnvironmentString(&argv);
 			argv += 80;
 
 			// Adjust firstfreemem to point to the first free memory location.
-			currentTask->firstfreemem += argc * sizeof(char *);
+			//currentTask->firstfreemem += argc * sizeof(char *);
 
 			// Build the first MemStruct struct. Is all this necessary? User tasks don't use the kernel memory allocation, do they?
-			l = (long *) (currentTask->firstfreemem);
-			*l = 0;
-			*(l + 1) = -(long) (((sizeof(struct MemStruct)
-					+ currentTask->firstfreemem)) % PageSize);
+			//l = (long *) (currentTask->firstfreemem);
+			//*l = 0;
+			//*(l + 1) = -(long) (((sizeof(struct MemStruct)
+			//		+ currentTask->firstfreemem)) % PageSize);
 			asm("mov %0,%%rdi;" "mov %1,%%rsi":
 					: "r"(argc), "r"(argv):"%rax", "%rdi");
 			return 0;
@@ -370,17 +380,19 @@ struct Task *NewKernelTask(void *TaskCode)
 	task->cr3 = (long) VCreatePageDir(task->pid, 0);
 
 	//Page Tables to allow access to E1000
-	/*  CreatePTEWithPT((struct PML4 *) task->cr3, registers, (long) registers, 0, 7);
-	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x1000,
-	 (long) registers + 0x1000, 0, 7);
-	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x2000,
-	 (long) registers + 0x2000, 0, 7);
-	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x3000,
-	 (long) registers + 0x3000, 0, 7);
-	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x4000,
-	 (long) registers + 0x4000, 0, 7);
-	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x5000,
-	 (long) registers + 0x5000, 0, 7);*/
+	CreatePTEWithPT((struct PML4 *) task->cr3, registers, (long) registers, 0,
+			7);
+	CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x1000,
+			(long) registers + 0x1000, 0, 7);
+	CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x2000,
+			(long) registers + 0x2000, 0, 7);
+	CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x3000,
+			(long) registers + 0x3000, 0, 7);
+	CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x4000,
+			(long) registers + 0x4000, 0, 7);
+	CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x5000,
+			(long) registers + 0x5000, 0, 7);
+
 
 	task->ds = data64;
 	stack = (long *) AllocPage(task->pid);
@@ -588,7 +600,7 @@ void dummyTask()
 		}
 		else
 			asm("hlt");
-		kprintf(1, 40, "Free Pages = %d", nPagesFree);
+		kprintf(0, 60, "Free Pages = %d", nPagesFree);
 	}
 }
 

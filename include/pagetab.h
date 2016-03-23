@@ -74,7 +74,7 @@ p_Address CreatePTEWithPT(struct PML4 *pml4, p_Address pAddress, l_Address lAddr
 		     unsigned short pid, short flags);
 p_Address VCreatePageDir(unsigned short pid, unsigned short parentPid);
 void ClearUserMemory(void);
-void AllocateRange(l_Address lAddress, long size, unsigned short pid);
+void AllocateRange(l_Address lAddress, long size, unsigned short pid, unsigned char user);
 struct PT *GetPT(struct PML4 *, l_Address, unsigned short);
 p_Address checkPTEWithPT(struct PML4 *, l_Address);
 p_Address checkPTE(l_Address lAddress);

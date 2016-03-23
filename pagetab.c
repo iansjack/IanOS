@@ -98,13 +98,16 @@ p_Address checkPTEWithPT(struct PML4 *pml4, l_Address lAddress)
 	return 0;
 }
 
-void AllocateRange(l_Address lAddress, long size, unsigned short pid)
+void AllocateRange(l_Address lAddress, long size, unsigned short pid, unsigned char user)
 {
 	l_Address startAddress = PAGE(lAddress);
 	l_Address endAddress = lAddress + size;
 
 	while (startAddress < endAddress)
 	{
+		int flags = RW | US | P;
+		if (user)
+			flags += 0x800;
 		if (!checkPTE(startAddress))
 			AllocAndCreatePTE(startAddress, pid, RW | US | P);
 		startAddress += PageSize;

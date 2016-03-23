@@ -69,9 +69,15 @@ Alloc_Page:
 	pop %rcx
 	sysretq
 alloc:
+	mov TS.firstfreemem(%r15), %rdi
 	mov  TS.pid(%r15), %rsi
 	mov	 $0x807, %rdx
 	call AllocAndCreatePTE
+	mov TS.firstfreemem(%r15), %rax
+	push %rax
+	add $PageSize, %rax
+	mov %rax, TS.firstfreemem(%r15)
+	pop %rax
 	pop %rcx
 	sysretq
 

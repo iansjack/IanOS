@@ -12,9 +12,6 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#undef errno
-extern int errno;
-
 void sys_truncate(int, int); // Defined in sys_truncate.s
 
 #define ctrl(x) x - 0x40

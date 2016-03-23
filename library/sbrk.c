@@ -3,24 +3,27 @@
 
 void * Alloc_Page(void *);
 
-static char sbrk_first_time = 1;
-static int sbrk_size = 0;
-static void * sbrk_curbrk;
+// static char sbrk_first_time = 1;
+// static int sbrk_size = 0;
+// static void * sbrk_curbrk;
 
 void *sbrk(int size)
 {
-	if (sbrk_first_time) 
-	{
-		sbrk_first_time = 0;
-		sbrk_curbrk = Alloc_Page(1);
-		sbrk_size = PageSize - ((long) sbrk_curbrk % PageSize);
-		while (sbrk_size < 0)
-			sbrk_size += PageSize;
-	}
+//	if (sbrk_first_time)
+//	{
+//		sbrk_first_time = 0;
+//		sbrk_curbrk = Alloc_Page(1);
+//		sbrk_size = PageSize - ((long) sbrk_curbrk % PageSize);
+//		while (sbrk_size < 0)
+//			sbrk_size += PageSize;
+//	}
+
+	void *sbrk_curbrk = Alloc_Page(0);
+	if (size <= 0) return(Alloc_Page(0)/*sbrk_curbrk*/);
 	
-	if (size <= 0) return(sbrk_curbrk);
+	long sbrk_size = 0;
 	while (size > sbrk_size) {
-	    if (Alloc_Page(sbrk_curbrk + sbrk_size))
+	    if (Alloc_Page(1 /*sbrk_curbrk + sbrk_size*/))
 	    	sbrk_size += PageSize;
 	    else
 	    {
@@ -28,10 +31,10 @@ void *sbrk(int size)
 	    	return ((void *) -1);
 	    }
 	}
-	sbrk_curbrk += size;
-	sbrk_size -= size;
+//	sbrk_curbrk += size;
+//	sbrk_size -= size;
 	errno = 0;
-	return((void *)(sbrk_curbrk - size));
+	return(sbrk_curbrk);
 }
 
 void *brk(void *x)

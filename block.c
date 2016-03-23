@@ -3,7 +3,7 @@
 //typedef int umode_t;
 
 #include <linux/types.h>
-#include <sys/errno.h>
+#include <errno.h>
 #include <sys/fcntl.h>
 #include <string.h>
 #include <unistd.h>
