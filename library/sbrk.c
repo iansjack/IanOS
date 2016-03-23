@@ -1,7 +1,7 @@
 #include <errno.h>
 #include <kernel.h>
 
-void * Alloc_Page(void *);
+l_Address Alloc_Page(unsigned char);
 
 // static char sbrk_first_time = 1;
 // static int sbrk_size = 0;

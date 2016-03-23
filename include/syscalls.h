@@ -15,7 +15,7 @@ long sys_GetTicks();
 long sys_GetCurrentConsole();
 struct MessagePort *sys_getnetport();
 struct MessagePort *sys_allocmessageport();
-void *Alloc_Page();
+l_Address Alloc_Page(unsigned char);
 void Alloc_Shared_Page(unsigned short pid, void * lAddress1, void *lAddress2);
 
 #endif

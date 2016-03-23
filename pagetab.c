@@ -10,8 +10,8 @@ extern long virtualPDP;
 
 extern struct Task *currentTask;
 
-//long allocations[32];
-//long currAlloc;
+long allocations[32];
+long currAlloc;
 
 void Debug()
 {
@@ -26,11 +26,11 @@ void SetBit(int count)
 
 void ClearBit(int count)
 {
-//	long mem = count << 12;
-//	int n;
-//	for (n = 0; n < 32; n++)
-//		if (allocations[n] == mem)
-//			allocations[n] = 0;
+	long mem = count << 12;
+	int n;
+	for (n = 0; n < 32; n++)
+		if (allocations[n] == mem)
+			allocations[n] = 0;
 
 	int i = count / 8;
 	int j = count % 8;
@@ -72,7 +72,7 @@ unsigned int GetPML4Index(l_Address lAddress)
 //=========================================================================
 p_Address checkPTE(l_Address lAddress)
 {
-	struct PML4 *pml4 = (struct PML4 *)currentTask->cr3;
+	struct PML4 *pml4 = (struct PML4 *) currentTask->cr3;
 	return checkPTEWithPT(pml4, lAddress);
 }
 
@@ -98,7 +98,8 @@ p_Address checkPTEWithPT(struct PML4 *pml4, l_Address lAddress)
 	return 0;
 }
 
-void AllocateRange(l_Address lAddress, long size, unsigned short pid, unsigned char user)
+void AllocateRange(l_Address lAddress, long size, unsigned short pid,
+		unsigned char user)
 {
 	l_Address startAddress = PAGE(lAddress);
 	l_Address endAddress = lAddress + size;
@@ -229,7 +230,7 @@ p_Address VCreatePageDir(unsigned short pid, unsigned short parentPid)
 p_Address AllocAndCreatePTE(l_Address lAddress, unsigned short pid, short flags)
 {
 	if (checkPTE(lAddress))
-		return(checkPTE(lAddress));
+		return (checkPTE(lAddress));
 	p_Address pAddress = AllocPage(pid);
 	char * l = (char *) pAddress + VAddr;
 	int i;
@@ -241,8 +242,8 @@ p_Address AllocAndCreatePTE(l_Address lAddress, unsigned short pid, short flags)
 //================================================================
 // Create a Page Table Entry in the Page Table pointed to by pml4
 //================================================================
-p_Address CreatePTEWithPT(struct PML4 *pml4, p_Address pAddress, l_Address lAddress,
-		unsigned short pid, short flags)
+p_Address CreatePTEWithPT(struct PML4 *pml4, p_Address pAddress,
+		l_Address lAddress, unsigned short pid, short flags)
 {
 	unsigned int ptIndex = GetPTIndex(lAddress);
 	struct PT *pt = GetPT(pml4, lAddress, pid);	// <=== The return value from this looks wrong
@@ -260,7 +261,8 @@ p_Address CreatePTEWithPT(struct PML4 *pml4, p_Address pAddress, l_Address lAddr
 //=====================================================
 // Create a Page Table Entry in the current Page Table
 //=====================================================
-p_Address CreatePTE(p_Address pAddress, l_Address lAddress, unsigned short pid, short flags)
+p_Address CreatePTE(p_Address pAddress, l_Address lAddress, unsigned short pid,
+		short flags)
 {
 	p_Address retVal = 0;
 	struct PML4 *pml4 = (struct PML4 *) (PAGE(currentTask->cr3));
@@ -278,16 +280,16 @@ p_Address CreatePTE(p_Address pAddress, l_Address lAddress, unsigned short pid, 
 
 void ClearUserMemory(void)
 {
-	// UserCode
+	// UserCode - No!!! Don't clear User Code
 	struct PT *pt = GetPT((struct PML4 *) (PAGE(currentTask->cr3)), UserCode,
 			currentTask->pid);
 	int i = 0;
-	while (VIRT(PT, pt) ->entries[i].value)
-	{
-		ClearBit(VIRT(PT,pt) ->entries[i].value >> 12);
-		nPagesFree++;
-		VIRT(PT,pt) ->entries[i++].value = 0;
-	}
+	//while (VIRT(PT, pt) ->entries[i].value)
+	//{
+	//	ClearBit(VIRT(PT,pt) ->entries[i].value >> 12);
+	//	nPagesFree++;
+	//	VIRT(PT,pt) ->entries[i++].value = 0;
+	//}
 
 	// User Data
 	pt = GetPT((struct PML4 *) (PAGE(currentTask->cr3)), UserData,
@@ -325,9 +327,12 @@ p_Address AllocPage(unsigned short int PID)
 		for (count = 0; count < PageSize; count++)
 			((char *) mem + VAddr)[count] = 0;
 
-//		if (currAlloc < 32) allocations[currAlloc++] = mem;
-//		if (mem == 0x8e1000)
-//			asm("jmp .");
+		if (currAlloc < 32) allocations[currAlloc++] = mem;
+//		if (mem == 0x8d6000)
+//		{
+//			asm("cli");
+//			asm("hlt");
+//		}
 
 		return (mem);
 	}
@@ -339,8 +344,65 @@ p_Address AllocPage(unsigned short int PID)
 // Also map the page to the process RDI
 // Map it in that process to logical address RDX
 //=================================================================
-void AllocSharedPage(unsigned short pid, l_Address lAddress1, l_Address lAddress2)
+void AllocSharedPage(unsigned short pid, l_Address lAddress1,
+		l_Address lAddress2)
 {
 	p_Address page = AllocAndCreatePTE(lAddress1, currentTask->pid, 7);
-	CreatePTEWithPT((struct PML4 *) (PidToTask(pid)->cr3), page, lAddress2, pid, 7);
+	CreatePTEWithPT((struct PML4 *) (PidToTask(pid)->cr3), page, lAddress2, pid,
+			7);
+}
+
+//================================================================
+// Copy the given page from the current page table to a new one
+// Return the logical address of the page, or zero if the
+// page doesn't exist
+//================================================================
+l_Address CopyPage(l_Address address, struct PML4 *pml4, unsigned short pid)
+{
+	// Page align the address
+	address = PAGE(address);
+
+	// Get physical address of page tables
+	struct PML4 *current_pml4 = (struct PML4 *) (currentTask->cr3);
+	struct PT *pt = GetPT(pml4, address, pid);
+	struct PT *currentPT = GetPT(current_pml4, address, currentTask->pid);
+	unsigned int i = GetPTIndex(address);
+	if (!(VIRT(PT,currentPT) ->entries[i].value))
+		return 0;
+
+	// Create and map the new page and copy the physical memory
+	if (!checkPTEWithPT(pml4, address))
+	{
+		p_Address data = AllocPage(pid);
+		CreatePTEWithPT(pml4, data, address, pid, US | RW | P | 0x800);
+	}
+	memcpy((void *) PAGE(((VIRT(PT, pt)) ->entries[i].value)) + VAddr,
+			(void *) PAGE(((VIRT(PT, currentPT)) ->entries[i].value))
+					+ VAddr, PageSize);
+	return address;
+}
+
+//===================================================================
+// Makes an entry in the page table pointing to the same page as the
+// entry in the current page table. Mark it as a non-user page
+// Return the logical address of the page, or zero if the
+// page doesn't exist
+//===================================================================
+l_Address DuplicatePage(l_Address address, struct PML4 *pml4, unsigned short pid)
+{
+	// Page align the address
+	address = PAGE(address);
+
+	// Get physical address of page tables
+	struct PML4 *current_pml4 = (struct PML4 *) (currentTask->cr3);
+	struct PT *pt = GetPT(pml4, address, pid);
+	struct PT *currentPT = GetPT(current_pml4, address, currentTask->pid);
+	unsigned int i = GetPTIndex(address);
+	if (!(VIRT(PT,currentPT) ->entries[i].value))
+		return 0;
+
+	// Create and map the new page and copy the physical memory
+	if (!checkPTEWithPT(pml4, address))
+		VIRT(PT, pt)->entries[i].value = VIRT(PT, currentPT)->entries[i].value & 0xFFFFFFFFFFFFF8FF;
+	return address;
 }

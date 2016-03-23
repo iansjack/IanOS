@@ -8,7 +8,10 @@
 #include <elffunctions.h>
 #include <reent.h>
 
-extern void *registers;
+extern long *allocations;
+extern long currAlloc;
+
+extern p_Address registers;
 
 void GoToSleep(long);	// Defined in syscalls.s
 
@@ -51,35 +54,30 @@ void CopyPages(l_Address address, struct Task *task)
 	// Page align the address
 	address = PAGE(address);
 
-	// Get physical address of page tables
-	struct PML4 *pml4 = (struct PML4 *) (task->cr3);
-	struct PML4 *current_pml4 = (struct PML4 *) (currentTask->cr3);
-
-	while (1)
+	l_Address retval = address;
+	while(retval)
 	{
-		struct PT *pt = GetPT(pml4, address, task->pid);
-		struct PT *currentPT = GetPT(current_pml4, address, currentTask->pid);
-
-		unsigned int i = GetPTIndex(address);
-		if (!(VIRT(PT,currentPT) ->entries[i].value))
-			break;
-
-		// Create and map the new page and copy the physical memory
-		if (!checkPTEWithPT(pml4, address))
-		{
-			p_Address data = AllocPage(task->pid);
-			CreatePTEWithPT((struct PML4 *) task->cr3, data, address, task->pid,
-					US | RW | P | 0x800);
-		}
-		memcpy((void *) PAGE(((VIRT(PT, pt)) ->entries[i].value)) + VAddr,
-				(void *) PAGE(((VIRT(PT, currentPT)) ->entries[i].value))
-						+ VAddr, PageSize);
+		retval = CopyPage(address, (struct PML4 *)(task->cr3), task->pid);
 		address += PageSize;
 	}
-
 }
 
-extern long currAlloc;
+//================================================================
+// Copy the given page and all consecutive subsequent mapped ones
+//================================================================
+void DuplicatePages(l_Address address, struct Task *task)
+{
+	// Page align the address
+	address = PAGE(address);
+
+	l_Address retval = address;
+	while(retval)
+	{
+		retval = DuplicatePage(address, (struct PML4 *)(task->cr3), task->pid);
+		address += PageSize;
+	}
+}
+
 extern struct library *libs;
 
 //=========================================================================
@@ -88,7 +86,7 @@ extern struct library *libs;
 //=========================================================================
 unsigned short DoFork()
 {
-//	currAlloc = 0;
+	currAlloc = 0;
 
 	unsigned short pid;
 	struct FCB *fcbin, *fcbout, *fcberr;
@@ -119,13 +117,16 @@ unsigned short DoFork()
 		{
 			if (pheadertable[i].p_type == PT_LOAD)
 			{
-				CopyPages(pheadertable[i].p_vaddr, task);
+				//if (pheadertable[i].p_flags & PF_W)
+					CopyPages(pheadertable[i].p_vaddr, task);
+				//else
+				//	DuplicatePages(pheadertable[i].p_vaddr, task);
 			}
 		}
 		struct library *lib = libs;
 		while (lib)
 		{
-			CopyPages(lib->base, task);
+			DuplicatePages(lib->base, task);
 			CopyPages(lib->data_base, task);
 			lib = lib->next;
 		}
@@ -138,7 +139,7 @@ unsigned short DoFork()
 	CopyPages(UserData, task);
 
 	//Page Tables to allow access to E1000
-	CreatePTEWithPT((struct PML4 *) task->cr3, registers, (long) registers, 0, 7);
+/*	CreatePTEWithPT((struct PML4 *) task->cr3, registers, (long) registers, 0, 7);
 	CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x1000,
 			(long) registers + 0x1000, 0, 7);
 	CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x2000,
@@ -148,7 +149,7 @@ unsigned short DoFork()
 	CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x4000,
 			(long) registers + 0x4000, 0, 7);
 	CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x5000,
-			(long) registers + 0x5000, 0, 7);
+			(long) registers + 0x5000, 0, 7);*/
 	task->forking = 1;
 
 	// Create FCBs for STDI, STDOUT, and STDERR
@@ -320,7 +321,7 @@ long DoExec(char *name, char *environment)
 			// Process the arguments for argc and argv
 			// Copy environment string to user data space
 			// It occupies the 81 bytes after the current first free memory
-			currentTask->environment = UserData; //(void *) currentTask->firstfreemem;
+			currentTask->environment = (void *)UserData;
 			memcpy(currentTask->environment, environment, 80);
 			currentTask->firstfreemem = UserData + PageSize; //+= 80;
 			argv = (long) currentTask->environment;
@@ -380,7 +381,7 @@ struct Task *NewKernelTask(void *TaskCode)
 	task->cr3 = (long) VCreatePageDir(task->pid, 0);
 
 	//Page Tables to allow access to E1000
-	CreatePTEWithPT((struct PML4 *) task->cr3, registers, (long) registers, 0,
+/*	CreatePTEWithPT((struct PML4 *) task->cr3, registers, (long) registers, 0,
 			7);
 	CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x1000,
 			(long) registers + 0x1000, 0, 7);
@@ -392,7 +393,7 @@ struct Task *NewKernelTask(void *TaskCode)
 			(long) registers + 0x4000, 0, 7);
 	CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x5000,
 			(long) registers + 0x5000, 0, 7);
-
+*/
 
 	task->ds = data64;
 	stack = (long *) AllocPage(task->pid);
