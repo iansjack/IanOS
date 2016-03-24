@@ -8,10 +8,10 @@
 #include <elffunctions.h>
 #include <reent.h>
 
-extern long *allocations;
-extern long currAlloc;
+//extern long *allocations;
+//extern long currAlloc;
 
-extern p_Address registers;
+//extern p_Address registers;
 
 void GoToSleep(long);	// Defined in syscalls.s
 
@@ -55,9 +55,9 @@ void CopyPages(l_Address address, struct Task *task)
 	address = PAGE(address);
 
 	l_Address retval = address;
-	while(retval)
+	while (retval)
 	{
-		retval = CopyPage(address, (struct PML4 *)(task->cr3), task->pid);
+		retval = CopyPage(address, (struct PML4 *) (task->cr3), task->pid);
 		address += PageSize;
 	}
 }
@@ -71,9 +71,9 @@ void DuplicatePages(l_Address address, struct Task *task)
 	address = PAGE(address);
 
 	l_Address retval = address;
-	while(retval)
+	while (retval)
 	{
-		retval = DuplicatePage(address, (struct PML4 *)(task->cr3), task->pid);
+		retval = DuplicatePage(address, (struct PML4 *) (task->cr3), task->pid);
 		address += PageSize;
 	}
 }
@@ -86,7 +86,9 @@ extern struct library *libs;
 //=========================================================================
 unsigned short DoFork()
 {
+#ifdef DEBUG
 	currAlloc = 0;
+#endif
 
 	unsigned short pid;
 	struct FCB *fcbin, *fcbout, *fcberr;
@@ -118,7 +120,7 @@ unsigned short DoFork()
 			if (pheadertable[i].p_type == PT_LOAD)
 			{
 				//if (pheadertable[i].p_flags & PF_W)
-					CopyPages(pheadertable[i].p_vaddr, task);
+				CopyPages(pheadertable[i].p_vaddr, task);
 				//else
 				//	DuplicatePages(pheadertable[i].p_vaddr, task);
 			}
@@ -139,17 +141,17 @@ unsigned short DoFork()
 	CopyPages(UserData, task);
 
 	//Page Tables to allow access to E1000
-/*	CreatePTEWithPT((struct PML4 *) task->cr3, registers, (long) registers, 0, 7);
-	CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x1000,
-			(long) registers + 0x1000, 0, 7);
-	CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x2000,
-			(long) registers + 0x2000, 0, 7);
-	CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x3000,
-			(long) registers + 0x3000, 0, 7);
-	CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x4000,
-			(long) registers + 0x4000, 0, 7);
-	CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x5000,
-			(long) registers + 0x5000, 0, 7);*/
+	/*	CreatePTEWithPT((struct PML4 *) task->cr3, registers, (long) registers, 0, 7);
+	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x1000,
+	 (long) registers + 0x1000, 0, 7);
+	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x2000,
+	 (long) registers + 0x2000, 0, 7);
+	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x3000,
+	 (long) registers + 0x3000, 0, 7);
+	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x4000,
+	 (long) registers + 0x4000, 0, 7);
+	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x5000,
+	 (long) registers + 0x5000, 0, 7);*/
 	task->forking = 1;
 
 	// Create FCBs for STDI, STDOUT, and STDERR
@@ -316,26 +318,16 @@ long DoExec(char *name, char *environment)
 
 		if (executable)
 		{
-			long *l;
-
 			// Process the arguments for argc and argv
 			// Copy environment string to user data space
-			// It occupies the 81 bytes after the current first free memory
-			currentTask->environment = (void *)UserData;
+			currentTask->environment = (void *) UserData;
 			memcpy(currentTask->environment, environment, 80);
-			currentTask->firstfreemem = UserData + PageSize; //+= 80;
+			currentTask->firstfreemem = UserData + PageSize;
 			argv = (long) currentTask->environment;
 			argc = ParseEnvironmentString(&argv);
 			argv += 80;
 
-			// Adjust firstfreemem to point to the first free memory location.
-			//currentTask->firstfreemem += argc * sizeof(char *);
-
-			// Build the first MemStruct struct. Is all this necessary? User tasks don't use the kernel memory allocation, do they?
-			//l = (long *) (currentTask->firstfreemem);
-			//*l = 0;
-			//*(l + 1) = -(long) (((sizeof(struct MemStruct)
-			//		+ currentTask->firstfreemem)) % PageSize);
+			// Load argc and argv into rdi and rsi
 			asm("mov %0,%%rdi;" "mov %1,%%rsi":
 					: "r"(argc), "r"(argv):"%rax", "%rdi");
 			return 0;
@@ -381,19 +373,19 @@ struct Task *NewKernelTask(void *TaskCode)
 	task->cr3 = (long) VCreatePageDir(task->pid, 0);
 
 	//Page Tables to allow access to E1000
-/*	CreatePTEWithPT((struct PML4 *) task->cr3, registers, (long) registers, 0,
-			7);
-	CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x1000,
-			(long) registers + 0x1000, 0, 7);
-	CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x2000,
-			(long) registers + 0x2000, 0, 7);
-	CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x3000,
-			(long) registers + 0x3000, 0, 7);
-	CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x4000,
-			(long) registers + 0x4000, 0, 7);
-	CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x5000,
-			(long) registers + 0x5000, 0, 7);
-*/
+	/*	CreatePTEWithPT((struct PML4 *) task->cr3, registers, (long) registers, 0,
+	 7);
+	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x1000,
+	 (long) registers + 0x1000, 0, 7);
+	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x2000,
+	 (long) registers + 0x2000, 0, 7);
+	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x3000,
+	 (long) registers + 0x3000, 0, 7);
+	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x4000,
+	 (long) registers + 0x4000, 0, 7);
+	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x5000,
+	 (long) registers + 0x5000, 0, 7);
+	 */
 
 	task->ds = data64;
 	stack = (long *) AllocPage(task->pid);
@@ -422,7 +414,6 @@ struct Task *NewKernelTask(void *TaskCode)
 	task->environment = (void *) 0;
 	task->parentPort = (void *) 0;
 	task->currentDirName = currentTask->currentDirName;
-	task->argv = 0;
 	task->console = 0;
 	asm("popf");
 	return (task);
@@ -454,14 +445,8 @@ void KillTask(void)
 		DeallocMem(m);
 	}
 
-	/*if (task->environment)
-	 DeallocMem(task->environment);
-	 if (task->argv)
-	 DeallocMem(task->argv);
-	 */
-
 	//Don't want to task switch whilst destroying task
-	// asm("cli");
+	asm("cli");
 	// Unlink task from runnable queue
 	runnableTasks = RemoveFromTaskList(runnableTasks, task);
 
@@ -601,7 +586,9 @@ void dummyTask()
 		}
 		else
 			asm("hlt");
+#ifdef DEBUG
 		kprintf(0, 60, "Free Pages = %d", nPagesFree);
+#endif
 	}
 }
 

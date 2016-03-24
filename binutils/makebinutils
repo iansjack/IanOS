@@ -1,8 +1,9 @@
+#include ~/IanOS/Flags.mak
 rm -rf build-binutils
 mkdir build-binutils
 cd build-binutils
 export CFLAGS='-fno-stack-protector -fno-builtin -ffixed-r15 -Wno-error -mno-red-zone -g'
-export LDFLAGS='-Xlinker -N -Xlinker -Ttext=0x4000000'
+export LDFLAGS='-Xlinker -N -Xlinker -Ttext=0x4000000 -lc'
 ../binutils*/configure --host=x86_64-elf --prefix=/usr/local/cross/IanOS
 make
 make install

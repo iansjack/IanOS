@@ -38,7 +38,7 @@ struct Task
 	char *environment;
 	struct MessagePort *parentPort;
 	char *currentDirName;
-	char **argv;
+	char **argv;						// *** This is unused ***
 	long console;
 	struct FCB *fcbList;
 	long FDbitmap;

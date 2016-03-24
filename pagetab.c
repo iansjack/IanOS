@@ -1,6 +1,8 @@
 #include <kernel.h>
 #include <pagetab.h>
 
+// #define DEBUG
+
 extern long nPagesFree;
 extern long firstFreePage;
 extern unsigned short int *PMap;
@@ -10,8 +12,10 @@ extern long virtualPDP;
 
 extern struct Task *currentTask;
 
-long allocations[32];
-long currAlloc;
+#ifdef DEBUG
+	long allocations[32];
+	long currAlloc;
+#endif
 
 void Debug()
 {
@@ -28,9 +32,12 @@ void ClearBit(int count)
 {
 	long mem = count << 12;
 	int n;
+
+#ifdef DEBUG
 	for (n = 0; n < 32; n++)
 		if (allocations[n] == mem)
 			allocations[n] = 0;
+#endif
 
 	int i = count / 8;
 	int j = count % 8;
@@ -327,12 +334,14 @@ p_Address AllocPage(unsigned short int PID)
 		for (count = 0; count < PageSize; count++)
 			((char *) mem + VAddr)[count] = 0;
 
+#ifdef DEBUG
 		if (currAlloc < 32) allocations[currAlloc++] = mem;
-//		if (mem == 0x8d6000)
-//		{
-//			asm("cli");
-//			asm("hlt");
-//		}
+		if (mem == 0x8d6000)
+		{
+			asm("cli");
+			asm("hlt");
+		}
+#endif
 
 		return (mem);
 	}

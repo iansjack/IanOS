@@ -116,7 +116,7 @@ void InitIDT(void)
 	CreateTrapGate(code64, (long)&ib, 11, 0);
 	CreateTrapGate(code64, (long)&ic, 12, 0);
 	CreateTrapGate(code64, (long)&gpf, 13, 0);
-	CreateTrapGate(code64, (long)&pf, 14, 0);
+	CreateTrapGate(code64, (long)&pf, 14, 1);
 	CreateTrapGate(code64, (long)&SwitchTasks, 20, 0);
 	CreateTrapGate(code64, (long)&SpecificSwitchTasks, 22, 0);
 	CreateTrapGate(code64, (long)&TimerInt, 32, 1);
