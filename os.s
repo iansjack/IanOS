@@ -51,7 +51,6 @@ _start:
 	movq $UserData, TS.firstfreemem(%r15)
 	movq $2, TS.pid(%r15)
 	movq $cd, TS.currentDirName(%r15)
-	movq $0, TS.argv(%r15)
 	mov  %cr3, %rax
 	mov  %rax, TS.cr3(%r15)
 	mov	%r15, currentTask
@@ -66,10 +65,7 @@ _start:
 	mov $KernelStack, %rsi
 	mov $2, %rdx
 	mov $3, %rcx
-
 	call CreatePTE
-#	movq $KernelStack + 0x1000, %rax
-#	mov %rax, TSS64 + 36               	# Kernel stack pointer in TSS
 
 	mov $2, %rdi
 	call AllocPage                     	# Page for user stack
@@ -97,10 +93,11 @@ _start:
 	mov $7, %rcx
 	call CreatePTE
 
-	mov $tas1, %rsi                   	# Move the task code
+	mov $tas1, %rsi                   	# Move the initial task code
 	mov $UserCode, %rdi
-	mov $0x1000, %rcx                 	# How do we find the length of tas1? It's so small
-	cld                               	# that we just assume it's under 0x1000 bytes
+	mov $endofsyscalls, %rcx			# We must include the syscall called from tas1!!!
+	sub $tas1, %rcx
+	cld
 	rep movsb
 
 	call enumeratePCIBus
@@ -128,7 +125,8 @@ gdt_48:	.word 0x800						# Allow up to 512 entries in GDT
 idt_64:	.word 0x800						# Allow up to 512 entries in IDT
 		.quad IDT
 
-# A minimal stack whilst the system is being initialized
+# A minimal stack whilst the system is being initialized. Also used as
+# stack for PF exceptions in case of problems with other stacks.
 .rept 128
 	.quad 0
 .endr

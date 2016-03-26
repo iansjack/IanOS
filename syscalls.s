@@ -39,14 +39,14 @@ CallNo:
 	.quad	Unimplemented	#Sys_Ptrace
 	.quad	Sys_Alarm
 	.quad	Sys_FStat
-	.quad	GetTicks
+	.quad	Unimplemented	#GetTicks
 	.quad	Sys_Nanosleep
-	.quad	Alloc_Mem
+	.quad	Unimplemented   #Alloc_Mem
 	.quad	Send_Message
 	.quad	Receive_Message
-	.quad	Dealloc_Mem
+	.quad	Unimplemented	#Dealloc_Mem
 	.quad	Send_Receive
-	.quad	GetCurrentConsole
+	.quad	Unimplemented	#GetCurrentConsole
 	.quad 	Sys_Getcwd
 	.quad	Sys_MkDir
 	.quad	Alloc_Page
@@ -245,9 +245,9 @@ Sys_LSeek:
 #=============================================================================
 # Return in RAX the number of (10ms) clock ticks since the system was started
 #=============================================================================
-GetTicks:
-	mov Ticks, %rax
-	sysretq
+#GetTicks:
+#	mov Ticks, %rax
+#	sysretq
 
 #=====================================================
 # Suspend the current task for for RDI 10ms intervals
@@ -262,15 +262,15 @@ Sys_Nanosleep:
 # Allocate some memory from the heap. RDI = amount to allocate
 # Returns in RAX address of allocated memory.
 #==============================================================
-Alloc_Mem:
-	push %rcx
-	push %r15
-	mov  currentTask, %r15
-	mov  TS.firstfreemem(%r15), %rsi
-	call AllocMem
-	pop %r15
-	pop  %rcx
-	sysretq
+#Alloc_Mem:
+#	push %rcx
+#	push %r15
+#	mov  currentTask, %r15
+#	mov  TS.firstfreemem(%r15), %rsi
+#	call AllocMem
+#	pop %r15
+#	pop  %rcx
+#	sysretq
 
 #===================================
 # Send a message to a message port.
@@ -298,11 +298,11 @@ Receive_Message:
 # Deallocate the memory at location RDI.
 # This will deallocate both user and kernel memory
 #==================================================
-Dealloc_Mem:
-	push %rcx
-	call DeallocMem
-	pop %rcx
-	sysretq
+#Dealloc_Mem:
+#	push %rcx
+#	call DeallocMem
+#	pop %rcx
+#	sysretq
 
 #======================================================
 # Send a message to a message port and receive a reply
@@ -318,12 +318,12 @@ Send_Receive:
 #=================================================
 # Returns the console (0 - 3) of the current task
 #=================================================
-GetCurrentConsole:
-	push %r15
-	mov currentTask, %r15
-	mov TS.console(%r15), %rax
-	pop %r15
-	sysretq
+#GetCurrentConsole:
+#	push %r15
+#	mov currentTask, %r15
+#	mov TS.console(%r15), %rax
+#	pop %r15
+#	sysretq
 
 #===================================================
 # Returns the current directory of the current task

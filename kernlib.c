@@ -41,16 +41,14 @@ void setclock()
 
 long FindFirstFreeFD()
 {
-	long n;
-	long bitmap = currentTask->FDbitmap;
-
-	for (n = 0; n < (long) sizeof(long); n++)
-		if (!(bitmap & (1 << n)))
+	unsigned char n;
+	for (n = 0; n < 16; n++)
+		if (!(currentTask->fcb[n]))
 			return n;
 	return -EMFILE;
 }
 
-//===============================================================
+/*//===============================================================
 // Convert a file descriptor for the current process to an FCB
 //===============================================================
 struct FCB *fdToFCB(FD fileDescriptor)
@@ -64,7 +62,7 @@ struct FCB *fdToFCB(FD fileDescriptor)
 	}
 	return temp;
 }
-
+*/
 //================================================
 // Read noBytes into buffer from the file fHandle
 //================================================
@@ -187,23 +185,19 @@ FD DoOpen(char *s, int flags)
 	}
 	DeallocMem(S);
 	DeallocMem(msg);
+
 	if ((long) fcb > 0)
 	{
 		struct FCB *temp;
 		FD fileDescriptor = FindFirstFreeFD();
 		if (fileDescriptor == -EMFILE)
 			return -EMFILE;
-		currentTask->FDbitmap |= 1 << fileDescriptor;
-		fcb->fileDescriptor = fileDescriptor;
+		currentTask->fcb[fileDescriptor] = fcb;
 		fcb->mode = flags;
-		temp = currentTask->fcbList;
-		while (temp->nextFCB)
-			temp = temp->nextFCB;
-		temp->nextFCB = fcb;
 		return fileDescriptor;
 	}
 	else
-		return (long) fcb;
+		return -EBADF;
 }
 
 //=========================================================
@@ -213,21 +207,11 @@ int DoClose(FD fileDescriptor)
 {
 	struct FCB *temp, *temp2;
 
-	temp = fdToFCB(fileDescriptor);
+	temp = currentTask->fcb[fileDescriptor];
 	if (temp)
 	{
 		struct Message *msg;
 
-		currentTask->FDbitmap &= ~(1 << temp->fileDescriptor);
-		temp2 = currentTask->fcbList;
-		if (temp2 == temp)
-			currentTask->fcbList = currentTask->fcbList->nextFCB;
-		else
-		{
-			while (temp2->nextFCB != temp)
-				temp2 = temp2->nextFCB;
-			temp2->nextFCB = temp->nextFCB;
-		}
 		if (temp->deviceType == KBD || temp->deviceType == CONS)
 			return 0;
 		msg = ALLOCMSG;
@@ -238,6 +222,8 @@ int DoClose(FD fileDescriptor)
 		SendReceiveMessage(FSPort, msg);
 		DeallocMem(msg);
 		return 0;
+		DeallocMem(currentTask->fcb[fileDescriptor]);
+		currentTask->fcb[fileDescriptor] = 0;
 	}
 	return -EBADF;
 }
@@ -281,7 +267,7 @@ int DoStat(char *path, struct FileInfo *info)
 //=================================
 int DoFStat(FD fileDescriptor, struct FileInfo *info)
 {
-	struct FCB *temp = fdToFCB(fileDescriptor);
+	struct FCB *temp = currentTask->fcb[fileDescriptor];
 	if (temp)
 	{
 		if (temp->deviceType == KBD || temp->deviceType == CONS)
@@ -317,7 +303,7 @@ long DoRead(FD fileDescriptor, char *buffer, long noBytes)
 
 	if (!noBytes) return 0;
 
-	temp = fdToFCB(fileDescriptor);
+	temp = currentTask->fcb[fileDescriptor];
 	if (temp)
 	{
 		if (temp->deviceType == KBD)
@@ -356,7 +342,7 @@ long DoWrite(FD fileDescriptor, char *buffer, long noBytes)
 
 	if (!noBytes) return 0;
 
-	temp = fdToFCB(fileDescriptor);
+	temp = currentTask->fcb[fileDescriptor];
 	if (temp)
 	{
 		if (temp->deviceType == CONS)
@@ -423,12 +409,6 @@ FD DoCreate(char *s)
 		FD fileDescriptor = FindFirstFreeFD();
 		if (fileDescriptor == -EMFILE)
 			return -EMFILE;
-		currentTask->FDbitmap |= 1 << fileDescriptor;
-		fcb->fileDescriptor = fileDescriptor;
-		temp = currentTask->fcbList;
-		while (temp->nextFCB)
-			temp = temp->nextFCB;
-		temp->nextFCB = fcb;
 		return fileDescriptor;
 	}
 	return -ENFILE;
@@ -531,7 +511,7 @@ long SeekFile(struct Message *FSMsg, struct FCB * fHandle, long offset, long whe
 int DoSeek(FD fileDescriptor, int offset, int whence)
 {
 	long retval = 0;
-	struct FCB *temp = fdToFCB(fileDescriptor);
+	struct FCB *temp = currentTask->fcb[fileDescriptor];
 	if (temp)
 	{
 		if (temp->deviceType == CONS)
@@ -556,7 +536,7 @@ int DoSeek(FD fileDescriptor, int offset, int whence)
 int DoTruncate(FD fileDescriptor, long length)
 {
 	long retval = 0;
-	struct FCB *temp = fdToFCB(fileDescriptor);
+	struct FCB *temp = currentTask->fcb[fileDescriptor];
 	if (temp)
 	{
 		if (temp->deviceType == CONS)

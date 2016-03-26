@@ -10,7 +10,12 @@ typedef int FD;
 
 #define STDIN	0
 #define STDOUT	1
-#define STDERR	2
+#define STDERR
+
+//typedef unsigned long u_int64_t;
+//typedef unsigned int u_int32_t;
+//typedef unsigned short u_int16_t;
+//typedef unsigned char u_int8_t;
 
 struct Task
 {
@@ -38,7 +43,6 @@ struct Task
 	char *environment;
 	struct MessagePort *parentPort;
 	char *currentDirName;
-	char **argv;						// *** This is unused ***
 	long console;
 	struct FCB *fcbList;
 	long FDbitmap;
@@ -50,7 +54,7 @@ struct Task
 	short int ss;
 	unsigned char forking;
 	unsigned char waiting;
-	long data;
+	struct FCB *fcb[16];
 };
 
 struct Message

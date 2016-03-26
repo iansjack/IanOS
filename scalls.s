@@ -4,6 +4,7 @@
 	.global execve
 	.global nanosleep
 	.global exit
+	.global endofsyscalls
 
 	.text
 	
@@ -27,4 +28,6 @@ exit:
 	mov $SYS_EXIT, %r9
 	syscall
 	ret
+
+endofsyscalls:
 

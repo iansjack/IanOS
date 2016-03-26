@@ -154,27 +154,56 @@ unsigned short DoFork()
 	 (long) registers + 0x5000, 0, 7);*/
 	task->forking = 1;
 
-	// Create FCBs for STDI, STDOUT, and STDERR
+	// Copy or create FCBs for STDI, STDOUT, and STDERR
 
 	// STDIN
-	fcbin = (struct FCB *) AllocKMem(sizeof(struct FCB));
-	fcbin->fileDescriptor = STDIN;
-	fcbin->deviceType = KBD;
-	task->fcbList = fcbin;
+	if (currentTask->fcb[STDIN])
+	{
+		task->fcb[STDIN] = currentTask->fcb[STDIN];
+		task->fcb[STDIN]->openCount++;
+	}
+	else
+	{
+		fcbin = (struct FCB *) AllocKMem(sizeof(struct FCB));
+		fcbin->deviceType = KBD;
+		task->fcb[STDIN] = fcbin;
+		task->fcb[STDIN]->openCount = 1;
+	}
 
 	// STDOUT
-	fcbout = (struct FCB *) AllocKMem(sizeof(struct FCB));
-	fcbout->fileDescriptor = STDOUT;
-	fcbout->deviceType = CONS;
-	fcbin->nextFCB = fcbout;
+	if (currentTask->fcb[STDOUT])
+	{
+		task->fcb[STDOUT] = currentTask->fcb[STDOUT];
+		task->fcb[STDOUT]->openCount++;
+	}
+	else
+	{
+		fcbout = (struct FCB *) AllocKMem(sizeof(struct FCB));
+		fcbout->deviceType = CONS;
+		task->fcb[STDOUT] = fcbout;
+		task->fcb[STDOUT]->openCount = 1;
+	}
 
 	//STDERR
-	fcberr = (struct FCB *) AllocKMem(sizeof(struct FCB));
-	fcberr->fileDescriptor = STDERR;
-	fcberr->deviceType = CONS;
-	fcbout->nextFCB = fcberr;
-	fcberr->nextFCB = 0;
-	task->FDbitmap = 7;
+	if (currentTask->fcb[2])
+	{
+		task->fcb[2] = currentTask->fcb[2];
+		task->fcb[2]->openCount++;
+	}
+	else
+	{
+		fcberr = (struct FCB *) AllocKMem(sizeof(struct FCB));
+		fcberr->deviceType = CONS;
+		task->fcb[2] = fcberr;
+		task->fcb[2]->openCount = 1;
+	}
+
+	// Copy other FCBs
+	unsigned char count;
+	for (count = 3; count < 16; count++)
+	{
+		task->fcb[count] = currentTask->fcb[count];
+	}
 
 	// Run the forked process
 	asm("pushf");
@@ -450,7 +479,7 @@ void KillTask(void)
 	// Unlink task from runnable queue
 	runnableTasks = RemoveFromTaskList(runnableTasks, task);
 
-	// Deallocate FCBs
+/*	// Deallocate FCBs
 	while (task->fcbList)
 	{
 		temp = task->fcbList->nextFCB;
@@ -460,7 +489,7 @@ void KillTask(void)
 			DeallocMem(task->fcbList);
 		task->fcbList = temp;
 	}
-
+*/
 	// Deallocate currentDirName - bit of a kludge here!!!
 	//if (currentTask->pid != 2)
 	if (currentTask->currentDirName)

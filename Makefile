@@ -1,5 +1,7 @@
 include Flags.mak
 
+# *** Note that in this list of object files scalls.o must immediately follow tas1.o!!! ***
+
 OBJS = os.o gates.o pci.o messages.o memory.o pagetab.o keyboard.o \
 		console.o vga.o filesystem.o block.o syscalls.o newtask.o tasking.o elffunctions.o messaging.o interrupts.o \
 		ide.o kernlib.o tasklist.o btree.o clock.o timer.o tas1.o scalls.o e1000.o net.o lapic.o mpentry.o mp.o
@@ -41,6 +43,9 @@ mpentry.o: mpentry.s
 -include $(OBJS:.o=.d)
 
 timer.o: timer.c $(INC)/timer.h
+
+$(INC)/kstructs.inc: $(INC)/kstructs.h
+	sh $(INC)/convert.sh > $(INC)/kstructs.inc
 
 clean:
 	rm -f linkmap *.o *.d *.bin *~ *.iso
