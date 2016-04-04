@@ -10,12 +10,7 @@ typedef int FD;
 
 #define STDIN	0
 #define STDOUT	1
-#define STDERR
-
-//typedef unsigned long u_int64_t;
-//typedef unsigned int u_int32_t;
-//typedef unsigned short u_int16_t;
-//typedef unsigned char u_int8_t;
+#define STDERR	2
 
 struct Task
 {

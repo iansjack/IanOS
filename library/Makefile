@@ -4,9 +4,10 @@ CFLAGS = -fno-stack-protector -fno-builtin -ffixed-r15 -mno-red-zone -g -fPIC\
 		-I $(CROSS)/include $(INC) 
 OBJS = sys_queuepacket.o sys_receivepacket.o sys_getnetport.o sys_receivemessage.o \
 		sys_allocmessageport.o sys_sendmessage.o sys_sendreceive.o \
-		 _exit.o access.o alloc_page.o	alloc_shared_page.o chdir.o chmod.o close.o creat.o dummies.o execve.o \
+		 _exit.o access.o alloc_page.o	alloc_shared_page.o chdir.o chmod.o close.o creat.o dummies.o dup2.o execve.o \
 		fcntl.o fork.o fstat.o getcwd.o getpid.o gettimeofday.o getwd.o isatty.o kill.o lseek.o lstat.o \
-		mkdir.o open.o pathconf.o read.o  sbrk.o stat.o sys_close.o sys_execve.o sys_fstat.o sys_lstat.o \
+		mkdir.o open.o pathconf.o read.o  sbrk.o stat.o \
+		sys_close.o sys_dup2.o sys_execve.o sys_fstat.o sys_lstat.o \
 		sys_nanosleep.o sys_open.o sys_setalarm.o sys_time.o sys_truncate.o sys_unlink.o sys_write.o \
 		umask.o unlink.o waitpid.o write.o extras.o memory.o
 				

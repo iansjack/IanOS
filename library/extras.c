@@ -3,4 +3,7 @@ _fstat() {}
 _stat() {}
 wait() {}
 sigprocmask() {}
+alarm() {}
+sleep() {}
+pipe() {}
 

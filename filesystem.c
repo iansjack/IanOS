@@ -1,5 +1,4 @@
 #include <kernel.h>
-
 #include <linux/types.h>
 #include <errno.h>
 #include "ext2_fs.h"
@@ -28,12 +27,12 @@ struct FCB *OpenFileByInodeNumber(u_int32_t inode)
 	fcb->inode = AllocKMem(sizeof(struct ext2_inode));
 	fcb->inodeNumber = inode;
 	GetINode(inode, fcb->inode);
-//	fcb->nextFCB = 0;
 	fcb->fileCursor = 0;
 	fcb->bufCursor = 0;
 	fcb->buffer = AllocKMem((size_t) block_size);
 	fcb->bufferIsDirty = 0;
 	fcb->inodeIsDirty = 0;
+	fcb->openCount = 1;
 	fcb->index1 = fcb->index2 = fcb->index3 = fcb->index4 = 0;
 	fcb->currentBlock = fcb->inode->i_block[0];
 	ReadBlock(fcb->currentBlock, fcb->buffer);
@@ -123,7 +122,6 @@ struct FCB *CreateFileWithType(char *name, long type)
 	fcb = AllocKMem(sizeof(struct FCB));
 	fcb->inode = inode;
 	fcb->inodeNumber = inodeNo;
-//	fcb->nextFCB = 0;
 	fcb->fileCursor = 0;
 	fcb->bufCursor = 0;
 	fcb->buffer = AllocKMem((size_t) block_size);
@@ -332,7 +330,7 @@ long DeleteFile(char *name)
 		// Delete triple-indirect blocks
 	}
 
-	// Find the directory entry for thefile
+	// Find the directory entry for the file
 	dirFcb = OpenFileByInodeNumber(parentINodeNo);
 	dirBuffer = AllocUMem(dirFcb->inode->i_size);
 	(void) ReadFile(dirFcb, dirBuffer, (long) (dirFcb->inode->i_size));
@@ -357,7 +355,9 @@ long DeleteFile(char *name)
 
 	// Entry now points to the directory entry for this file, prevEntry to the previous one
 	prevEntry->rec_len += entry->rec_len;
+	entry->inode = 0;
 	(void) Seek(dirFcb, 0, SEEK_SET);
+//	dirFcb->bufferIsDirty = 1;
 	(void) WriteFile(dirFcb, dirBuffer, (long) dirFcb->inode->i_size);
 	DeallocMem(dirBuffer);
 	(void) CloseFile(dirFcb);

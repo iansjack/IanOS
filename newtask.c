@@ -11,7 +11,7 @@
 //extern long *allocations;
 //extern long currAlloc;
 
-//extern p_Address registers;
+extern p_Address registers;
 
 void GoToSleep(long);	// Defined in syscalls.s
 
@@ -108,7 +108,7 @@ unsigned short DoFork()
 	task->cr3 = (long) VCreatePageDir(pid, currentTask->pid);
 
 	Elf64_Ehdr *header = (Elf64_Ehdr *) UserCode;
-	if ((header->e_ident)[1] != 'E')// Not the best of tests, but good enough
+	if ((header->e_ident)[1] != 'E')		// Not the best of tests, but good enough
 		CopyPages(UserCode, task);
 	else
 	{
@@ -141,7 +141,7 @@ unsigned short DoFork()
 	CopyPages(UserData, task);
 
 	//Page Tables to allow access to E1000
-	/*	CreatePTEWithPT((struct PML4 *) task->cr3, registers, (long) registers, 0, 7);
+/*	CreatePTEWithPT((struct PML4 *) task->cr3, registers, (long) registers, 0, 7);
 	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x1000,
 	 (long) registers + 0x1000, 0, 7);
 	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x2000,
@@ -151,7 +151,8 @@ unsigned short DoFork()
 	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x4000,
 	 (long) registers + 0x4000, 0, 7);
 	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x5000,
-	 (long) registers + 0x5000, 0, 7);*/
+	 (long) registers + 0x5000, 0, 7);
+*/
 	task->forking = 1;
 
 	// Copy or create FCBs for STDI, STDOUT, and STDERR
@@ -185,17 +186,17 @@ unsigned short DoFork()
 	}
 
 	//STDERR
-	if (currentTask->fcb[2])
+	if (currentTask->fcb[STDERR])
 	{
-		task->fcb[2] = currentTask->fcb[2];
-		task->fcb[2]->openCount++;
+		task->fcb[STDERR] = currentTask->fcb[STDERR];
+		task->fcb[STDERR]->openCount++;
 	}
 	else
 	{
 		fcberr = (struct FCB *) AllocKMem(sizeof(struct FCB));
 		fcberr->deviceType = CONS;
-		task->fcb[2] = fcberr;
-		task->fcb[2]->openCount = 1;
+		task->fcb[STDERR] = fcberr;
+		task->fcb[STDERR]->openCount = 1;
 	}
 
 	// Copy other FCBs
@@ -284,8 +285,6 @@ void LoadElf(struct Message *FSMsg, struct FCB * fHandle)
 {
 //	ClearUserMemory();
 	ReadElf(FSMsg, fHandle, 0, &entrypoint, currentTask->pid);
-//	(void) AllocAndCreatePTE(UserData, currentTask->pid, RW | US | P);
-//	currentTask->firstfreemem = UserData;
 }
 
 //===============================================================================
@@ -392,7 +391,6 @@ void Do_Wait(unsigned short pid)
 //==========================
 struct Task *NewKernelTask(void *TaskCode)
 {
-//	asm("jmp .");
 	long *stack;
 	struct Task *task = (struct Task *) AllocKMem(sizeof(struct Task));
 	long *data;

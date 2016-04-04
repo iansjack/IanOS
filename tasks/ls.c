@@ -9,10 +9,7 @@
 //static struct _reent reent;
 
 int main(int argc, char **argv)
-{//	_REENT_INIT_PTR((&reent));
-//	long *p = (long *)0x8100261d20;
-//	*p = &reent;
-
+{
 	char *buffer;
 	char *cwd = malloc(256);
 
@@ -38,32 +35,48 @@ int main(int argc, char **argv)
 		(void) read(file, buffer, (size_t) dir_length);
 		while (1)
 		{
-			char * c = malloc(dir->name_len + 16);
-			char mode[] = "----------";
-			struct tm *time;
+			if (dir->inode)
+			{
+				char * c = malloc(dir->name_len + 16);
+				char mode[] = "----------";
+				struct tm *time;
 
-			c[0] = 0;
-			strncat(c, dir->name, dir->name_len);
-			c[dir->name_len] = 0;
-			lstat(c, &inf);
-			if (inf.st_mode & S_IFDIR) mode[0] = 'd';
-			if (inf.st_mode & S_IRUSR) mode[1] = 'r';
-			if (inf.st_mode & S_IWUSR) mode[2] = 'w';
-			if (inf.st_mode & S_IXUSR) mode[3] = 'x';
-			if (inf.st_mode & S_IRGRP) mode[4] = 'r';
-			if (inf.st_mode & S_IWGRP) mode[5] = 'w';
-			if (inf.st_mode & S_IXGRP) mode[6] = 'x';
-			if (inf.st_mode & S_IROTH) mode[7] = 'r';
-			if (inf.st_mode & S_IWOTH) mode[8] = 'w';
-			if (inf.st_mode & S_IXOTH) mode[9] = 'x';
-			t = inf.st_mtime;
-			time = gmtime(&t);
-			printf("%s %4d %4d %02d:%02d %2d/%02d/%4d ", mode, (int) inf.st_uid, (int) inf.st_gid, time->tm_hour, time->tm_min, time->tm_mday, time->tm_mon + 1, 1900 + time->tm_year);
-			printf("%8d %s\n", inf.st_size, c);
+				c[0] = 0;
+				strncat(c, dir->name, dir->name_len);
+				c[dir->name_len] = 0;
+				lstat(c, &inf);
+				if (inf.st_mode & S_IFDIR)
+					mode[0] = 'd';
+				if (inf.st_mode & S_IRUSR)
+					mode[1] = 'r';
+				if (inf.st_mode & S_IWUSR)
+					mode[2] = 'w';
+				if (inf.st_mode & S_IXUSR)
+					mode[3] = 'x';
+				if (inf.st_mode & S_IRGRP)
+					mode[4] = 'r';
+				if (inf.st_mode & S_IWGRP)
+					mode[5] = 'w';
+				if (inf.st_mode & S_IXGRP)
+					mode[6] = 'x';
+				if (inf.st_mode & S_IROTH)
+					mode[7] = 'r';
+				if (inf.st_mode & S_IWOTH)
+					mode[8] = 'w';
+				if (inf.st_mode & S_IXOTH)
+					mode[9] = 'x';
+				t = inf.st_mtime;
+				time = gmtime(&t);
+				printf("%s %4d %4d %02d:%02d %2d/%02d/%4d ", mode,
+						(int) inf.st_uid, (int) inf.st_gid, time->tm_hour,
+						time->tm_min, time->tm_mday, time->tm_mon + 1,
+						1900 + time->tm_year);
+				printf("%8d %s\n", inf.st_size, c);
+				free(c);
+			}
 			dir = (struct ext2_dir_entry_2 *) ((char *) dir + dir->rec_len);
 			if ((char *) dir - (char *) buffer >= dir_length)
 				break;
-			free(c);
 		}
 		free(buffer);
 		close(file);

@@ -39,7 +39,7 @@ CallNo:
 	.quad	Unimplemented	#Sys_Ptrace
 	.quad	Sys_Alarm
 	.quad	Sys_FStat
-	.quad	Unimplemented	#GetTicks
+	.quad	Sys_Dup2
 	.quad	Sys_Nanosleep
 	.quad	Unimplemented   #Alloc_Mem
 	.quad	Send_Message
@@ -386,6 +386,12 @@ Sys_AllocMessagePort:
 Sys_Alarm:
 	push %rcx
 	call newtimer
+	pop %rcx
+	sysretq
+
+Sys_Dup2:
+	push %rcx
+	call DoDup2
 	pop %rcx
 	sysretq
 

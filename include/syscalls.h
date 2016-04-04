@@ -4,6 +4,8 @@
 #include "kstructs.h"
 #include "filesystem.h"
 
+typedef unsigned long l_Address;
+
 void *sys_AllocMem(long sizeRequested);
 void *sys_AllocSharedMem(long sizeRequested);
 void *sys_DeallocMem(void *memory);

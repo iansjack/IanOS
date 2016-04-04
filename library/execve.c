@@ -13,3 +13,8 @@ int execve(const char *filepath, char **argv, char **env)
 	else
 		return retvalue;
 }
+
+int execvp(const char *filepath, char **argv)
+{
+	return execve(filepath, argv, 0);
+}

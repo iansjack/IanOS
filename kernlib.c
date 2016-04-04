@@ -943,3 +943,16 @@ void GoToSleep(long timeout)
 	newtimer(timeout, port);
 	ReceiveMessage(port, &msg);
 }
+
+DoDup2(int oldfd, int newfd)
+{
+	if (currentTask->fcb[newfd])
+	{
+		DoClose(newfd);
+	}
+	else
+	{
+		currentTask->fcb[newfd] = currentTask->fcb[oldfd];
+		currentTask->fcb[newfd]->openCount++;
+	}
+}
