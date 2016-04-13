@@ -129,7 +129,7 @@ void SetBlockBitmapBit(u_int32_t block)
 {
 	u_int32_t group, block_in_group, byte_in_map, bit_in_byte;
 
-	block--;
+	//block--;
 	group = block / sb.s_blocks_per_group;
 	block_in_group = block % sb.s_blocks_per_group;
 	byte_in_map = block_in_group / 8;
@@ -146,7 +146,7 @@ void ClearBlockBitmapBit(u_int32_t block)
 {
 	u_int32_t group, block_in_group, byte_in_map, bit_in_byte;
 
-	block--;
+	//block--;
 	group = block / sb.s_blocks_per_group;
 	block_in_group = block % sb.s_blocks_per_group;
 	byte_in_map = block_in_group / 8;

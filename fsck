@@ -1,0 +1,2 @@
+sudo losetup -o 1048576 /dev/loop0 c.hdd
+sudo fsck -f /dev/loop0

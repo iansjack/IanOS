@@ -4,8 +4,6 @@
 #include "ext2_fs.h"
 #include "blocks.h"
 
-char *strrchr(char *string, char delimiter);
-
 struct FCB *OpenFile(char *path);
 long ReadFile(struct FCB *fcb, char *buffer, long noBytes);
 long WriteFile(struct FCB *fcb, char *buffer, long noBytes);
@@ -357,7 +355,6 @@ long DeleteFile(char *name)
 	prevEntry->rec_len += entry->rec_len;
 	entry->inode = 0;
 	(void) Seek(dirFcb, 0, SEEK_SET);
-//	dirFcb->bufferIsDirty = 1;
 	(void) WriteFile(dirFcb, dirBuffer, (long) dirFcb->inode->i_size);
 	DeallocMem(dirBuffer);
 	(void) CloseFile(dirFcb);
