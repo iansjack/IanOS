@@ -8,7 +8,7 @@ int main(int argc, char **argv)
 	ssize_t ret;
 
 	int InFile = open(argv[1], O_RDONLY);
-	if (InFile == -1)
+	if (InFile <= 0)
 		printf("Error opening file %s\n", argv[1]);
 	else
 	{
