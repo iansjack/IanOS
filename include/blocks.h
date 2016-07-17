@@ -47,12 +47,14 @@ struct FCB
 	int index1, index2, index3, index4;
 	int fileCursor;
 	int bufCursor;
-	int mode;
 	char *buffer;
 	char deviceType;
 	char bufferIsDirty;
 	char inodeIsDirty;
 	unsigned char openCount;
+	long (*read)(struct FCB *, char *, long);
+	long (*write)(struct FCB *, char *, long);
+	void (*close)(struct FCB *);
 };
 
 // These are the numbers of blocks pointed to by inode->i_block[]

@@ -30,6 +30,10 @@ int kprintf(int row, int column, char *s, ...);
 long strlen(char *string);
 long strcmp(char *s1, char *s2);
 char *strrchr(char *string, char delimiter);
+void outw(unsigned short port, unsigned short val);
+unsigned short inw(unsigned short port);
+void outl(unsigned short port, unsigned int val);
+unsigned int inl(unsigned short port);
 
 #define ALLOCMSG (struct Message *)AllocKMem(sizeof(struct Message))
 #define ASSERT(expr) if (!expr){kprintf(24, 1, "Assertion failed - System halted.");asm("cli");asm("hlt");}

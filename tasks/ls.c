@@ -21,7 +21,7 @@ int main(int argc, char **argv)
 	(void) getcwd(cwd, 256);
 	file = open(cwd, O_RDONLY);
 	free(cwd);
-	if (file != -1)
+	if (file > 0)
 	{
 		struct stat inf;
 		int dir_length;

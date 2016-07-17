@@ -1,4 +1,4 @@
-#include <linux/types.h>
+//#include <linux/types.h>
 #include <kernel.h>
 #include <filesystem.h>
 #include <errno.h>
@@ -6,7 +6,7 @@
 #include <blocks.h>
 #include <pagetab.h>
 #include <elffunctions.h>
-#include <reent.h>
+#include <fcntl.h>
 
 //extern long *allocations;
 //extern long currAlloc;
@@ -79,6 +79,11 @@ void DuplicatePages(l_Address address, struct Task *task)
 }
 
 extern struct library *libs;
+long WriteToConsole(struct FCB *, char *, long);
+long ReadFromKeyboard(struct FCB *, char *, long);
+long BadFile(struct FCB *, char *, long);
+void DummyClose(struct FCB *);
+
 
 //=========================================================================
 // Fork the current process.
@@ -141,7 +146,7 @@ unsigned short DoFork()
 	CopyPages(UserData, task);
 
 	//Page Tables to allow access to E1000
-/*	CreatePTEWithPT((struct PML4 *) task->cr3, registers, (long) registers, 0, 7);
+	CreatePTEWithPT((struct PML4 *) task->cr3, registers, (long) registers, 0, 7);
 	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x1000,
 	 (long) registers + 0x1000, 0, 7);
 	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x2000,
@@ -151,11 +156,11 @@ unsigned short DoFork()
 	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x4000,
 	 (long) registers + 0x4000, 0, 7);
 	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x5000,
-	 (long) registers + 0x5000, 0, 7);
-*/
+	(long) registers + 0x5000, 0, 7);
+
 	task->forking = 1;
 
-	// Copy or create FCBs for STDI, STDOUT, and STDERR
+	// Copy or create FCBs for STDIN, STDOUT, and STDERR
 
 	// STDIN
 	if (currentTask->fcb[STDIN])
@@ -167,8 +172,11 @@ unsigned short DoFork()
 	{
 		fcbin = (struct FCB *) AllocKMem(sizeof(struct FCB));
 		fcbin->deviceType = KBD;
+		fcbin->openCount = 1;
+		fcbin->read = ReadFromKeyboard;
+		fcbin->write = BadFile;
+		fcbin->close = DummyClose;
 		task->fcb[STDIN] = fcbin;
-		task->fcb[STDIN]->openCount = 1;
 	}
 
 	// STDOUT
@@ -181,8 +189,11 @@ unsigned short DoFork()
 	{
 		fcbout = (struct FCB *) AllocKMem(sizeof(struct FCB));
 		fcbout->deviceType = CONS;
+		fcbout->openCount = 1;
+		fcbout->read = BadFile;
+		fcbout->write = WriteToConsole;
+		fcbout->close = DummyClose;
 		task->fcb[STDOUT] = fcbout;
-		task->fcb[STDOUT]->openCount = 1;
 	}
 
 	//STDERR
@@ -195,8 +206,11 @@ unsigned short DoFork()
 	{
 		fcberr = (struct FCB *) AllocKMem(sizeof(struct FCB));
 		fcberr->deviceType = CONS;
+		fcberr->openCount = 1;
+		fcberr->read = BadFile;
+		fcberr->write = WriteToConsole;
+		fcberr->close = DummyClose;
 		task->fcb[STDERR] = fcberr;
-		task->fcb[STDERR]->openCount = 1;
 	}
 
 	// Copy other FCBs
@@ -400,7 +414,7 @@ struct Task *NewKernelTask(void *TaskCode)
 	task->cr3 = (long) VCreatePageDir(task->pid, 0);
 
 	//Page Tables to allow access to E1000
-	/*	CreatePTEWithPT((struct PML4 *) task->cr3, registers, (long) registers, 0,
+	CreatePTEWithPT((struct PML4 *) task->cr3, registers, (long) registers, 0,
 	 7);
 	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x1000,
 	 (long) registers + 0x1000, 0, 7);
@@ -412,7 +426,6 @@ struct Task *NewKernelTask(void *TaskCode)
 	 (long) registers + 0x4000, 0, 7);
 	 CreatePTEWithPT((struct PML4 *) task->cr3, registers + 0x5000,
 	 (long) registers + 0x5000, 0, 7);
-	 */
 
 	task->ds = data64;
 	stack = (long *) AllocPage(task->pid);
@@ -660,6 +673,7 @@ void StartTasks()
 {
 	kprintf(0, 0, "Starting tasks");
 	(void) NewLowPriTask((void *) dummyTask);
+	enumeratePCIBus();
 	GoToSleep(100);
 	(void) NewKernelTask((void *) kbTaskCode);
 	GoToSleep(100);

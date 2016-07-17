@@ -19,6 +19,7 @@ HDINT 		= 3
 	.global TimerInt
 	.global KbInt
 	.global NicInt
+	.global UCHIInt
 	.global HdInt
 	.global SetSem
 	.global ClearSem
@@ -131,6 +132,15 @@ NicInt:
 	mov registers, %rax
 	mov 0xC0(%rax), %bx
 	call packetReceived
+	mov  $0x20, %al
+	out  %al, $0x20
+	out  %al, $0xA0
+	POP_ALL
+	iretq
+
+UCHIInt:
+	jmp .
+	PUSH_ALL
 	mov  $0x20, %al
 	out  %al, $0x20
 	out  %al, $0xA0

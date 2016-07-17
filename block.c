@@ -2,7 +2,7 @@
 
 //typedef int umode_t;
 
-#include <linux/types.h>
+//#include <linux/types.h>
 #include <errno.h>
 #include <sys/fcntl.h>
 #include <string.h>
@@ -158,6 +158,7 @@ void ClearBlockBitmapBit(u_int32_t block)
 
 //=====================================================================
 // Return the (absolute) block number of the first free block in group
+// Mark the block as used
 //=====================================================================
 u_int32_t GetFreeBlock(u_int32_t group)
 {
@@ -170,6 +171,7 @@ u_int32_t GetFreeBlock(u_int32_t group)
 		if (!(block_bitmap[block_size * group + i] & (1 << j)))
 			break;
 	block = group * sb.s_blocks_per_group + 8 * i + j +1;
+
 	// Mark this block as in use
 	SetBlockBitmapBit(block);
 	return block;

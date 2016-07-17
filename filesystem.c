@@ -1,5 +1,5 @@
 #include <kernel.h>
-#include <linux/types.h>
+//#include <linux/types.h>
 #include <errno.h>
 #include "ext2_fs.h"
 #include "blocks.h"
@@ -16,9 +16,12 @@ extern struct ext2_group_desc *group_descriptors;
 extern struct MessagePort *FSPort;
 extern long unixtime;
 
-//==============================================
-// Open the file "path" and assign an FCB to it
-//==============================================
+long ReadFromFile(struct FCB *, char *, long);
+long WriteToFile(struct FCB *, char *, long);
+
+//============================================================
+// Open the file represented by inode and assign an FCB to it
+//============================================================
 struct FCB *OpenFileByInodeNumber(u_int32_t inode)
 {
 	struct FCB *fcb = AllocKMem(sizeof(struct FCB));
@@ -33,6 +36,9 @@ struct FCB *OpenFileByInodeNumber(u_int32_t inode)
 	fcb->openCount = 1;
 	fcb->index1 = fcb->index2 = fcb->index3 = fcb->index4 = 0;
 	fcb->currentBlock = fcb->inode->i_block[0];
+	fcb->read = ReadFromFile;
+	fcb->write = WriteToFile;
+
 	ReadBlock(fcb->currentBlock, fcb->buffer);
 	return fcb;
 }
@@ -125,6 +131,8 @@ struct FCB *CreateFileWithType(char *name, long type)
 	fcb->buffer = AllocKMem((size_t) block_size);
 	fcb->currentBlock = 0;
 	fcb->index1 = fcb->index2 = fcb->index3 = fcb->index4 = 0;
+	fcb->read = ReadFromFile;
+	fcb->write = WriteToFile;
 	return fcb;
 }
 
@@ -155,6 +163,8 @@ struct FCB *OpenFile(char *path)
 	fcb->inodeIsDirty = 0;
 	fcb->index1 = fcb->index2 = fcb->index3 = fcb->index4 = 0;
 	fcb->currentBlock = fcb->inode->i_block[0];
+	fcb->read = ReadFromFile;
+	fcb->write = WriteToFile;
 	ReadBlock(fcb->currentBlock, fcb->buffer);
 	return fcb;
 }

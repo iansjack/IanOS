@@ -100,7 +100,7 @@ _start:
 	cld
 	rep movsb
 
-	call enumeratePCIBus
+#	call enumeratePCIBus
 
 	call StartTasks
 #	call gettime						# Set the internal clock from the RTC

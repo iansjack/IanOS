@@ -12,7 +12,7 @@ int main(int argc, char **argv)
 
 	InFile = open(argv[1], O_RDONLY);
 	OutFile = open(argv[2], O_WRONLY | O_CREAT);
-	if (InFile == -1)
+	if (InFile < 0)
 		printf("Error opening file %s\n", argv[1]);
 	else
 	{
