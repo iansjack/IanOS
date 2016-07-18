@@ -139,7 +139,7 @@ NicInt:
 	iretq
 
 UCHIInt:
-	jmp .
+	# jmp .
 	PUSH_ALL
 	mov  $0x20, %al
 	out  %al, $0x20
