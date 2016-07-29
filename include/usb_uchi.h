@@ -11,6 +11,14 @@
 #include "types-old.h"
 #include "kernel.h"
 
+#define	USBCMD		0x00
+#define	USBSTS		0x02
+#define	USBINTR		0x04
+#define FRNUM		0x06
+#define	FRBASEADDR	0x08
+#define	SOfMOD		0x0C
+#define	PORTSC1		0x10
+#define	PORTSC2		0x12
 struct transferDescriptor
 {
 	uint32_t linkAddress;
@@ -98,5 +106,7 @@ struct Endpoint
 	uint16_t	packetsize;
 	uint8_t		interval;
 }__attribute__((packed));
+
+void processUHCIQueue();
 
 #endif /* USB_UHCI_H_ */

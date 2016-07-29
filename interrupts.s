@@ -18,8 +18,8 @@ HDINT 		= 3
 	.global SpecificSwitchTasks
 	.global TimerInt
 	.global KbInt
-	.global NicInt
-	.global UCHIInt
+#	.global NicInt
+	.global SharedInt
 	.global HdInt
 	.global SetSem
 	.global ClearSem
@@ -127,20 +127,22 @@ HdInt:	PUSH_ALL
 #===============
 # NIC interrupt
 #===============
-NicInt:
-	PUSH_ALL
-	mov registers, %rax
-	mov 0xC0(%rax), %bx
-	call packetReceived
-	mov  $0x20, %al
-	out  %al, $0x20
-	out  %al, $0xA0
-	POP_ALL
-	iretq
+#NicInt:
+#	PUSH_ALL
+#	mov registers, %rax
+#	mov 0xC0(%rax), %bx
+#	call packetReceived
+#	mov  $0x20, %al
+#	out  %al, $0x20
+#	out  %al, $0xA0
+#	POP_ALL
+#	iretq
 
-UCHIInt:
-	# jmp .
+SharedInt:
 	PUSH_ALL
+#	mov registers, %rax
+#	mov 0xC0(%rax), %bx
+	call processSharedInterrupts
 	mov  $0x20, %al
 	out  %al, $0x20
 	out  %al, $0xA0

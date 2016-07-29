@@ -1,4 +1,4 @@
-#include "usb_uhci.h"
+#include "usb_uchi.h"
 
 
 uint32_t address;
@@ -6,6 +6,9 @@ uint32_t *buf;
 struct USBdevice devices[2];
 uint16_t USBaddress;
 uint32_t frameList;
+
+long keypresses[64];
+int currentkeypress;
 
 uint32_t *initializeFrameList(long frameList)
 {
@@ -21,9 +24,9 @@ uint32_t *initializeFrameList(long frameList)
 void runQueue()
 {
 	// Clear status register
-	outw(address + 0x02, 0xFFFF);
+	outw(address + USBSTS, 0xFFFF);
 	buf[1] = (uint32_t)(uint64_t)&buf[4];
-	while (inw(address + 0x02) == 0);
+	while (inw(address + USBSTS) == 0);
 	buf[1] = 1;
 }
 
@@ -127,10 +130,11 @@ void createStringDescriptorQueue(uint32_t addr, uint32_t index, uint32_t size)
 	createDescriptorQueue(addr, index, size, 3);
 }
 
-void getDevice(uint32_t addr, uint32_t size)
+uint8_t getDevice(uint32_t addr, uint32_t size)
 {
 	createDevqueryQueue(addr, size);
 	runQueue();
+	return (uint8_t)buf[32];
 }
 
 void setAddress(uint32_t addr)
@@ -139,9 +143,9 @@ void setAddress(uint32_t addr)
 	runQueue();
 }
 
-void setConfiguration(uint32_t addr, uint32_t conf)
+void setConfiguration(struct USBdevice *dev, uint32_t conf)
 {
-	createSetQueue(1, 9, conf);
+	createSetQueue(dev->address, 9, conf);
 	runQueue();
 }
 
@@ -181,25 +185,21 @@ void setupController(uint32_t base_addr)
 	int i = 0;
 	for (i = 0; i < 5; i++)
 	{
-		outw(base_addr, 0x4);
+		outw(base_addr + USBCMD, 0x4);
 		// Wait for the reset to happen
 		GoToSleep(10);
-		outw(base_addr, 0);
+		outw(base_addr + USBCMD, 0);
 	}
-	outw(base_addr + 2, 0xFF);
-	outw(base_addr, 0x2);
+	outw(base_addr + USBSTS, 0xFF);
+	outw(base_addr + USBCMD, 0x2);
 	GoToSleep(50);
 
 	// Setup controller
-	// Interrupt register
-	outw(base_addr + 0x04, 0/*xF*/);
-	// Frame number register
-	outw(base_addr + 0x06, 0);
-	// Frame list base address
+	outw(base_addr + USBINTR, 0/*xF*/);
+	outw(base_addr + FRNUM, 0);
 	frameList = AllocAndCreatePTE(0x3000L, 0, 0x7);
-	outw(base_addr + 0x08, (int) frameList);
-	// Status register
-	outw(base_addr + 0x02, 0xFFFF);
+	outw(base_addr + FRBASEADDR, (int) frameList);
+	outw(base_addr + USBSTS, 0xFFFF);
 }
 
 void detectDevices(uint32_t base_addr)
@@ -207,30 +207,59 @@ void detectDevices(uint32_t base_addr)
 	int i;
 
 	// Reset the ports
-	outw(base_addr + 0x10, 0x200);
+	outw(base_addr + PORTSC1, 0x200);
 	GoToSleep(50);
-	outw(base_addr + 0x10, 0);
+	outw(base_addr + PORTSC1, 0);
 	GoToSleep(10);
 
-	// outw(base_addr + 0x12, 0x200);
-	// GoToSleep(50);
-	// outw(base_addr + 0x12, 0);
-	// GoToSleep(10);
-
-	outw(base_addr + 0x10, 0xF);
-	// outw(base_addr + 0x12, 0xF);
+	outw(base_addr + PORTSC1, 0xF);
+	outw(base_addr + PORTSC2, 0xF);
 	for (i = 0; i < 16; i++)
 	GoToSleep(10);
 
 	for (i = 0; i < 2; i++)
-	if (inw(base_addr + 0x10 + 2*i) & 0x1)
+	if (inw(base_addr + PORTSC1 + 2*i) & 0x1)
 	{
 		devices[i].address = ++USBaddress;
-		if (inw(base_addr + 0x10 + 2*i) & 0x100)
+		if (inw(base_addr + PORTSC1 + 2*i) & 0x100)
 			devices[i].speed = USB_LOW_SPEED;
 		else
 			devices[i].speed = USB_HIGH_SPEED;
 	}
+}
+
+void getDeviceInformation(struct USBdevice *dev)
+{
+	uint8_t size;
+
+	size = getDevice(0, 8);
+	setAddress(dev->address);
+	getDevice(devices->address, size);
+	struct Device *d = (struct Device *)&buf[32];
+	dev->class = d->class;
+	dev->subclass = d->subclass;
+	dev->protocol = d->protocol;
+}
+
+struct Configuration *getConfiguration(struct USBdevice *dev)
+{
+	getConfigurationDescriptor(dev->address, 0);
+	struct Configuration *c = (struct Configuration *)&buf[32];
+	void *v = (void *)c;
+	struct Interface *i = (struct Interface *)(v + c->length);
+	dev->class = i->class;
+	dev->subclass = i->subclass;
+	dev->protocol = i->protocol;
+	return c;
+}
+
+void processUHCIQueue()
+{
+	if (!inw(address + USBSTS)) return;
+	keypresses[currentkeypress++] = buf[28];
+	createInterruptQueue();
+	outw(address + USBSTS, 0xFFFF);
+	buf[1] = (uint32_t)(uint64_t)&buf[4];
 }
 
 void handleUHCI(uint32_t base_addr)
@@ -249,27 +278,18 @@ void handleUHCI(uint32_t base_addr)
 	buf[1] = 1;
 
 	// Clear status register
-	outw(address + 0x02, 0xFFFF);
+	outw(address + USBSTS, 0xFFFF);
 	// Start the controller
-	outw(address, 0x1);
+	outw(address + USBCMD, 0x1);
 
 	// get basic device configuration of devices[0]
-	getDevice(0, 8);
-	setAddress(devices[0].address);
-	getDevice(devices[0].address, (uint8_t)buf[32]);
-	getStringDescriptor(devices[0].address, 4);
-	getConfigurationDescriptor(devices[0].address, 0);
-	struct Configuration *c = 0x4080;
-	struct Interface *i = 0x4089;
-	struct Endpoint *e = 0x409b;
-	setConfiguration(devices[0].address, 1);
-	asm("jmp .");
-	outw(address + 0x4, 0xF);
+	getDeviceInformation(&devices[0]);
+	struct Configuration *conf = getConfiguration(&devices[0]);
+	setConfiguration(&devices[0], conf->configvalue);
+	// asm("jmp .");
+	outw(address + USBINTR, 0xF);
 	createInterruptQueue();
-	runQueue();
-//	activateInterruptQueue();
-//	runQueue();
-//	activateInterruptQueue();
-//	runQueue();
-//	setIdle(1);
+	currentkeypress = 0;
+	outw(address + USBSTS, 0xFFFF);
+	buf[1] = (uint32_t)(uint64_t)&buf[4];
 }

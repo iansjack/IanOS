@@ -1,5 +1,6 @@
 #include <e1000.h>
-#include <memory.h>
+#include <kernel.h>
+#include "net.h"
 
 typedef unsigned long physaddr_t;
 
@@ -116,5 +117,24 @@ int receive_packet(void *buffer, int *length)
 	registers[RDT / sizeof(int)] = i;
 	descriptor[i].status = 0;
 	return 0;
+}
+
+extern struct MessagePort *NetPort;
+void packetReceived()
+{
+	struct rx_desc *descriptor = (struct rx_desc *) (KADDR(
+			(physaddr_t) receive_descriptor));
+
+	int i = nextrxpacket;
+	if (!(descriptor[i].status & 0x1))
+		return;
+
+	// Send a message to the network task saying that a packet has been received.
+	struct Message *NetMsg = (struct Message *) ALLOCMSG;
+
+	NetMsg->nextMessage = 0;
+	NetMsg->byte = PACKETRECEIVED;
+	SendMessage(NetPort, NetMsg);
+	DeallocMem(NetMsg);
 }
 
