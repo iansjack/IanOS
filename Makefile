@@ -5,7 +5,7 @@ include Flags.mak
 OBJS = os.o gates.o pci.o messages.o memory.o pagetab.o keyboard.o \
 		console.o vga.o filesystem.o block.o syscalls.o newtask.o tasking.o elffunctions.o messaging.o interrupts.o \
 		ide.o kernlib.o tasklist.o btree.o clock.o timer.o tas1.o scalls.o systemcallhelpers.o e1000.o net.o lapic.o \
-		mpentry.o mp.o usb_uchi.o usb_echi.o
+		mpentry.o mp.o usb_uhci.o usb_ehci.o
 
 all: IanOS
 

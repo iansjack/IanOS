@@ -55,4 +55,4 @@ here:
 	bts $31, %eax                  # Enable write protection
 	mov %eax, %cr0
 
-	jmp $code64, $0x180000 			# $start64
+	jmp $code64, $OSCode 			# $start64

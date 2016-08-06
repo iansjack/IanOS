@@ -8,8 +8,8 @@
 #include "types-old.h"
 #include "kernel.h"
 #include "pci.h"
-#include "usb_uchi.h"
-#include "usb_echi.h"
+#include "usb_uhci.h"
+#include "usb_ehci.h"
 
 extern SharedInt;
 
@@ -19,7 +19,7 @@ void packetReceived();
 
 void processEHCIQueue()
 {
-
+	// asm("jmp .");
 }
 
 void link_interrupt(void (*fn)())
@@ -141,7 +141,7 @@ void enumeratePCIBus()
 							interrupt_line = (pciConfigReadWord(bus, device,
 									function, 0x3C));
 							kprintf(line++, 0,
-									"Found UCHI controller! - Interrupt line: %x; base: %x",
+									"Found UHCI controller! - Interrupt line: %x; base: %x",
 									interrupt_line, base);
 							CreateIntGate(code64, (long) &SharedInt,
 									32 + interrupt_line, 0);
@@ -159,7 +159,7 @@ void enumeratePCIBus()
 							break;
 
 						case 0x10:
-							kprintf(line++, 0, "OCHI controller");
+							kprintf(line++, 0, "OHCI controller");
 							break;
 
 						case 0x20:
@@ -168,7 +168,7 @@ void enumeratePCIBus()
 							base = pciConfigReadWord(bus, device, function,
 									0x10);
 							kprintf(line++, 0,
-									"Found ECHI controller! - Interrupt line: %x; base: %x",
+									"Found EHCI controller! - Interrupt line: %x; base: %x",
 									interrupt_line, base);
 							CreateIntGate(code64, (long) &SharedInt,
 									32 + interrupt_line, 0);
@@ -181,7 +181,7 @@ void enumeratePCIBus()
 							break;
 
 						case 0x30:
-							kprintf(line++, 0, "XCHI controller");
+							kprintf(line++, 0, "XHCI controller");
 							break;
 
 						default:
