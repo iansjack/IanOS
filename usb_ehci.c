@@ -7,6 +7,7 @@ uint32_t *buf;
 uint32_t *cmd_base;
 uint32_t dtIN;
 uint32_t dtOUT;
+struct USBpacket *p;
 
 uint32_t *initializeECHIFrameList(long frameList)
 {
@@ -86,7 +87,7 @@ void linkAndRun(uint32_t addr, uint32_t endpoint, uint32_t max_size)
 
 	setCmdReg(E_USBSTS, 0x3F);
 	buf[0x100] = (uint32_t) (uint64_t) &buf[0x0] + 2;
-	buf[0x101] = 0x80004000 + addr + (endpoint << 8) + (max_size << 16);
+	buf[0x101] = 0x80006000 + addr + (endpoint << 8) + (max_size << 16);
 	buf[0x102] = 0x40000000;
 	buf[0x103] = 0;
 	buf[0x104] = (uint32_t) (uint64_t) &buf[0x18];
@@ -110,7 +111,8 @@ void linkAndRun(uint32_t addr, uint32_t endpoint, uint32_t max_size)
 	buf[0x0] = (uint32_t) (uint64_t) &buf[0x0] + 2;
 }
 
-createPacket(struct USBpacket *p, uint32_t index, uint32_t length, uint32_t request, uint32_t type, uint32_t value)
+createPacket(struct USBpacket *p, uint32_t index, uint32_t length,
+		uint32_t request, uint32_t type, uint32_t value)
 {
 	p->index = index;
 	p->length = length;
@@ -142,7 +144,8 @@ void transferRequest(uint32_t size, uint8_t direction, uint32_t buffer)
 
 uint32_t CBWtag;
 
-void createCBW(uint32_t size, uint32_t FLCC, uint32_t byte5, uint32_t byte6, uint32_t byte7, uint32_t byte8)
+void createCBW(uint32_t size, uint32_t FLCC, uint32_t byte5, uint32_t byte6,
+		uint32_t byte7, uint32_t byte8)
 {
 	buf[0x58] = 0x43425355;
 	buf[0x59] = CBWtag++;
@@ -152,6 +155,48 @@ void createCBW(uint32_t size, uint32_t FLCC, uint32_t byte5, uint32_t byte6, uin
 	buf[0x5d] = byte6;
 	buf[0x5e] = byte7;
 	buf[0x5f] = byte8;
+}
+
+void resetMSD(/*struct USBpacket *p*/)
+{
+	// Reset
+	setupCmdPacket();
+	createPacket(p, 0, 0, 0xFF, 0x21, 0);
+	linkAndRun(1, 0, 0x40);
+	if (getCmdReg(E_USBSTS) & 0x02)
+		kprintf(24, 0, "Error with Reset");
+
+	setupCmdPacket();
+	createPacket(p, 1, 0, CLEAR_FEATURE, 2, 0);
+	linkAndRun(1, 0, 0x40);
+	if (getCmdReg(E_USBSTS) & 0x02)
+		kprintf(24, 0, "Error with clear Endpoint 1");
+
+	setupCmdPacket();
+	createPacket(p, 2, 0, CLEAR_FEATURE, 2, 0);
+	linkAndRun(1, 0, 0x40);
+	if (getCmdReg(E_USBSTS) & 0x02)
+		kprintf(24, 0, "Error with clear Endpoint 2");
+	dtIN = 0;
+	dtOUT = 0;
+}
+
+void requestSense()
+{
+	// Request Sense
+	transferRequest(0x1F, 1, (uint32_t) (uint64_t) &buf[0x58]);
+	createCBW(0x12, 0x03060080, 0x12000000, 0, 0, 0);
+	linkAndRun(1, 1, 0x200);
+
+	// Read Data
+	transferRequest(0x12, 0, (uint32_t) (uint64_t) &buf[0x58]);
+	linkAndRun(1, 2, 0x200);
+
+	// Read CSW
+	transferRequest(0xD, 0, (uint32_t) (uint64_t) &buf[0x70]);
+	linkAndRun(1, 2, 0x200);
+	if (getCmdReg(E_USBSTS) & 0x02)
+		kprintf(24, 0, "Error with Request Sense");
 }
 
 void handleEHCI(uint32_t base_addr)
@@ -209,7 +254,8 @@ void handleEHCI(uint32_t base_addr)
 	setCmdReg(E_USBCMD, 0x80021);
 
 	// Device query setup
-	struct USBpacket *p = (struct USBpacket *) (&buf[0x58]);
+//	struct USBpacket *p = (struct USBpacket *) (&buf[0x58]);
+	p = (struct USBpacket *)(&buf[0x58]);
 
 	setupQueryPacket();
 	createPacket(p, 0x0409, 0x12, GET_DESCRIPTOR, 0x80, DEVICE << 8);
@@ -230,7 +276,7 @@ void handleEHCI(uint32_t base_addr)
 	linkAndRun(1, 0, 0x40);
 	if (getCmdReg(E_USBSTS) & 0x02)
 		kprintf(24, 0, "Error with Get Configuration");
-//asm("jmp .");
+
 	// Set configuration 1
 	setupCmdPacket();
 	createPacket(p, 0, 0, SET_CONFIGURATION, 0, 1);
@@ -254,398 +300,52 @@ void handleEHCI(uint32_t base_addr)
 	transferRequest(0x1F, 1, (uint32_t) (uint64_t) &buf[0x58]);
 	createCBW(0x24, 0x12060080, 0x24000000, 0, 0, 0);
 	linkAndRun(1, 1, 0x200);
-	if (getCmdReg(E_USBSTS) & 0x02)
-		kprintf(24, 0, "Error with CBW");
 
-	GoToSleep(10);
 	// Read Data
 	transferRequest(0x24, 0, (uint32_t) (uint64_t) &buf[0x58]);
 	linkAndRun(1, 2, 0x200);
-	if (getCmdReg(E_USBSTS) & 0x02)
-		kprintf(24, 0, "Error with Data Read");
 
 	// Read CSW
 	transferRequest(0xD, 0, (uint32_t) (uint64_t) &buf[0x70]);
 	linkAndRun(1, 2, 0x200);
 	if (getCmdReg(E_USBSTS) & 0x02)
-		kprintf(24, 0, "Error with CSW");
-	asm("jmp .");
+		kprintf(24, 0, "Error with Inquiry");
 
-/*	transferRequest(0xFC, 1, (uint32_t) (uint64_t) &buf[0x58]);
-	createCBW(0xFC, 0x230a0080, 0, 0x000000FC, 0, 0);
-	linkAndRun(1, 1);
-	if (getCmdReg(E_USBSTS) & 0x02)
-		kprintf(24, 0, "Error with CBW 2");
+	// Read Format
+	for (i = 0; i < 3; i++)
+	{
+		transferRequest(0x1f, 1, (uint32_t) (uint64_t) &buf[0x58]);
+		createCBW(0xFC, 0x230a0080, 0, 0xFC000000, 0, 0);
+		linkAndRun(1, 1, 0x200);
 
-	// Read Data
-	transferRequest(0x24, 0, (uint32_t) (uint64_t) &buf[0x58]);
-	linkAndRun(1, 2);
-	if (getCmdReg(E_USBSTS) & 0x02)
-		kprintf(24, 0, "Error with Data Read 2");
+		// Read Data
+		transferRequest(0xFC, 0, (uint32_t) (uint64_t) &buf[0x58]);
+		linkAndRun(1, 2, 0x200);
 
-	// Read CSW
-	transferRequest(0xD, 0, (uint32_t) (uint64_t) &buf[0x70]);
-	linkAndRun(1, 2);
-	if (getCmdReg(E_USBSTS) & 0x02)
-		kprintf(24, 0, "Error with CSW 2");
-
-	asm("jmp .");
-
-	/* // Read Format Data
-	setupCBWPacket();
-	buf[0x1a] = 0x80088e80;
-	buf[0x58] = 0x43425355;
-	buf[0x59] = 0x12345679;
-	buf[0x5a] = 0x000000fc;
-	buf[0x5b] = 0x230a0080;
-	buf[0x5c] = 0;
-	buf[0x5d] = 0x0000000fc;
-	buf[0x5e] = 0;
-
-	buf[0x100] = (uint32_t) (uint64_t) &buf[0x0] + 2;
-	buf[0x101] = 0x00fc4101;
-	buf[0x102] = 0x40000000;
-	buf[0x103] = 0;
-	buf[0x104] = (uint32_t) (uint64_t) &buf[0x18];
-
-	// link in the new queue
-	buf[0x0] = (uint32_t) (uint64_t) &buf[0x100] + 2;
-
-	while ((getCmdReg(E_USBSTS) & 1) == 0)
-		;
-	if (getCmdReg(E_USBSTS) & 0x02)
-		kprintf(24, 0, "Error at 9");
-
-	GoToSleep(10);
-	// unlink the queue
-	buf[0x0] = (uint32_t) (uint64_t) &buf[0x0] + 2;
-	setCmdReg(E_USBSTS, 0x3F);
-
-	// Read Data
-	buf[0x18] = 1;
-	buf[0x19] = 1;
-	buf[0x1a] = 0x82008D80;
-	buf[0x1b] = (uint32_t) (uint64_t) &buf[0x200];
-	buf[0x1c] = 0x8000;
-	buf[0x1d] = 0x9000;
-	buf[0x1e] = 0xa000;
-	buf[0x1f] = 0xb000;
-
-	buf[0x100] = (uint32_t) (uint64_t) &buf[0x0] + 2;
-	buf[0x101] = 0x02004201;
-	buf[0x102] = 0x40000000;
-	buf[0x103] = 0;
-	buf[0x104] = (uint32_t) (uint64_t) &buf[0x18];
-
-	// link in the new queue
-	buf[0x0] = (uint32_t) (uint64_t) &buf[0x100] + 2;
-	while ((getCmdReg(E_USBSTS) & 1) == 0)
-		;
-	if (getCmdReg(E_USBSTS) & 0x02)
-		kprintf(24, 0, "Error at 10");
-
-	GoToSleep(10);
-	// unlink the queue
-	buf[0x0] = (uint32_t) (uint64_t) &buf[0x0] + 2;
-	setCmdReg(E_USBSTS, 0x3F);
-
-	// Request Sense
-	setupCBWPacket();
-	buf[0x58] = 0x43425355;
-	buf[0x59] = 0x1234567a;
-	buf[0x5a] = 0x12;
-	buf[0x5b] = 0x03060080;
-	buf[0x5c] = 0x12000000;
-	buf[0x5d] = 0;
-	buf[0x5e] = 0;
-	buf[0x5f] = 0;
-	buf[0x60] = 0;
-
-	buf[0x100] = (uint32_t) (uint64_t) &buf[0x0] + 2;
-	buf[0x101] = 0x02004101;
-	buf[0x102] = 0x40000000;
-	buf[0x103] = 0;
-	buf[0x104] = (uint32_t) (uint64_t) &buf[0x18];
-
-	// link in the new queue
-	buf[0x0] = (uint32_t) (uint64_t) &buf[0x100] + 2;
-	kprintf(24, 0, "Got here 1");
-
-	while ((getCmdReg(E_USBSTS) & 1) == 0)
-		;
-	kprintf(24, 0, "Got here 2");
-
-	if (getCmdReg(E_USBSTS) & 0x02)
-		kprintf(24, 0, "Error at 10a");
-
-	GoToSleep(10);
-	// unlink the queue
-	buf[0x0] = (uint32_t) (uint64_t) &buf[0x0] + 2;
-	setCmdReg(E_USBSTS, 0x3F);
-
-	// Read Data
-	buf[0x18] = 1;
-	buf[0x19] = 1;
-	buf[0x1a] = 0x00248D80;
-	buf[0x1b] = (uint32_t) (uint64_t) &buf[0x58];
-	buf[0x1c] = 0x8000;
-	buf[0x1d] = 0x9000;
-	buf[0x1e] = 0xa000;
-	buf[0x1f] = 0xb000;
-
-	buf[0x100] = (uint32_t) (uint64_t) &buf[0x0] + 2;
-	buf[0x101] = 0x02004201;
-	buf[0x102] = 0x40000000;
-	buf[0x103] = 0;
-	buf[0x104] = (uint32_t) (uint64_t) &buf[0x18];
-
-	// link in the new queue
-	buf[0x0] = (uint32_t) (uint64_t) &buf[0x100] + 2;
-	while ((getCmdReg(E_USBSTS) & 1) == 0)
-		;
-	if (getCmdReg(E_USBSTS) & 0x02)
-		kprintf(24, 0, "Error at 10b");
-
-	GoToSleep(10);
-	// unlink the queue
-	buf[0x0] = (uint32_t) (uint64_t) &buf[0x0] + 2;
-	setCmdReg(E_USBSTS, 0x3F);
-
-	// Read CSW
-	buf[0x18] = 1;
-	buf[0x19] = 1;
-	buf[0x1a] = 0x800d8D80;
-	buf[0x1b] = (uint32_t) (uint64_t) &buf[0x70];
-	buf[0x1c] = 0x8000;
-	buf[0x1d] = 0x9000;
-	buf[0x1e] = 0xa000;
-	buf[0x1f] = 0xb000;
-
-	buf[0x100] = (uint32_t) (uint64_t) &buf[0x0] + 2;
-	buf[0x101] = 0x02004201;
-	buf[0x102] = 0x40000000;
-	buf[0x103] = 0;
-	buf[0x104] = (uint32_t) (uint64_t) &buf[0x18];
-
-	// link in the new queue
-	buf[0x0] = (uint32_t) (uint64_t) &buf[0x100] + 2;
-	while ((getCmdReg(E_USBSTS) & 1) == 0)
-		;
-	if (getCmdReg(E_USBSTS) & 0x02)
-		kprintf(24, 0, "Error at 10c");
-
-	asm("jmp .");
-	GoToSleep(10);
-	// unlink the queue
-	buf[0x0] = (uint32_t) (uint64_t) &buf[0x0] + 2;
-	setCmdReg(E_USBSTS, 0x3F);
-	GoToSleep(10);
-
-	// Read CSW
-	buf[0x18] = 1;
-	buf[0x19] = 1;
-	buf[0x1a] = 0x000d8D80;
-	buf[0x1b] = (uint32_t) (uint64_t) &buf[0x70];
-	buf[0x1c] = 0x8000;
-	buf[0x1d] = 0x9000;
-	buf[0x1e] = 0xa000;
-	buf[0x1f] = 0xb000;
-
-	buf[0x100] = (uint32_t) (uint64_t) &buf[0x0] + 2;
-	buf[0x101] = 0x02004201;
-	buf[0x102] = 0x40000000;
-	buf[0x103] = 0;
-	buf[0x104] = (uint32_t) (uint64_t) &buf[0x18];
-
-	// link in the new queue
-	buf[0x0] = (uint32_t) (uint64_t) &buf[0x100] + 2;
-	while ((getCmdReg(E_USBSTS) & 1) == 0)
-		;
-	if (getCmdReg(E_USBSTS) & 0x02)
-		kprintf(24, 0, "Error at 11");
-
-	GoToSleep(10);
-	// unlink the queue
-	buf[0x0] = (uint32_t) (uint64_t) &buf[0x0] + 2;
-	setCmdReg(E_USBSTS, 0x3F);
+		// Read CSW
+		transferRequest(0xD, 0, (uint32_t) (uint64_t) &buf[0x70]);
+		linkAndRun(1, 2, 0x200);
+		if ((getCmdReg(E_USBSTS) & 0x02) == 0)
+			break;
+		resetMSD();
+		if (i == 2)
+			kprintf(24, 0, "Error with Read Format Capacities");
+	}
 
 	// Read a sector
-	setupCBWPacket();
-	buf[0x1a] = 0x80088e80;
-	buf[0x58] = 0x43425355;
-	buf[0x59] = 0x12345679;
-	buf[0x5a] = 0x00000200;
-	buf[0x5b] = 0x280a0080;
-	buf[0x5c] = 0;
-	buf[0x5d] = 0x01000001;
-	buf[0x5e] = 0;
-	buf[0x5f] = 0;
-	buf[0x60] = 0;
-	buf[0x61] = 0;
-	buf[0x62] = 0;
-	buf[0x62] = 0;
-
-	buf[0x100] = (uint32_t) (uint64_t) &buf[0x0] + 2;
-	buf[0x101] = 0x02004101;
-	buf[0x102] = 0x40000000;
-	buf[0x103] = 0;
-	buf[0x104] = (uint32_t) (uint64_t) &buf[0x18];
-
-	// link in the new queue
-	buf[0x0] = (uint32_t) (uint64_t) &buf[0x100] + 2;
-
-	while ((getCmdReg(E_USBSTS) & 1) == 0)
-		;
-	if (getCmdReg(E_USBSTS) & 0x02)
-		kprintf(24, 0, "Error at 9");
-
-	GoToSleep(10);
-
-	// unlink the queue
-	buf[0x0] = (uint32_t) (uint64_t) &buf[0x0] + 2;
-	setCmdReg(E_USBSTS, 0x3F);
+	transferRequest(0x1f, 1, (uint32_t) (uint64_t) &buf[0x58]);
+	createCBW(0x200, 0x280A0080, 0, 0x01000000, 0, 0);
+	linkAndRun(1, 1, 0x200);
 
 	// Read Data
-	buf[0x18] = 1;
-	buf[0x19] = 1;
-	buf[0x1a] = 0x82008D80;
-	buf[0x1b] = (uint32_t) (uint64_t) &buf[0x200];
-	buf[0x1c] = 0x8000;
-	buf[0x1d] = 0x9000;
-	buf[0x1e] = 0xa000;
-	buf[0x1f] = 0xb000;
-
-	buf[0x100] = (uint32_t) (uint64_t) &buf[0x0] + 2;
-	buf[0x101] = 0x02004201;
-	buf[0x102] = 0x40000000;
-	buf[0x103] = 0;
-	buf[0x104] = (uint32_t) (uint64_t) &buf[0x18];
-
-	// link in the new queue
-	buf[0x0] = (uint32_t) (uint64_t) &buf[0x100] + 2;
-
-	while ((getCmdReg(E_USBSTS) & 1) == 0)
-		;
-	if (getCmdReg(E_USBSTS) & 0x02)
-		kprintf(24, 0, "Error at 10");
-
-	// Request Sense
-	setupCBWPacket();
-	buf[0x58] = 0x43425355;
-	buf[0x59] = 0x1234567a;
-	buf[0x5a] = 0x12;
-	buf[0x5b] = 0x03060080;
-	buf[0x5c] = 0x12000000;
-	buf[0x5d] = 0;
-	buf[0x5e] = 0;
-	buf[0x5f] = 0;
-	buf[0x60] = 0;
-
-	buf[0x100] = (uint32_t) (uint64_t) &buf[0x0] + 2;
-	buf[0x101] = 0x02004101;
-	buf[0x102] = 0x40000000;
-	buf[0x103] = 0;
-	buf[0x104] = (uint32_t) (uint64_t) &buf[0x18];
-
-	// link in the new queue
-	buf[0x0] = (uint32_t) (uint64_t) &buf[0x100] + 2;
-
-	while ((getCmdReg(E_USBSTS) & 1) == 0)
-		;
-	if (getCmdReg(E_USBSTS) & 0x02)
-		kprintf(24, 0, "Error at 10a");
-
-	GoToSleep(10);
-	// unlink the queue
-	buf[0x0] = (uint32_t) (uint64_t) &buf[0x0] + 2;
-	setCmdReg(E_USBSTS, 0x3F);
-
-	// Read Data
-	buf[0x18] = 1;
-	buf[0x19] = 1;
-	buf[0x1a] = 0x00248D80;
-	buf[0x1b] = (uint32_t) (uint64_t) &buf[0x58];
-	buf[0x1c] = 0x8000;
-	buf[0x1d] = 0x9000;
-	buf[0x1e] = 0xa000;
-	buf[0x1f] = 0xb000;
-
-	buf[0x100] = (uint32_t) (uint64_t) &buf[0x0] + 2;
-	buf[0x101] = 0x02004201;
-	buf[0x102] = 0x40000000;
-	buf[0x103] = 0;
-	buf[0x104] = (uint32_t) (uint64_t) &buf[0x18];
-
-	// link in the new queue
-	buf[0x0] = (uint32_t) (uint64_t) &buf[0x100] + 2;
-	while ((getCmdReg(E_USBSTS) & 1) == 0)
-		;
-	if (getCmdReg(E_USBSTS) & 0x02)
-		kprintf(24, 0, "Error at 10b");
-
-	GoToSleep(10);
-	// unlink the queue
-	buf[0x0] = (uint32_t) (uint64_t) &buf[0x0] + 2;
-	setCmdReg(E_USBSTS, 0x3F);
+	transferRequest(0x200, 0, (uint32_t) (uint64_t) &buf[0x200]);
+	linkAndRun(1, 2, 0x200);
 
 	// Read CSW
-	buf[0x18] = 1;
-	buf[0x19] = 1;
-	buf[0x1a] = 0x800d8D80;
-	buf[0x1b] = (uint32_t) (uint64_t) &buf[0x70];
-	buf[0x1c] = 0x8000;
-	buf[0x1d] = 0x9000;
-	buf[0x1e] = 0xa000;
-	buf[0x1f] = 0xb000;
-
-	buf[0x100] = (uint32_t) (uint64_t) &buf[0x0] + 2;
-	buf[0x101] = 0x02004201;
-	buf[0x102] = 0x40000000;
-	buf[0x103] = 0;
-	buf[0x104] = (uint32_t) (uint64_t) &buf[0x18];
-
-	// link in the new queue
-	buf[0x0] = (uint32_t) (uint64_t) &buf[0x100] + 2;
-	while ((getCmdReg(E_USBSTS) & 1) == 0)
-		;
+	transferRequest(0xD, 0, (uint32_t) (uint64_t) &buf[0x70]);
+	linkAndRun(1, 2, 0x200);
 	if (getCmdReg(E_USBSTS) & 0x02)
-		kprintf(24, 0, "Error at 10c");
+		kprintf(24, 0, "Error with Read Sector");
 
-	GoToSleep(10);
-	// unlink the queue
-	buf[0x0] = (uint32_t) (uint64_t) &buf[0x0] + 2;
-	setCmdReg(E_USBSTS, 0x3F);
-	GoToSleep(10);
-	// unlink the queue
-	buf[0x0] = (uint32_t) (uint64_t) &buf[0x0] + 2;
-	setCmdReg(E_USBSTS, 0x3F);
-
-	// Read CSW
-	buf[0x18] = 1;
-	buf[0x19] = 1;
-	buf[0x1a] = 0x000d8D80;
-	buf[0x1b] = (uint32_t) (uint64_t) &buf[0x70];
-	buf[0x1c] = 0x8000;
-	buf[0x1d] = 0x9000;
-	buf[0x1e] = 0xa000;
-	buf[0x1f] = 0xb000;
-
-	buf[0x100] = (uint32_t) (uint64_t) &buf[0x0] + 2;
-	buf[0x101] = 0x02004201;
-	buf[0x102] = 0x40000000;
-	buf[0x103] = 0;
-	buf[0x104] = (uint32_t) (uint64_t) &buf[0x18];
-
-	// link in the new queue
-	buf[0x0] = (uint32_t) (uint64_t) &buf[0x100] + 2;
-	while ((getCmdReg(E_USBSTS) & 1) == 0)
-		;
-	if (getCmdReg(E_USBSTS) & 0x02)
-		kprintf(24, 0, "Error at 11");
-
-	GoToSleep(10);
-	// unlink the queue
-	buf[0x0] = (uint32_t) (uint64_t) &buf[0x0] + 2;
-	setCmdReg(E_USBSTS, 0x3F);
-	asm("jmp ."); */
+	asm("jmp .");
 }
