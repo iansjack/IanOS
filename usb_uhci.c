@@ -295,7 +295,6 @@ void handleUHCI(uint32_t base_addr)
 	// get basic device configuration of devices[0]
 	getDeviceInformation(&devices[0]);
 	struct Configuration *conf = getConfiguration(&devices[0]);
-	asm("jmp .");
 	setConfiguration(&devices[0], conf->configvalue);
 
 	setUReg(U_USBINTR, 0xF);

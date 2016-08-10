@@ -29,12 +29,6 @@ struct transferDescriptor
 	uint32_t spare[4];
 }__attribute__((packed));
 
-#define	DEVICE			0x01
-#define CONFIGURATION	0x02
-#define INTERFACE		0x04
-#define	ENDPOINT		0x05
-
-
 void processUHCIQueue();
 
 #endif /* USB_UHCI_H_ */

@@ -26,4 +26,19 @@
 
 void handleEHCI(uint32_t base_addr);
 
+#define	CTL 0
+#define BO	1
+#define BI	2
+
+struct MSD
+{
+	uint32_t address;
+	uint32_t ctl;
+	uint32_t ctlMaxPacket;
+	uint32_t bulkIn;
+	uint32_t bIMaxPacket;
+	uint32_t bulkOut;
+	uint32_t bOMaxPacket;
+};
+
 #endif /* USB_ECHI_H_ */

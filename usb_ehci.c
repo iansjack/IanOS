@@ -8,6 +8,7 @@ uint32_t *cmd_base;
 uint32_t dtIN;
 uint32_t dtOUT;
 struct USBpacket *p;
+struct MSD device;
 
 uint32_t *initializeECHIFrameList(long frameList)
 {
@@ -28,6 +29,12 @@ uint32_t getCmdReg(uint32_t reg)
 void setCmdReg(uint32_t reg, uint32_t val)
 {
 	cmd_base[reg / 4] = val;
+}
+
+void ifError(char *message)
+{
+	if (getCmdReg(E_USBSTS) & 0x02)
+		kprintf(24, 0, message);
 }
 
 setupQueryPacket()
@@ -81,13 +88,31 @@ setupCmdPacket()
 	buf[0x2f] = 0;
 }
 
-void linkAndRun(uint32_t addr, uint32_t endpoint, uint32_t max_size)
+void linkAndRun(/*uint32_t addr, uint32_t endpoint, uint32_t max_size*/struct MSD *device, uint8_t ep)
 {
+	uint32_t endpoint;
+	uint32_t max_size;
+
+	switch (ep)
+	{
+	case CTL:
+		endpoint = device->ctl;
+		max_size = device->ctlMaxPacket;
+		break;
+	case BI:
+		endpoint = device->bulkIn;
+		max_size = device->bIMaxPacket;
+		break;
+	case BO:
+		endpoint = device->bulkOut;
+		max_size = device->bOMaxPacket;
+	}
+
 	buf = (int *) (long) asyncQueue;
 
 	setCmdReg(E_USBSTS, 0x3F);
 	buf[0x100] = (uint32_t) (uint64_t) &buf[0x0] + 2;
-	buf[0x101] = 0x80006000 + addr + (endpoint << 8) + (max_size << 16);
+	buf[0x101] = 0x80006000 + device->address + (endpoint << 8) + (max_size << 16);
 	buf[0x102] = 0x40000000;
 	buf[0x103] = 0;
 	buf[0x104] = (uint32_t) (uint64_t) &buf[0x18];
@@ -111,8 +136,8 @@ void linkAndRun(uint32_t addr, uint32_t endpoint, uint32_t max_size)
 	buf[0x0] = (uint32_t) (uint64_t) &buf[0x0] + 2;
 }
 
-createPacket(struct USBpacket *p, uint32_t index, uint32_t length,
-		uint32_t request, uint32_t type, uint32_t value)
+createPacket(uint32_t index, uint32_t length, uint32_t request, uint32_t type,
+		uint32_t value)
 {
 	p->index = index;
 	p->length = length;
@@ -161,22 +186,20 @@ void resetMSD(/*struct USBpacket *p*/)
 {
 	// Reset
 	setupCmdPacket();
-	createPacket(p, 0, 0, 0xFF, 0x21, 0);
-	linkAndRun(1, 0, 0x40);
-	if (getCmdReg(E_USBSTS) & 0x02)
-		kprintf(24, 0, "Error with Reset");
+	createPacket(0, 0, 0xFF, 0x21, 0);
+	linkAndRun(&device, CTL);
+	ifError("Error with Reset");
 
 	setupCmdPacket();
-	createPacket(p, 1, 0, CLEAR_FEATURE, 2, 0);
-	linkAndRun(1, 0, 0x40);
-	if (getCmdReg(E_USBSTS) & 0x02)
-		kprintf(24, 0, "Error with clear Endpoint 1");
+	createPacket(device.bulkIn, 0, CLEAR_FEATURE, 2, 0);
+	linkAndRun(&device, CTL);
+	ifError("Error with clear bulkIn Endpoint");
 
 	setupCmdPacket();
-	createPacket(p, 2, 0, CLEAR_FEATURE, 2, 0);
-	linkAndRun(1, 0, 0x40);
-	if (getCmdReg(E_USBSTS) & 0x02)
-		kprintf(24, 0, "Error with clear Endpoint 2");
+	createPacket(device.bulkOut, 0, CLEAR_FEATURE, 2, 0);
+	linkAndRun(&device, CTL);
+	ifError("Error with clear bulkOut Endpoint");
+
 	dtIN = 0;
 	dtOUT = 0;
 }
@@ -186,21 +209,21 @@ void requestSense()
 	// Request Sense
 	transferRequest(0x1F, 1, (uint32_t) (uint64_t) &buf[0x58]);
 	createCBW(0x12, 0x03060080, 0x12000000, 0, 0, 0);
-	linkAndRun(1, 1, 0x200);
+	linkAndRun(&device, BO);
 
 	// Read Data
 	transferRequest(0x12, 0, (uint32_t) (uint64_t) &buf[0x58]);
-	linkAndRun(1, 2, 0x200);
+	linkAndRun(&device, BI);
 
 	// Read CSW
 	transferRequest(0xD, 0, (uint32_t) (uint64_t) &buf[0x70]);
-	linkAndRun(1, 2, 0x200);
-	if (getCmdReg(E_USBSTS) & 0x02)
-		kprintf(24, 0, "Error with Request Sense");
+	linkAndRun(&device, BI);
 }
 
 void handleEHCI(uint32_t base_addr)
 {
+	uint32_t nextaddress = 1;
+
 	// We need to map this base_addr so that we can use the registers
 	CreatePTE(base_addr, base_addr, 0, 7);
 	uint32_t *base = (uint32_t *) (long) base_addr;
@@ -245,86 +268,109 @@ void handleEHCI(uint32_t base_addr)
 	while (getCmdReg(E_USBSTS) & 0x100)
 		;
 
-	// Reset the Ports
-	for (i = 0; i < 6; i++)
-		setCmdReg(E_PORTSC1 + 4 * i, 0x10a);
+	// Reset the first Port
+	setCmdReg(E_PORTSC1, 0x10a);
 	GoToSleep(50);
+	setCmdReg(E_PORTSC1, getCmdReg(E_PORTSC1) & 0xFEFF);
+	GoToSleep(2);
 
 	setCmdReg(E_USBINTR, 0x7);
 	setCmdReg(E_USBCMD, 0x80021);
 
+	device.address = 0;
+	device.ctl = 0;
+	device.ctlMaxPacket = 0x40;
+
 	// Device query setup
-//	struct USBpacket *p = (struct USBpacket *) (&buf[0x58]);
-	p = (struct USBpacket *)(&buf[0x58]);
+	p = (struct USBpacket *) (&buf[0x58]);
 
 	setupQueryPacket();
-	createPacket(p, 0x0409, 0x12, GET_DESCRIPTOR, 0x80, DEVICE << 8);
-	linkAndRun(0, 0, 0x40);
-	if (getCmdReg(E_USBSTS) & 0x02)
-		kprintf(24, 0, "Error with Device Query");
+	createPacket(0x0409, 0x12, GET_DESCRIPTOR, 0x80, DEVICE << 8);
+	linkAndRun(&device, CTL);
+	ifError("Error with Device Query");
 
 	// Set address
 	setupCmdPacket();
-	createPacket(p, 0, 0, SET_ADDRESS, 0, 1);
-	linkAndRun(0, 0, 0x40);
-	if (getCmdReg(E_USBSTS) & 0x02)
-		kprintf(24, 0, "Error with Set Address");
+	createPacket(0, 0, SET_ADDRESS, 0, ++nextaddress);
+	linkAndRun(&device, CTL);
+	ifError("Error with Set Address");
+	device.address = nextaddress;
 
 	// Get configuration
 	setupQueryPacket();
-	createPacket(p, 0, 0x60, GET_DESCRIPTOR, 0x80, CONFIGURATION << 8);
-	linkAndRun(1, 0, 0x40);
-	if (getCmdReg(E_USBSTS) & 0x02)
-		kprintf(24, 0, "Error with Get Configuration");
+	createPacket(0, 0x60, GET_DESCRIPTOR, 0x80, CONFIGURATION << 8);
+	linkAndRun(&device, CTL);
+	ifError("Error with Get Configuration");
 
-	// Set configuration 1
+	// Get the bulk in and out Endpoints
+	uint8_t *b = (uint8_t *) &buf[0x5a];
+	uint8_t *end = (uint8_t *)((uint64_t)b + ((struct Configuration *)&buf[0x5a])->totallength);
+
+	while (b < end)
+	{
+		while ((b[1] != ENDPOINT) & (b < end))
+			b += b[0];
+
+		uint8_t endpoint = ((struct Endpoint *)b)->address;
+		if (endpoint & 0x80)
+		{
+			device.bulkIn = endpoint & 0x7F;
+			device.bIMaxPacket = ((struct Endpoint *)b)->packetsize;
+		}
+		else
+		{
+			device.bulkOut = endpoint;
+			device.bOMaxPacket = ((struct Endpoint *)b)->packetsize;
+		}
+		b += b[0];
+	}
+
+// Set configuration 1
 	setupCmdPacket();
-	createPacket(p, 0, 0, SET_CONFIGURATION, 0, 1);
-	linkAndRun(1, 0, 0x40);
-	if (getCmdReg(E_USBSTS) & 0x02)
-		kprintf(24, 0, "Error with SetConfiguration");
+	createPacket(0, 0, SET_CONFIGURATION, 0, 1);
+	linkAndRun(&device, CTL);
+	ifError("Error with SetConfiguration");
 
-	// Get configuration number
+// Get configuration number
 	setupQueryPacket();
-	createPacket(p, 0, 1, GET_CONFIGURATION, 0x80, 0);
-	linkAndRun(1, 0, 0x40);
-	if (getCmdReg(E_USBSTS) & 0x02)
-		kprintf(24, 0, "Error with GetConfiguration Number");
+	createPacket(0, 1, GET_CONFIGURATION, 0x80, 0);
+	linkAndRun(&device, CTL);
+	ifError("Error with GetConfiguration Number");
 
-	// Initialize the data toggle bits;
+// Initialize the data toggle bits;
 	dtIN = 0;
 	dtOUT = 0;
 	CBWtag = 0x12345678;
 
-	// Send an INQUIRY command
+// Now for some SCSI commands
+// Send an INQUIRY command
 	transferRequest(0x1F, 1, (uint32_t) (uint64_t) &buf[0x58]);
 	createCBW(0x24, 0x12060080, 0x24000000, 0, 0, 0);
-	linkAndRun(1, 1, 0x200);
+	linkAndRun(&device, BO);
 
-	// Read Data
+// Read Data
 	transferRequest(0x24, 0, (uint32_t) (uint64_t) &buf[0x58]);
-	linkAndRun(1, 2, 0x200);
+	linkAndRun(&device, BI);
 
-	// Read CSW
+// Read CSW
 	transferRequest(0xD, 0, (uint32_t) (uint64_t) &buf[0x70]);
-	linkAndRun(1, 2, 0x200);
-	if (getCmdReg(E_USBSTS) & 0x02)
-		kprintf(24, 0, "Error with Inquiry");
+	linkAndRun(&device, BI);
+	ifError("Error with Inquiry");
 
-	// Read Format
+// Read Format
 	for (i = 0; i < 3; i++)
 	{
-		transferRequest(0x1f, 1, (uint32_t) (uint64_t) &buf[0x58]);
+		transferRequest(0x1F, 1, (uint32_t) (uint64_t) &buf[0x58]);
 		createCBW(0xFC, 0x230a0080, 0, 0xFC000000, 0, 0);
-		linkAndRun(1, 1, 0x200);
+		linkAndRun(&device, BO);
 
 		// Read Data
 		transferRequest(0xFC, 0, (uint32_t) (uint64_t) &buf[0x58]);
-		linkAndRun(1, 2, 0x200);
+		linkAndRun(&device, BI);
 
 		// Read CSW
 		transferRequest(0xD, 0, (uint32_t) (uint64_t) &buf[0x70]);
-		linkAndRun(1, 2, 0x200);
+		linkAndRun(&device, BI);
 		if ((getCmdReg(E_USBSTS) & 0x02) == 0)
 			break;
 		resetMSD();
@@ -332,20 +378,19 @@ void handleEHCI(uint32_t base_addr)
 			kprintf(24, 0, "Error with Read Format Capacities");
 	}
 
-	// Read a sector
+// Read some sectors
 	transferRequest(0x1f, 1, (uint32_t) (uint64_t) &buf[0x58]);
-	createCBW(0x200, 0x280A0080, 0, 0x01000000, 0, 0);
-	linkAndRun(1, 1, 0x200);
+	createCBW(0x1000, 0x280A0080, 0/*x9e000000*/, 0x08000000, 0, 0);
+	linkAndRun(&device, BO);
 
-	// Read Data
-	transferRequest(0x200, 0, (uint32_t) (uint64_t) &buf[0x200]);
-	linkAndRun(1, 2, 0x200);
+// Read Data
+	transferRequest(0x1000, 0, (uint32_t) (uint64_t) &buf[0x200]);
+	linkAndRun(&device, BI);
 
-	// Read CSW
+// Read CSW
 	transferRequest(0xD, 0, (uint32_t) (uint64_t) &buf[0x70]);
-	linkAndRun(1, 2, 0x200);
-	if (getCmdReg(E_USBSTS) & 0x02)
-		kprintf(24, 0, "Error with Read Sector");
+	linkAndRun(&device, BI);
+	ifError("Error with Read Sector");
 
-	asm("jmp .");
+asm("jmp .");
 }
