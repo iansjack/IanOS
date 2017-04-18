@@ -465,6 +465,7 @@ struct Task *NewKernelTask(void *TaskCode)
 void NewLowPriTask(void *TaskCode)
 {
 	lowPriTask = NewKernelTask(TaskCode);
+//	asm("jmp .");
 	runnableTasks = RemoveFromTaskList(runnableTasks, lowPriTask);
 }
 
@@ -673,7 +674,7 @@ void StartTasks()
 {
 	kprintf(0, 0, "Starting tasks");
 	(void) NewLowPriTask((void *) dummyTask);
-	enumeratePCIBus();
+//	enumeratePCIBus();
 	GoToSleep(100);
 	(void) NewKernelTask((void *) kbTaskCode);
 	GoToSleep(100);

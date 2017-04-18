@@ -80,4 +80,7 @@ void FlushCaches(void);
 void ClearBlockBitmapBit(u_int32_t block);
 void ClearINodeBitmapBit(u_int32_t inode);
 
+#define BASEADDRESS	0xFFFF800000000000L
+#define BlockToAdd(b) ((char *)(BASEADDRESS + PartitionStart * 1024 + b * block_size))
+
 #endif /* BLOCKS_H_ */

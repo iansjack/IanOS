@@ -186,10 +186,6 @@ intrr:
 	KWRITE_DOUBLE 0x38(%rsp), $4, $68
 	KWRITE_STRING $ss, $5, $60
 	KWRITE_DOUBLE 0x40(%rsp), $5, $68
-#	cmpl $UserCode, 0x20(%rsp)
-#	jge kcode
-#	KWRITE_STRING $usererror, $14, $58
-#	call KillTask
 kcode:
 	cli
 	hlt
@@ -256,27 +252,42 @@ gpf:
 
 pf:
 	PUSH_ALL
-	mov %cr2, %rax
-	push %rax
-	and $2, 0x40(%rsp)		# Test the error code for write to non-present page
-	jz notnp
+	mov %cr2, %r9			# Save the address of the fault
+	and $1, 0x38(%rsp)		# Test the error code
+	jnz notnp
+	mov %r9, %rax
 	sub %rax, %rbp			# Test to see if the faulting address is
 	cmp $0, %rbp			# within sixteen pages of the stack pointer
-	jl notnp
+	jl notsp
 	cmp $0x10000, %rbp
-	jg notnp
-	mov %rax, %rdi
+	jg notsp
+	jmp common
+notsp:
+	movq $0xFFFF800000000000, %rdi
+	mov %r9, %rax
+	subq %rdi, %rax
+	jl notnp
+	mov %r9, %rdi
+	mov  currentTask, %r15
+	mov TS.pid(%r15), %rsi
+	mov $7, %rdx
+	call AllocAndCreatePTE	# Allocate a new page
+	mov %r9, %rdi
+	call ReadPageFromDisk
+	POP_ALL
+	add $0x8, %rsp			# Get rid of the pushed error code
+	iretq
+common:
+	mov %r9, %rdi
 	mov  currentTask, %r15
 	mov TS.pid(%r15), %rsi
 	mov $7, %rdx
 	call AllocAndCreatePTE	# Allocate a new page
 	invlpg 0(%rsp)			# We'll get another page fault if we don't do this
-	pop %rax
 	POP_ALL
 	add $0x8, %rsp			# Get rid of the pushed error code
 	iretq
 notnp:
-	pop %rax
 	POP_ALL
 	KWRITE_STRING $PFmessage, $0, $0
 	KWRITE_STRING $error, $6, $60
@@ -378,7 +389,7 @@ ClearSem:
 	.global Timer.task
 
 Ticks:				.quad 0
-TimeSliceCount: 	.byte 5
+TimeSliceCount: 	.byte 0
 Timer.active: 		.byte 0
-Timer.interval:	.quad 0
+Timer.interval:		.quad 0
 Timer.task:			.quad 0

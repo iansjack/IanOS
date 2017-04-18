@@ -59,19 +59,6 @@ void InitMemManagement()
 		t->nPagesFree--;
 	}
 
-//	for (count = 0x180; count <= 0x1ff; count++)
-//	{
-//		SetBit32(count);
-//		t->nPagesFree--;
-//	}
-	// PageMap
-//	for (count = 0x100; count < 0x100 + (2 * t->nPages / (long) PageSize);
-//			count++)
-//	{
-//		SetBit32(count);
-//		t->nPagesFree--;
-//	}
-
 	t->firstFreePage = count + 1;
 
 	// Zero unused pages

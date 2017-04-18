@@ -55,9 +55,9 @@ _start:
 	mov  %rax, TS.cr3(%r15)
 	mov	%r15, currentTask
 
-	call mp_init
-	call lapic_init
-	call boot_aps
+#	call mp_init
+#	call lapic_init
+#	call boot_aps
 
 	mov $2, %rdi
 	call AllocPage                     	# Page for kernel stack
@@ -110,6 +110,7 @@ _start:
 	pushfq
 	pop %r11
     or $0x200, %r11						# This will enable interrupts when we sysret
+#    jmp .
 
     sysretq								# Start Task1 and multitasking
 
@@ -125,12 +126,21 @@ gdt_48:	.word 0x800						# Allow up to 512 entries in GDT
 idt_64:	.word 0x800						# Allow up to 512 entries in IDT
 		.quad IDT
 
-# A minimal stack whilst the system is being initialized. Also used as
-# stack for PF exceptions in case of problems with other stacks.
+# A minimal stack whilst the system is being initialized.
+
 .rept 128
 	.quad 0
 .endr
+
 tempstack:
+
+# A stack for PF exceptions in case of problems with other stacks.
+
+.rept 128
+	.quad 0
+.endr
+
+pfstack:
 
 TSS64:
 	.long 0
@@ -139,7 +149,7 @@ TSS64:
 	.rept 6
 	.long 0
 	.endr
-	.long tempstack
+	.long pfstack
 	.long 0
 	.rept 15
 	.long 0

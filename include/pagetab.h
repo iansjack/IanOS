@@ -15,39 +15,39 @@
 
 #ifdef CODE_32
 struct PML4e {
-	long Lo:32;
-	long Hi:32;
+	unsigned long Lo:32;
+	unsigned long Hi:32;
 };
 
 struct PDPE {
-	long Lo:32;
-	long Hi:32;
+	unsigned long Lo:32;
+	unsigned long Hi:32;
 };
 
 struct PDE {
-	long Lo:32;
-	long Hi:32;
+	unsigned long Lo:32;
+	unsigned long Hi:32;
 };
 
 struct PTE {
-	long Lo:32;
-	long Hi:32;
+	unsigned long Lo:32;
+	unsigned long Hi:32;
 };
 #else
 struct PML4e {
-	long value;
+	unsigned long value;
 };
 
 struct PDPE {
-	long value;
+	unsigned long value;
 };
 
 struct PDE {
-	long value;
+	unsigned long value;
 };
 
 struct PTE {
-	long value;
+	unsigned long value;
 };
 #endif
 

@@ -110,16 +110,16 @@ void InitIDT(void)
 	CreateTrapGate(code64, (long)&i5, 5, 0);
 	CreateTrapGate(code64, (long)&i6, 6, 0);
 	CreateTrapGate(code64, (long)&i7, 7, 0);
-	CreateTrapGate(code64, (long)&df, 8, 1);
+	CreateTrapGate(code64, (long)&df, 8, 0);
 	CreateTrapGate(code64, (long)&i9, 9, 0);
 	CreateTrapGate(code64, (long)&ia, 10, 0);
 	CreateTrapGate(code64, (long)&ib, 11, 0);
 	CreateTrapGate(code64, (long)&ic, 12, 0);
 	CreateTrapGate(code64, (long)&gpf, 13, 0);
-	CreateTrapGate(code64, (long)&pf, 14, 1);
+	CreateTrapGate(code64, (long)&pf, 14, 1);			// pf uses its own stack
 	CreateTrapGate(code64, (long)&SwitchTasks, 20, 0);
 	CreateTrapGate(code64, (long)&SpecificSwitchTasks, 22, 0);
-	CreateTrapGate(code64, (long)&TimerInt, 32, 1);
+	CreateTrapGate(code64, (long)&TimerInt, 32, 0);
 	CreateIntGate(code64, (long)&KbInt, 33, 0);
 	CreateIntGate(code64, (long)&HdInt, 46, 0);
 	CreateIntGate(code64, (long)&spr, 39, 0);

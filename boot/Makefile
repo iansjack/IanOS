@@ -28,7 +28,7 @@ myos.bin: $(OBJS)
 myos.iso: myos.bin ../IanOS.bin
 	cp myos.bin ../isodir/boot/myos.bin
 	cp ../IanOS.bin ../isodir/boot
-	grub2-mkrescue -o ../myos.iso ../isodir
+	grub-mkrescue -o ../myos.iso ../isodir
 	
 clean:
 	rm -f *.o

@@ -1,14 +1,17 @@
 #include "usb.h"
 #include "usb_ehci.h"
+#include "memory.h"
+#include "scsi.h"
 
-uint32_t frameList;
-uint32_t asyncQueue;
-uint32_t *buf;
 uint32_t *cmd_base;
 uint32_t dtIN;
 uint32_t dtOUT;
 struct USBpacket *p;
 struct MSD device;
+struct CBW *cbw;
+uint8_t *csw;
+struct QueueHead *queueHead;
+struct QueueHeadTransferDescriptor *descriptor;
 
 uint32_t *initializeECHIFrameList(long frameList)
 {
@@ -37,58 +40,70 @@ void ifError(char *message)
 		kprintf(24, 0, message);
 }
 
-setupQueryPacket()
+struct EHCITransferControl transferControl(uint8_t dt, uint16_t length, uint8_t pid, uint8_t ioc)
 {
-	buf[0x18] = (uint32_t) (uint64_t) &buf[0x28];
-	buf[0x19] = 1;
-	buf[0x1a] = 0x00080e80;
-	buf[0x1b] = (uint32_t) (uint64_t) &buf[0x58];
-	buf[0x1c] = 0x8000;
-	buf[0x1d] = 0x9000;
-	buf[0x1e] = 0xa000;
-	buf[0x1f] = 0xb000;
-	buf[0x28] = (uint32_t) (uint64_t) &buf[0x38];
-	buf[0x29] = (uint32_t) (uint64_t) &buf[0x48];
-	buf[0x2a] = 0x80400d80;
-	buf[0x2b] = (uint32_t) (uint64_t) &buf[0x5a];
-	buf[0x2c] = 0x8000;
-	buf[0x2d] = 0x9000;
-	buf[0x2e] = 0xa000;
-	buf[0x2f] = 0xb000;
-	buf[0x38] = (uint32_t) (uint64_t) &buf[0x48];
-	buf[0x39] = (uint32_t) (uint64_t) &buf[0x48];
-	buf[0x3a] = 0x00400d80;
-	buf[0x3b] = (uint32_t) (uint64_t) &buf[0x6a];
-	buf[0x3c] = 0x8000;
-	buf[0x3d] = 0x9000;
-	buf[0x3e] = 0xa000;
-	buf[0x3f] = 0xb000;
-	buf[0x48] = 1;
-	buf[0x49] = 1;
-	buf[0x4a] = 0x80008d80;
+	struct EHCITransferControl c;
+	c.dt = dt;
+	c.length = length;
+	c.ioc = ioc;
+	c.cpage = 0;
+	c.cerr = 3;
+	c.pid = pid;
+	c.status = 0x80;
+	return c;
+}
+
+setupQueryPacket(uint8_t *buffer)
+{
+	descriptor[0].nextqTDPointer = (uint32_t) (uint64_t)&descriptor[1];
+	descriptor[0].alternatePointer = 1;
+	descriptor[0].control = transferControl(0, 8, SETUP, 0);
+	descriptor[0].buffers[0] = (uint32_t) (uint64_t)p;
+	descriptor[0].buffers[1] = 0x8000;
+	descriptor[0].buffers[2] = 0x9000;
+	descriptor[0].buffers[3] = 0xA000;
+	descriptor[0].buffers[4] = 0xB000;
+
+	descriptor[1].nextqTDPointer = (uint32_t) (uint64_t)&descriptor[2];
+	descriptor[1].alternatePointer = (uint32_t) (uint64_t)&descriptor[3];
+	descriptor[1].control = transferControl(1, 0x40, IN, 0);
+	descriptor[1].buffers[0] = (uint32_t) (uint64_t)buffer;
+	descriptor[1].buffers[1] = 0x8000;
+	descriptor[1].buffers[2] = 0x9000;
+	descriptor[1].buffers[3] = 0xA000;
+	descriptor[1].buffers[4] = 0xB000;
+
+	descriptor[2].nextqTDPointer = (uint32_t) (uint64_t)&descriptor[3];
+	descriptor[2].alternatePointer = (uint32_t) (uint64_t)&descriptor[3];
+	descriptor[2].control = transferControl(0, 0x40, IN, 0);
+	descriptor[2].buffers[0] = (uint32_t) (uint64_t)buffer + 0x40;
+	descriptor[2].buffers[1] = 0x8000;
+	descriptor[2].buffers[2] = 0x9000;
+	descriptor[2].buffers[3] = 0xA000;
+	descriptor[2].buffers[4] = 0xB000;
+
+	descriptor[3].nextqTDPointer = 1;
+	descriptor[3].alternatePointer = 4;
+	descriptor[3].control = transferControl(1, 0, IN, 1);
 }
 
 setupCmdPacket()
 {
-	buf[0x18] = (uint32_t) (uint64_t) &buf[0x28];
-	buf[0x19] = 1;
-	buf[0x1a] = 0x00080e80;
-	buf[0x1b] = (uint32_t) (uint64_t) &buf[0x58];
-	buf[0x1c] = 0x8000;
-	buf[0x1d] = 0x9000;
-	buf[0x1e] = 0xa000;
-	buf[0x1f] = 0xb000;
-	buf[0x28] = 1;
-	buf[0x29] = 1;
-	buf[0x2a] = 0x80008d80;
-	buf[0x2b] = 0;
-	buf[0x2c] = 0;
-	buf[0x2d] = 0;
-	buf[0x2e] = 0;
-	buf[0x2f] = 0;
+	descriptor[0].nextqTDPointer = (uint32_t) (uint64_t)&descriptor[1];
+	descriptor[0].alternatePointer = 1;
+	descriptor[0].control = transferControl(0, 8, SETUP, 0);
+	descriptor[0].buffers[0] = (uint32_t) (uint64_t)p;
+	descriptor[0].buffers[1] = 0x8000;
+	descriptor[0].buffers[2] = 0x9000;
+	descriptor[0].buffers[3] = 0xA000;
+	descriptor[0].buffers[4] = 0xB000;
+
+	descriptor[1].nextqTDPointer = 1;
+	descriptor[1].alternatePointer = 1;
+	descriptor[1].control = transferControl(1, 0, IN, 1);
 }
 
-void linkAndRun(/*uint32_t addr, uint32_t endpoint, uint32_t max_size*/struct MSD *device, uint8_t ep)
+void linkAndRun(struct MSD *device, uint8_t ep)
 {
 	uint32_t endpoint;
 	uint32_t max_size;
@@ -108,32 +123,31 @@ void linkAndRun(/*uint32_t addr, uint32_t endpoint, uint32_t max_size*/struct MS
 		max_size = device->bOMaxPacket;
 	}
 
-	buf = (int *) (long) asyncQueue;
-
 	setCmdReg(E_USBSTS, 0x3F);
-	buf[0x100] = (uint32_t) (uint64_t) &buf[0x0] + 2;
-	buf[0x101] = 0x80006000 + device->address + (endpoint << 8) + (max_size << 16);
-	buf[0x102] = 0x40000000;
-	buf[0x103] = 0;
-	buf[0x104] = (uint32_t) (uint64_t) &buf[0x18];
-	buf[0x105] = 0;
-	buf[0x106] = 0;
-	buf[0x107] = 0;
-	buf[0x108] = 0;
-	buf[0x109] = 0;
-	buf[0x10a] = 0;
-	buf[0x10b] = 0;
-	buf[0x10c] = 0;
-	buf[0x10d] = 0;
-	buf[0x10e] = 0;
-	buf[0x10f] = 0;
+
+	queueHead[1].horizontalLinkPointer = (uint32_t)(uint64_t)queueHead + 2;
+	//struct EndpointCharacteristics c;
+	//c.address = device->address;
+	//c.inactive = 0;
+	//c.endpoint = endpoint;
+	//c.eps = 2;
+	//c.dtc = 1;
+	//c.head = 0;
+	//c.max_packet_length = max_size;
+	//c.c = 0;
+	//c.rl = 8;
+	//asm("jmp .");
+	queueHead[1].control1 = 0x80006000 + device->address + (endpoint << 8) + (max_size << 16);
+	queueHead[1].control2 = 0x40000000;
+	queueHead[1].qTDPointer = 0;
+	queueHead[1].overlay[0] = (uint32_t) (uint64_t) &descriptor[0];
 
 	// link in the new queue
-	buf[0x0] = (uint32_t) (uint64_t) &buf[0x100] + 2;
+	queueHead[0].horizontalLinkPointer = (uint32_t) (uint64_t) &queueHead[1] + 2;
 	while ((getCmdReg(E_USBSTS) & 1) == 0)
 		;
 	// unlink the queue
-	buf[0x0] = (uint32_t) (uint64_t) &buf[0x0] + 2;
+	queueHead[0].horizontalLinkPointer = (uint32_t) (uint64_t) &queueHead[1] + 2;
 }
 
 createPacket(uint32_t index, uint32_t length, uint32_t request, uint32_t type,
@@ -146,43 +160,85 @@ createPacket(uint32_t index, uint32_t length, uint32_t request, uint32_t type,
 	p->value = value;
 }
 
-void transferRequest(uint32_t size, uint8_t direction, uint32_t buffer)
+void transferRequest(uint32_t size, uint8_t direction, uint32_t buffer, uint8_t des)
 {
-	buf[0x18] = 1;
-	buf[0x19] = 1;
+	descriptor[des].nextqTDPointer = 1;
+	descriptor[des].alternatePointer = 1;
+
 	if (direction)
 	{
-		buf[0x1a] = 0x00008C80 + (dtOUT << 31) + (size << 16);
+		descriptor[des].control = transferControl(dtOUT, size, OUT, 1);
 		dtOUT ^= 1;
 	}
 	else
 	{
-		buf[0x1a] = 0x00008D80 + (dtIN << 31) + (size << 16);
+		descriptor[des].control = transferControl(dtIN, size, IN, 1);
 		dtIN ^= 1;
 	}
-	buf[0x1b] = buffer;
-	buf[0x1c] = 0x8000;
-	buf[0x1d] = 0x9000;
-	buf[0x1e] = 0xa000;
-	buf[0x1f] = 0xb000;
+	descriptor[des].buffers[0] = buffer;
+	descriptor[des].buffers[1] = 0x8000;
+	descriptor[des].buffers[2] = 0x9000;
+	descriptor[des].buffers[3] = 0xa000;
+	descriptor[des].buffers[4] = 0xb000;
 }
 
 uint32_t CBWtag;
 
-void createCBW(uint32_t size, uint32_t FLCC, uint32_t byte5, uint32_t byte6,
-		uint32_t byte7, uint32_t byte8)
+void createCBW(uint32_t size, uint8_t direction, uint8_t commandLen, uint8_t command, uint8_t bytes[15])
 {
-	buf[0x58] = 0x43425355;
-	buf[0x59] = CBWtag++;
-	buf[0x5a] = size;
-	buf[0x5b] = FLCC;
-	buf[0x5c] = byte5;
-	buf[0x5d] = byte6;
-	buf[0x5e] = byte7;
-	buf[0x5f] = byte8;
+	transferRequest(0x1F, 1, (uint32_t) (uint64_t) cbw, 0);
+
+	cbw->signature = 0x43425355;
+	cbw->tag = CBWtag++;
+	cbw->transferLength = size;
+	cbw->flags = direction;
+	cbw->lun = 0;
+	cbw->commandLength = commandLen;
+	cbw->command[0] = command;
+	int i;
+	for (i = 1; i < 16; i++)
+		cbw->command[i] = bytes[i-1];
 }
 
-void resetMSD(/*struct USBpacket *p*/)
+createInquiry()
+{
+	uint8_t bytes[] = {0, 0, 0, 0x24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	createCBW(0x24, 0x80, 0x06, INQUIRY, bytes);
+	linkAndRun(&device, BO);
+}
+
+createReadFormat()
+{
+	uint8_t bytes[] = {0, 0, 0, 0, 0, 0, 0, 0xFC, 0, 0, 0, 0, 0, 0, 0};
+	createCBW(0xFC, 0x80, 0x0a, READ_FORMAT_CAPACITY, bytes);
+	linkAndRun(&device, BO);
+}
+
+createRead(uint32_t lba, uint32_t blocks)
+{
+	uint8_t bytes[] = {0,
+			(lba >> 24) & 0xFF, (lba >> 16) & 0xFF, (lba >> 8) & 0xFF, lba & 0xFF,
+			0,
+			(blocks >> 8) & 0xFF, blocks & 0xFF,
+			0, 0, 0, 0, 0, 0};
+	createCBW(blocks * 512, 0x80, 0x0a, READ_10, bytes);
+	linkAndRun(&device, BO);
+}
+
+void readData(uint32_t size, void *buffer, char *message)
+{
+	// Read Data
+	transferRequest(size, 0, (uint32_t) (uint64_t) buffer, 0);
+	descriptor[0].nextqTDPointer = (uint32_t) (uint64_t)&descriptor[1];
+
+	// Read CSW
+	transferRequest(0xD, 0, (uint32_t) (uint64_t) csw, 1);
+
+	linkAndRun(&device, BI);
+	ifError(message);
+}
+
+void resetMSD()
 {
 	// Reset
 	setupCmdPacket();
@@ -204,24 +260,18 @@ void resetMSD(/*struct USBpacket *p*/)
 	dtOUT = 0;
 }
 
-void requestSense()
+void requestSense(uint8_t *buffer)
 {
-	// Request Sense
-	transferRequest(0x1F, 1, (uint32_t) (uint64_t) &buf[0x58]);
-	createCBW(0x12, 0x03060080, 0x12000000, 0, 0, 0);
+	uint8_t bytes[] = {0, 0, 0, 0x12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	createCBW(0x12, 0x80, 0x06, REQUEST_SENSE, bytes);
 	linkAndRun(&device, BO);
-
-	// Read Data
-	transferRequest(0x12, 0, (uint32_t) (uint64_t) &buf[0x58]);
-	linkAndRun(&device, BI);
-
-	// Read CSW
-	transferRequest(0xD, 0, (uint32_t) (uint64_t) &buf[0x70]);
-	linkAndRun(&device, BI);
+	readData(0x12, buffer, "Error with Request Sense");
 }
 
 void handleEHCI(uint32_t base_addr)
 {
+	p = (struct USBpacket *)AllocKMem(sizeof(struct USBpacket));
+
 	uint32_t nextaddress = 1;
 
 	// We need to map this base_addr so that we can use the registers
@@ -243,26 +293,25 @@ void handleEHCI(uint32_t base_addr)
 	// Wait for the reset to happen
 	GoToSleep(10);
 
-	frameList = AllocAndCreatePTE(0x5000L, 0, 0x7);
+	uint32_t frameList = AllocAndCreatePTE(0x5000L, 0, 0x7);
 	setCmdReg(E_PERIODICLISTBASE, (uint32_t) frameList);
 
 	initializeECHIFrameList(frameList);
 
-	asyncQueue = AllocAndCreatePTE(0x6000L, 0, 0x7);
-
-	buf = (int *) (long) asyncQueue;
+	uint8_t *buf = (uint8_t *)(uint64_t)AllocAndCreatePTE(0x6000L, 0, 0x7);
 
 	int i;
 	for (i = 0; i < 1024; i++)
 		buf[i] = 0;
 
-	buf[0] = (uint32_t) (uint64_t) &buf[0] + 2;
-	buf[1] = 0x8040C000;
-	buf[2] = 0x40000000;
-	buf[3] = 0;
-	buf[4] = 1;
-
-	setCmdReg(E_ASYNCLISTADDR, asyncQueue);
+	// Initialize the first queue head
+	queueHead = (struct QueueHead *)(uint64_t)buf;
+	queueHead[0].horizontalLinkPointer = (uint32_t)(uint64_t)queueHead + 2;
+	queueHead[0].control1 = 0x8040C000;
+	queueHead[0].control2 = 0x40000000;
+	queueHead[0].qTDPointer = 0;
+	queueHead[0].overlay[0] = 1;
+	setCmdReg(E_ASYNCLISTADDR, (uint32_t)(uint64_t)queueHead);
 
 	setCmdReg(E_USBCMD, 0x80001);
 	while (getCmdReg(E_USBSTS) & 0x100)
@@ -277,34 +326,41 @@ void handleEHCI(uint32_t base_addr)
 	setCmdReg(E_USBINTR, 0x7);
 	setCmdReg(E_USBCMD, 0x80021);
 
+	AllocAndCreatePTE(0x8000, 0, 0x7);
+	AllocAndCreatePTE(0x9000, 0, 0x7);
+	AllocAndCreatePTE(0xA000, 0, 0x7);
+	AllocAndCreatePTE(0xB000, 0, 0x7);
+
+	descriptor = (struct QueueHeadTransferDescriptor *)&buf[0x800];
+
 	device.address = 0;
 	device.ctl = 0;
 	device.ctlMaxPacket = 0x40;
 
 	// Device query setup
-	p = (struct USBpacket *) (&buf[0x58]);
-
-	setupQueryPacket();
+	struct Device *dev = (struct Device *)AllocKMem(sizeof(struct Device));
+	setupQueryPacket((uint8_t *)dev);
 	createPacket(0x0409, 0x12, GET_DESCRIPTOR, 0x80, DEVICE << 8);
 	linkAndRun(&device, CTL);
 	ifError("Error with Device Query");
 
 	// Set address
 	setupCmdPacket();
-	createPacket(0, 0, SET_ADDRESS, 0, ++nextaddress);
+	createPacket(0, 0, SET_ADDRESS, 0, nextaddress);
 	linkAndRun(&device, CTL);
 	ifError("Error with Set Address");
-	device.address = nextaddress;
+	device.address = nextaddress++;
 
 	// Get configuration
-	setupQueryPacket();
+	struct Configuration *configuration = (struct Configuration *)AllocKMem(64);
+	setupQueryPacket((uint8_t *)configuration);
 	createPacket(0, 0x60, GET_DESCRIPTOR, 0x80, CONFIGURATION << 8);
 	linkAndRun(&device, CTL);
 	ifError("Error with Get Configuration");
 
 	// Get the bulk in and out Endpoints
-	uint8_t *b = (uint8_t *) &buf[0x5a];
-	uint8_t *end = (uint8_t *)((uint64_t)b + ((struct Configuration *)&buf[0x5a])->totallength);
+	uint8_t *b = (uint8_t *) configuration;
+	uint8_t *end = (uint8_t *)((uint64_t)b + configuration->totallength);
 
 	while (b < end)
 	{
@@ -332,10 +388,10 @@ void handleEHCI(uint32_t base_addr)
 	ifError("Error with SetConfiguration");
 
 // Get configuration number
-	setupQueryPacket();
-	createPacket(0, 1, GET_CONFIGURATION, 0x80, 0);
-	linkAndRun(&device, CTL);
-	ifError("Error with GetConfiguration Number");
+//	setupQueryPacket();
+//	createPacket(0, 1, GET_CONFIGURATION, 0x80, 0);
+//	linkAndRun(&device, CTL);
+//	ifError("Error with GetConfiguration Number");
 
 // Initialize the data toggle bits;
 	dtIN = 0;
@@ -343,34 +399,21 @@ void handleEHCI(uint32_t base_addr)
 	CBWtag = 0x12345678;
 
 // Now for some SCSI commands
+	cbw = (struct CBW *)AllocKMem(sizeof(struct CBW));
+	csw = (uint8_t *)AllocKMem(9);
+
 // Send an INQUIRY command
-	transferRequest(0x1F, 1, (uint32_t) (uint64_t) &buf[0x58]);
-	createCBW(0x24, 0x12060080, 0x24000000, 0, 0, 0);
-	linkAndRun(&device, BO);
-
-// Read Data
-	transferRequest(0x24, 0, (uint32_t) (uint64_t) &buf[0x58]);
-	linkAndRun(&device, BI);
-
-// Read CSW
-	transferRequest(0xD, 0, (uint32_t) (uint64_t) &buf[0x70]);
-	linkAndRun(&device, BI);
-	ifError("Error with Inquiry");
+	void *inquiry = (uint8_t *)AllocKMem(32);
+	createInquiry();
+	readData(0x24, inquiry, "Error with Inquiry");
 
 // Read Format
 	for (i = 0; i < 3; i++)
 	{
-		transferRequest(0x1F, 1, (uint32_t) (uint64_t) &buf[0x58]);
-		createCBW(0xFC, 0x230a0080, 0, 0xFC000000, 0, 0);
-		linkAndRun(&device, BO);
+		void *format = (uint8_t *)AllocKMem(0xFC);
+		createReadFormat();
+		readData(0xFC, format, "");
 
-		// Read Data
-		transferRequest(0xFC, 0, (uint32_t) (uint64_t) &buf[0x58]);
-		linkAndRun(&device, BI);
-
-		// Read CSW
-		transferRequest(0xD, 0, (uint32_t) (uint64_t) &buf[0x70]);
-		linkAndRun(&device, BI);
 		if ((getCmdReg(E_USBSTS) & 0x02) == 0)
 			break;
 		resetMSD();
@@ -379,18 +422,9 @@ void handleEHCI(uint32_t base_addr)
 	}
 
 // Read some sectors
-	transferRequest(0x1f, 1, (uint32_t) (uint64_t) &buf[0x58]);
-	createCBW(0x1000, 0x280A0080, 0/*x9e000000*/, 0x08000000, 0, 0);
-	linkAndRun(&device, BO);
+	void *readBuf = (void *)AllocKMem(2048);
+	createRead(0, 4);
+	readData(0x500, readBuf, "Error with Read Sector");
 
-// Read Data
-	transferRequest(0x1000, 0, (uint32_t) (uint64_t) &buf[0x200]);
-	linkAndRun(&device, BI);
-
-// Read CSW
-	transferRequest(0xD, 0, (uint32_t) (uint64_t) &buf[0x70]);
-	linkAndRun(&device, BI);
-	ifError("Error with Read Sector");
-
-asm("jmp .");
+	asm("jmp .");
 }

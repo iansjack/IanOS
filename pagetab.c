@@ -13,8 +13,8 @@ extern long virtualPDP;
 extern struct Task *currentTask;
 
 #ifdef DEBUG
-	long allocations[32];
-	long currAlloc;
+long allocations[32];
+long currAlloc;
 #endif
 
 void Debug()
@@ -35,8 +35,8 @@ void ClearBit(int count)
 
 #ifdef DEBUG
 	for (n = 0; n < 32; n++)
-		if (allocations[n] == mem)
-			allocations[n] = 0;
+	if (allocations[n] == mem)
+	allocations[n] = 0;
 #endif
 
 	int i = count / 8;
@@ -54,22 +54,22 @@ int GetBit(int count)
 		return 0;
 }
 
-unsigned int GetPTIndex(l_Address lAddress)
+unsigned long GetPTIndex(l_Address lAddress)
 {
 	return lAddress >> 12 & 0x1FF;
 }
 
-unsigned int GetPDIndex(l_Address lAddress)
+unsigned long GetPDIndex(l_Address lAddress)
 {
 	return lAddress >> 21 & 0x1FF;
 }
 
-unsigned int GetPDPIndex(l_Address lAddress)
+unsigned long GetPDPIndex(l_Address lAddress)
 {
 	return lAddress >> 30 & 0x1FF;
 }
 
-unsigned int GetPML4Index(l_Address lAddress)
+unsigned long GetPML4Index(l_Address lAddress)
 {
 	return lAddress >> 39 & 0x1FF;
 }
@@ -85,10 +85,10 @@ p_Address checkPTE(l_Address lAddress)
 
 p_Address checkPTEWithPT(struct PML4 *pml4, l_Address lAddress)
 {
-	unsigned int ptIndex = GetPTIndex(lAddress);
-	unsigned int pdIndex = GetPDIndex(lAddress);
-	unsigned int pdpIndex = GetPDPIndex(lAddress);
-	unsigned int pml4Index = GetPML4Index(lAddress);
+	unsigned long ptIndex = GetPTIndex(lAddress);
+	unsigned long pdIndex = GetPDIndex(lAddress);
+	unsigned long pdpIndex = GetPDPIndex(lAddress);
+	unsigned long pml4Index = GetPML4Index(lAddress);
 	p_Address pdp, pd, pt;
 
 	pdp = PAGE(VIRT(PML4,pml4) ->entries[pml4Index].value);
@@ -127,9 +127,9 @@ void AllocateRange(l_Address lAddress, long size, unsigned short pid,
 //=========================================================================
 struct PT *GetPT(struct PML4 *pml4, l_Address lAddress, unsigned short pid)
 {
-	unsigned int pdIndex = GetPDIndex(lAddress);
-	unsigned int pdpIndex = GetPDPIndex(lAddress);
-	unsigned int pml4Index = GetPML4Index(lAddress);
+	unsigned long pdIndex = GetPDIndex(lAddress);
+	unsigned long pdpIndex = GetPDPIndex(lAddress);
+	unsigned long pml4Index = GetPML4Index(lAddress);
 	p_Address pdp, pd, pt;
 	unsigned int flags = P + RW + US;
 	if (pid)
@@ -164,8 +164,8 @@ struct PT *GetPT(struct PML4 *pml4, l_Address lAddress, unsigned short pid)
 //=========================================================================
 struct PD *GetPD(struct PML4 *pml4, l_Address lAddress, unsigned short pid)
 {
-	unsigned int pdpIndex = lAddress >> 30 & 0x1FF;
-	unsigned int pml4Index = lAddress >> 39 & 0x1FF;
+	unsigned long pdpIndex = lAddress >> 30 & 0x1FF;
+	unsigned long pml4Index = lAddress >> 39 & 0x1FF;
 	p_Address pdp, pd;
 	unsigned int flags = P | RW | US;
 	if (pid)
@@ -193,7 +193,7 @@ struct PD *GetPD(struct PML4 *pml4, l_Address lAddress, unsigned short pid)
 //=========================================================================
 struct PDP *GetPDP(struct PML4 *pml4, l_Address lAddress, unsigned short pid)
 {
-	unsigned int pml4Index = GetPML4Index(lAddress);
+	unsigned long pml4Index = GetPML4Index(lAddress);
 
 	p_Address pdp = PAGE(VIRT(PML4,pml4) ->entries[pml4Index].value);
 	if (!pdp)
@@ -236,14 +236,24 @@ p_Address VCreatePageDir(unsigned short pid, unsigned short parentPid)
 //=====================================================
 p_Address AllocAndCreatePTE(l_Address lAddress, unsigned short pid, short flags)
 {
+	p_Address ret;
+
+	// If the page is already mapped, just clear the page and return the physical address
 	if (checkPTE(lAddress))
-		return (checkPTE(lAddress));
-	p_Address pAddress = AllocPage(pid);
-	char * l = (char *) pAddress + VAddr;
-	int i;
-	for (i = 0; i < PageSize; i++)
-		*l++ = 0;
-	return CreatePTE(pAddress, lAddress, pid, flags);
+	{
+		ret = checkPTE(lAddress);
+		// Clear the page
+		char * l = lAddress; //(char *) ret + VAddr;
+		int i;
+		for (i = 0; i < PageSize; i++)
+			*l++ = 0;
+		return ret;
+	}
+
+	// Else, allocate a new page and map it
+	ret = AllocPage(pid);
+	CreatePTE(ret, lAddress, pid, flags);
+	return ret;
 }
 
 //================================================================
@@ -252,7 +262,7 @@ p_Address AllocAndCreatePTE(l_Address lAddress, unsigned short pid, short flags)
 p_Address CreatePTEWithPT(struct PML4 *pml4, p_Address pAddress,
 		l_Address lAddress, unsigned short pid, short flags)
 {
-	unsigned int ptIndex = GetPTIndex(lAddress);
+	unsigned long ptIndex = GetPTIndex(lAddress);
 	struct PT *pt = GetPT(pml4, lAddress, pid);	// <=== The return value from this looks wrong
 
 	// We don't want this function to be interrupted.
@@ -375,7 +385,7 @@ l_Address CopyPage(l_Address address, struct PML4 *pml4, unsigned short pid)
 	struct PML4 *current_pml4 = (struct PML4 *) (currentTask->cr3);
 	struct PT *pt = GetPT(pml4, address, pid);
 	struct PT *currentPT = GetPT(current_pml4, address, currentTask->pid);
-	unsigned int i = GetPTIndex(address);
+	unsigned long i = GetPTIndex(address);
 	if (!(VIRT(PT,currentPT) ->entries[i].value))
 		return 0;
 
@@ -397,7 +407,8 @@ l_Address CopyPage(l_Address address, struct PML4 *pml4, unsigned short pid)
 // Return the logical address of the page, or zero if the
 // page doesn't exist
 //===================================================================
-l_Address DuplicatePage(l_Address address, struct PML4 *pml4, unsigned short pid)
+l_Address DuplicatePage(l_Address address, struct PML4 *pml4,
+		unsigned short pid)
 {
 	// Page align the address
 	address = PAGE(address);
@@ -406,12 +417,13 @@ l_Address DuplicatePage(l_Address address, struct PML4 *pml4, unsigned short pid
 	struct PML4 *current_pml4 = (struct PML4 *) (currentTask->cr3);
 	struct PT *pt = GetPT(pml4, address, pid);
 	struct PT *currentPT = GetPT(current_pml4, address, currentTask->pid);
-	unsigned int i = GetPTIndex(address);
+	unsigned long i = GetPTIndex(address);
 	if (!(VIRT(PT,currentPT) ->entries[i].value))
 		return 0;
 
 	// Create and map the new page and copy the physical memory
 	if (!checkPTEWithPT(pml4, address))
-		VIRT(PT, pt)->entries[i].value = VIRT(PT, currentPT)->entries[i].value & 0xFFFFFFFFFFFFF8FF;
+		VIRT(PT, pt) ->entries[i].value =
+				VIRT(PT, currentPT) ->entries[i].value & 0xFFFFFFFFFFFFF8FF;
 	return address;
 }
