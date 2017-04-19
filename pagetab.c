@@ -427,3 +427,61 @@ l_Address DuplicatePage(l_Address address, struct PML4 *pml4,
 				VIRT(PT, currentPT) ->entries[i].value & 0xFFFFFFFFFFFFF8FF;
 	return address;
 }
+
+void ClearDirtyBit(l_Address address)
+{
+	address = PAGE(address);
+
+	// Get physical address of page tables
+	struct PML4 *current_pml4 = (struct PML4 *) (currentTask->cr3);
+	struct PT *pt = GetPT(current_pml4, address, currentTask->pid);
+	struct PT *currentPT = GetPT(current_pml4, address, currentTask->pid);
+	unsigned long i = GetPTIndex(address);
+	(VIRT(PT,currentPT) ->entries[i].value) &= 0xFFFFFFFFFFFFFFBF;
+}
+
+FlushDisk()
+{
+	struct PML4 *currentPT = (struct PML4 *) (currentTask->cr3);
+	int i;
+	for (i = 256; i < 512; i++)
+	{
+		struct PDP *pdp = PAGE(((VIRT(PDP, currentPT))->entries[i].value));
+		if (pdp)
+		{
+			int j;
+			for (j = 0; j < 512; j++)
+			{
+				struct PD *pd = PAGE(((VIRT(PD, pdp))->entries[j].value));
+				if (pd)
+				{
+					int k;
+					for (k = 0; k < 512; k++)
+					{
+						struct PT *pt = PAGE(((VIRT(PT, pd))->entries[k].value));
+						if (pt)
+						{
+							int l;
+							for (l = 0; l < 512; l++)
+							{
+								long entry = ((VIRT(PT, pt))->entries[l].value);
+								if (entry & 0x40)	// "Dirty" bit is set
+								{
+									long address = i << 9;
+									address = (address + j) << 9;
+									address = (address + k) << 9;
+									address = (address + l) << 12;
+									address = address | 0xFFFF000000000000;
+									WritePageToDisk(address);
+									(VIRT(PT,pt) ->entries[l].value) &= 0xFFFFFFFFFFFFFFBF;
+								}
+								// entry &= 0xFFFFFFFFFFFFFFDF;	// Clear the "accessed" bit
+								// ((VIRT(PT, pt))->entries[l].value) = entry;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

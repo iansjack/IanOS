@@ -31,7 +31,6 @@ struct FCB *OpenFileByInodeNumber(u_int32_t inode)
 	GetINode(inode, fcb->inode);
 	fcb->fileCursor = 0;
 	fcb->bufCursor = 0;
-//	fcb->buffer = AllocKMem((size_t) block_size);
 	fcb->bufferIsDirty = 0;
 	fcb->inodeIsDirty = 0;
 	fcb->openCount = 1;
@@ -40,7 +39,6 @@ struct FCB *OpenFileByInodeNumber(u_int32_t inode)
 	fcb->read = ReadFromFile;
 	fcb->write = WriteToFile;
 
-	//ReadBlock(fcb->currentBlock, fcb->buffer);
 	fcb->buffer = BlockToAdd(fcb->currentBlock);
 	return fcb;
 }
@@ -86,7 +84,7 @@ struct FCB *CreateFileWithType(char *name, long type)
 	inode->i_blocks = 0;
 	inodeNo = GetFreeINode(0);
 
-	// Write the new inode to disk
+	// Write the new inode
 	PutINode(inodeNo, inode);
 
 	// Create a directory entry for the new file
@@ -130,7 +128,6 @@ struct FCB *CreateFileWithType(char *name, long type)
 	fcb->inodeNumber = inodeNo;
 	fcb->fileCursor = 0;
 	fcb->bufCursor = 0;
-//	fcb->buffer = AllocKMem((size_t) block_size);
 	fcb->currentBlock = 0;
 	fcb->index1 = fcb->index2 = fcb->index3 = fcb->index4 = 0;
 	fcb->read = ReadFromFile;
@@ -160,14 +157,12 @@ struct FCB *OpenFile(char *path)
 	fcb->openCount = 1;
 	fcb->fileCursor = 0;
 	fcb->bufCursor = 0;
-//	fcb->buffer = AllocKMem((size_t) block_size);
 	fcb->bufferIsDirty = 0;
 	fcb->inodeIsDirty = 0;
 	fcb->index1 = fcb->index2 = fcb->index3 = fcb->index4 = 0;
 	fcb->currentBlock = fcb->inode->i_block[0];
 	fcb->read = ReadFromFile;
 	fcb->write = WriteToFile;
-//	ReadBlock(fcb->currentBlock, fcb->buffer);
 	fcb->buffer = BlockToAdd(fcb->currentBlock);
 	return fcb;
 }
@@ -180,15 +175,12 @@ long CloseFile(struct FCB *fcb)
 	fcb->openCount--;
 	if (!fcb->openCount)
 	{
-//		if (fcb->bufferIsDirty)
-//			WriteBlock(fcb->currentBlock, fcb->buffer);
 		if (fcb->inodeIsDirty)
 			PutINode(fcb->inodeNumber, fcb->inode);
-//		DeallocMem(fcb->buffer);
 		DeallocMem(fcb->inode);
 		DeallocMem(fcb);
-//		FlushCaches();
 	}
+	FlushDisk();
 	return 0;
 }
 
@@ -234,12 +226,6 @@ long WriteFile(struct FCB *fcb, char *buffer, long noBytes)
 		// If the bufCursor is at the end of the block we need to load the next block
 		if (fcb->bufCursor == block_size)
 		{
-			// If the current buffer is dirty write the block to disk
-//			if (fcb->bufferIsDirty)
-//			{
-//				WriteBlock(fcb->currentBlock, fcb->buffer);
-//				fcb->bufferIsDirty = 0;
-//			}
 			// If the file cursor is at the end of the file allocate a new block
 			if (fcb->fileCursor >= (int) (fcb->inode->i_size - 1))
 				AddBlockToFile(fcb);
@@ -268,8 +254,8 @@ long WriteFile(struct FCB *fcb, char *buffer, long noBytes)
 //===============================================
 long DeleteFile(char *name)
 {
-	char *buffer; // = AllocKMem(block_size);
-	char *buffer1; // = AllocKMem(block_size);
+	char *buffer;
+	char *buffer1;
 	__le32 *blocks;
 	__le32 *iblocks;
 	int i, j;
@@ -287,8 +273,6 @@ long DeleteFile(char *name)
 	parentINodeNo = GetFileINode(parentDirectory);
 	if (parentINodeNo == (u_int32_t) -ENOENT)
 	{
-		// DeallocMem(buffer);
-		// DeallocMem(buffer1);
 		DeallocMem(parentDirectory);
 		return -ENOENT;
 	}
@@ -297,8 +281,6 @@ long DeleteFile(char *name)
 	fcb = OpenFile(name);
 	if ((long) fcb < 0)
 	{
-		// DeallocMem(buffer);
-		// DeallocMem(buffer1);
 		DeallocMem(parentDirectory);
 		return (long) fcb;
 	}
@@ -310,7 +292,6 @@ long DeleteFile(char *name)
 	if (fcb->inode->i_block[EXT2_IND_BLOCK])
 	{
 		// Delete indirect blocks
-		//ReadBlock(fcb->inode->i_block[EXT2_IND_BLOCK], buffer);
 		buffer = BlockToAdd(fcb->inode->i_block[EXT2_IND_BLOCK]);
 		blocks = (__le32 *) buffer;
 		for (i = 0; i < block_size / sizeof(__le32 ); i++)
@@ -321,7 +302,6 @@ long DeleteFile(char *name)
 	if (fcb->inode->i_block[EXT2_DIND_BLOCK])
 	{
 		// Delete double-indirect blocks
-		//ReadBlock(fcb->inode->i_block[EXT2_DIND_BLOCK], buffer);
 		buffer = BlockToAdd(fcb->inode->i_block[EXT2_DIND_BLOCK]);
 		blocks = (__le32 *) buffer;
 		for (i = 0; i < block_size / sizeof(__le32 ); i++)
@@ -358,8 +338,6 @@ long DeleteFile(char *name)
 		{
 			DeallocMem(dirBuffer);
 			(void) CloseFile(dirFcb);
-			// DeallocMem(buffer);
-			// DeallocMem(buffer1);
 			DeallocMem(parentDirectory);
 			return -ENOENT;
 		}
@@ -374,8 +352,6 @@ long DeleteFile(char *name)
 	(void) WriteFile(dirFcb, dirBuffer, (long) dirFcb->inode->i_size);
 	DeallocMem(dirBuffer);
 	(void) CloseFile(dirFcb);
-	DeallocMem(buffer);
-	DeallocMem(buffer1);
 	DeallocMem(parentDirectory);
 
 	// Finally, delete the inode

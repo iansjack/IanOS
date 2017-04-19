@@ -274,6 +274,8 @@ notsp:
 	call AllocAndCreatePTE	# Allocate a new page
 	mov %r9, %rdi
 	call ReadPageFromDisk
+	mov %r9, %rdi
+	call ClearDirtyBit
 	POP_ALL
 	add $0x8, %rsp			# Get rid of the pushed error code
 	iretq
