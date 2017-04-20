@@ -180,7 +180,7 @@ long CloseFile(struct FCB *fcb)
 		DeallocMem(fcb->inode);
 		DeallocMem(fcb);
 	}
-//	FlushDisk();
+	FlushDisk();
 	return 0;
 }
 

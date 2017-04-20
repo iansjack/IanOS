@@ -150,10 +150,10 @@ u_int32_t GetFreeBlock(u_int32_t group)
 	u_int32_t block;
 	while (group_descriptors[group].bg_free_blocks_count == 0) group++;
 	int i = 0, j=0;
-	while (*block_bitmap[block_size * group + i] == -1)
+	while ((*block_bitmap)[block_size * group + i] == -1)
 		i++;
 	for (j = 0; j < 8; j++)
-		if (!(*block_bitmap[block_size * group + i] & (1 << j)))
+		if (!((*block_bitmap)[block_size * group + i] & (1 << j)))
 			break;
 	block = group * sb->s_blocks_per_group + 8 * i + j +1;
 
@@ -219,10 +219,10 @@ u_int32_t GetFreeINode(u_int32_t group)
 {
 	u_int32_t inode;
 	int i = 0, j = 0;
-	while (*inode_bitmap[block_size * group + i] == -1)
+	while ((*inode_bitmap)[block_size * group + i] == -1)
 		i++;
 	for (j = 0; j < 8; j++)
-		if (!(*inode_bitmap[i] & (1 << j)))
+		if (!((*inode_bitmap)[block_size * group + i] & (1 << j)))
 			break;
 	inode = group * sb->s_inodes_per_group + 8 * i + j + 1;
 
