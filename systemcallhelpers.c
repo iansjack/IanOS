@@ -185,6 +185,7 @@ FD DoOpen(char *s, int flags)
 			msg->quad1 = (long) S;
 			SendReceiveMessage(FSPort, msg);
 			fcb = (struct FCB *) msg->quad1;
+			fcb->openCount = 1;
 		}
 	}
 	DeallocMem(S);
@@ -222,7 +223,7 @@ int DoClose(FD fileDescriptor)
 	temp = currentTask->fcb[fileDescriptor];
 	if (temp)
 	{
-		temp->close;
+		temp->close(temp);
 		return 0;
 	}
 	return -EBADF;

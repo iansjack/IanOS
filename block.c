@@ -410,7 +410,7 @@ void SetBufferFromCursor(struct FCB *fcb)
 {
 	SetIndexesFromCursor(fcb);
 	fcb->currentBlock = fcb->inode->i_block[fcb->index1];
-	fcb->buffer = BlockToAdd(fcb->currentBlock);
+	fcb->buffer = BlockToAdd(fcb->currentBlock);			// Is this correct???
 	if (fcb->index1 >= EXT2_IND_BLOCK)
 	{
 		__le32 *blocks = (__le32 *) fcb->buffer;
@@ -438,6 +438,7 @@ void SetBufferFromCursor(struct FCB *fcb)
 void AddFirstBlockToFile(struct FCB *fcb)
 {
 	fcb->currentBlock = GetFreeBlock(fcb->inodeNumber / sb->s_inodes_per_group);
+	fcb->buffer = BlockToAdd(fcb->currentBlock);
 	fcb->inode->i_block[0] = fcb->currentBlock;
 	fcb->inode->i_blocks = (u_int32_t)(block_size / INODE_BLOCK_SIZE);
 }
