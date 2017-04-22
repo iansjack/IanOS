@@ -626,7 +626,10 @@ void dummyTask()
 			DeallocMem(t);
 		}
 		else
+		{
+			FlushDisk();
 			asm("hlt");
+		}
 #ifdef DEBUG
 		kprintf(0, 60, "Free Pages = %d", nPagesFree);
 #endif
@@ -675,11 +678,11 @@ void StartTasks()
 	kprintf(0, 0, "Starting tasks");
 	(void) NewLowPriTask((void *) dummyTask);
 //	enumeratePCIBus();
-	GoToSleep(100);
+	GoToSleep(10);
 	(void) NewKernelTask((void *) kbTaskCode);
-	GoToSleep(100);
+	GoToSleep(10);
 	(void) NewKernelTask((void *) consoleTaskCode);
-	GoToSleep(100);
+	GoToSleep(10);
 	(void) NewKernelTask((void *) fsTaskCode);
-	GoToSleep(100);
+	GoToSleep(10);
 }

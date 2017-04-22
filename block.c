@@ -28,6 +28,7 @@ u_int32_t currentDirectory = 2; // The inode # of the currentdirectory
 unsigned int PartitionStart;
 short inodeMultiplier;
 short firstBlock = 0;
+//char *(blocks[1024]);
 
 //=============================
 // Read a page from disk
@@ -69,6 +70,7 @@ void InitializeHD()
 
 	// Read the MBR and Partition Table
 	PartitionStart = ((struct PartTable)(mbr->PT[0])).LBA / 2;	// MBR give offset in sectors, but we work in blocks
+	//blocks = (char *[1024])(BASEADDRESS + PartitionStart);
 
 	// Read the SuperBlock
 	sb = (struct ext2_super_block *)(BASEADDRESS + (PartitionStart + 1) * 1024);
@@ -94,7 +96,7 @@ void InitializeHD()
 }
 
 //======================================================
-// Return the value of the bit for block in the bitmpap
+// Return the value of the bit for block in the bitmap
 //======================================================
 int GetBlockBitmapBit(int block)
 {
@@ -105,38 +107,40 @@ int GetBlockBitmapBit(int block)
 	block_in_group = block % sb->s_blocks_per_group;
 	byte_in_map = block_in_group / 8;
 	bit_in_byte = block_in_group % 8;
-	return (1 << bit_in_byte
-			& **(block_bitmap + block_size * group + byte_in_map));
+	return ((1 << bit_in_byte)
+			& *(*block_bitmap + block_size * group + byte_in_map));
 }
 
 //======================================================
-// Set the value of the bit for block in the bitmpap
+// Set the value of the bit for block in the bitmap
 //======================================================
 void SetBlockBitmapBit(u_int32_t block)
 {
 	u_int32_t group, block_in_group, byte_in_map, bit_in_byte;
 
+	block--;
 	group = block / sb->s_blocks_per_group;
 	block_in_group = block % sb->s_blocks_per_group;
 	byte_in_map = block_in_group / 8;
 	bit_in_byte = block_in_group % 8;
-	**(block_bitmap + block_size * group + byte_in_map) |= 1 << bit_in_byte;
+	*(*block_bitmap + block_size * group + byte_in_map) |= (1 << bit_in_byte);
 	group_descriptors[group].bg_free_blocks_count--;
 	sb->s_free_blocks_count--;
 }
 
 //======================================================
-// Clear the value of the bit for block in the bitmpap
+// Clear the value of the bit for block in the bitmap
 //======================================================
 void ClearBlockBitmapBit(u_int32_t block)
 {
 	u_int32_t group, block_in_group, byte_in_map, bit_in_byte;
 
+	block--;
 	group = block / sb->s_blocks_per_group;
 	block_in_group = block % sb->s_blocks_per_group;
 	byte_in_map = block_in_group / 8;
 	bit_in_byte = block_in_group % 8;
-	**(block_bitmap + block_size * group + byte_in_map) &= ~(1 << bit_in_byte);
+	*(*block_bitmap + block_size * group + byte_in_map) &= ~(1 << bit_in_byte);
 	group_descriptors[group].bg_free_blocks_count++;
 	sb->s_free_blocks_count++;
 }
@@ -163,7 +167,7 @@ u_int32_t GetFreeBlock(u_int32_t group)
 }
 
 //======================================================
-// Return the value of the bit for inode in the bitmpap
+// Return the value of the bit for inode in the bitmap
 //======================================================
 int GetINodeBitmapBit(int inode)
 {
@@ -174,12 +178,12 @@ int GetINodeBitmapBit(int inode)
 	inode_in_group = inode % sb->s_inodes_per_group;
 	byte_in_map = inode_in_group / 8;
 	bit_in_byte = inode_in_group % 8;
-	return (1 << bit_in_byte
-			& **(inode_bitmap + block_size * group + byte_in_map));
+	return ((1 << bit_in_byte)
+			& *(*inode_bitmap + block_size * group + byte_in_map));
 }
 
 //======================================================
-// Set the value of the bit for inode in the bitmpap
+// Set the value of the bit for inode in the bitmap
 //======================================================
 void SetINodeBitmapBit(u_int32_t inode)
 {
@@ -190,13 +194,13 @@ void SetINodeBitmapBit(u_int32_t inode)
 	inode_in_group = inode % sb->s_inodes_per_group;
 	byte_in_map = inode_in_group / 8;
 	bit_in_byte = inode_in_group % 8;
-	**(inode_bitmap + block_size * group + byte_in_map) |= 1 << bit_in_byte;
+	*(*inode_bitmap + block_size * group + byte_in_map) |= (1 << bit_in_byte);
 	group_descriptors[group].bg_free_inodes_count--;
 	sb->s_free_inodes_count--;
 }
 
 //======================================================
-// Clear the value of the bit for inode in the bitmpap
+// Clear the value of the bit for inode in the bitmap
 //======================================================
 void ClearINodeBitmapBit(u_int32_t inode)
 {
@@ -207,7 +211,7 @@ void ClearINodeBitmapBit(u_int32_t inode)
 	inode_in_group = inode % sb->s_inodes_per_group;
 	byte_in_map = inode_in_group / 8;
 	bit_in_byte = inode_in_group % 8;
-	**(inode_bitmap + block_size * group + byte_in_map) &= ~(1 << bit_in_byte);
+	*(*inode_bitmap + block_size * group + byte_in_map) &= ~(1 << bit_in_byte);
 	group_descriptors[group].bg_free_inodes_count++;
 	sb->s_free_inodes_count++;
 }

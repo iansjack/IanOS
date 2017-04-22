@@ -21,6 +21,11 @@ void Debug()
 {
 }
 
+static inline InvalidatePage(l_Address address)
+{
+	asm volatile ( "invlpg (%0)" : : "b"(address) : "memory" );
+}
+
 void SetBit(int count)
 {
 	int i = count / 8;
@@ -243,7 +248,7 @@ p_Address AllocAndCreatePTE(l_Address lAddress, unsigned short pid, short flags)
 	{
 		ret = checkPTE(lAddress);
 		// Clear the page
-		char * l = lAddress; //(char *) ret + VAddr;
+		char * l = (char *)lAddress; //(char *) ret + VAddr;
 		int i;
 		for (i = 0; i < PageSize; i++)
 			*l++ = 0;
@@ -287,10 +292,7 @@ p_Address CreatePTE(p_Address pAddress, l_Address lAddress, unsigned short pid,
 		flags |= 0x800;						// Use bit 11 to mark user memory
 	retVal = CreatePTEWithPT(pml4, pAddress, lAddress, pid, flags);
 #ifndef S_SPLINT_S
-	asm ("invlpg %0;"
-			:
-			:""(lAddress)
-	);
+	InvalidatePage(lAddress);
 #endif
 	return retVal;
 }
@@ -438,6 +440,7 @@ void ClearDirtyBit(l_Address address)
 	struct PT *currentPT = GetPT(current_pml4, address, currentTask->pid);
 	unsigned long i = GetPTIndex(address);
 	(VIRT(PT,currentPT) ->entries[i].value) &= 0xFFFFFFFFFFFFFFBF;
+	InvalidatePage(address);
 }
 
 FlushDisk()
@@ -446,19 +449,19 @@ FlushDisk()
 	int i;
 	for (i = 256; i < 512; i++)
 	{
-		struct PDP *pdp = PAGE(((VIRT(PDP, currentPT))->entries[i].value));
+		struct PDP *pdp = (struct PDP *)(PAGE(((VIRT(PDP, currentPT))->entries[i].value)));
 		if (pdp)
 		{
 			int j;
 			for (j = 0; j < 512; j++)
 			{
-				struct PD *pd = PAGE(((VIRT(PD, pdp))->entries[j].value));
+				struct PD *pd = (struct PD *)(PAGE(((VIRT(PD, pdp))->entries[j].value)));
 				if (pd)
 				{
 					int k;
 					for (k = 0; k < 512; k++)
 					{
-						struct PT *pt = PAGE(((VIRT(PT, pd))->entries[k].value));
+						struct PT *pt = (struct PT *)(PAGE(((VIRT(PT, pd))->entries[k].value)));
 						if (pt)
 						{
 							int l;
@@ -473,10 +476,8 @@ FlushDisk()
 									address = (address + l) << 12;
 									address = address | 0xFFFF000000000000;
 									WritePageToDisk(address);
-									(VIRT(PT,pt) ->entries[l].value) &= 0xFFFFFFFFFFFFFFBF;
+									InvalidatePage(address);
 								}
-								// entry &= 0xFFFFFFFFFFFFFFDF;	// Clear the "accessed" bit
-								// ((VIRT(PT, pt))->entries[l].value) = entry;
 							}
 						}
 					}
