@@ -135,7 +135,8 @@ SaveRegisters:
 ZeroPage:
 	push %rcx
 	push %rbx
-	mov $PageSize / 8, %rcx
+	mov $PageSize, %rcx
+	ror $3, %rcx
 	rol $12, %rdi
 	bts $Vaddr, %rdi
 	cld

@@ -443,40 +443,59 @@ void ClearDirtyBit(l_Address address)
 	InvalidatePage(address);
 }
 
+extern long FScr3;
+
 FlushDisk()
 {
-	struct PML4 *currentPT = (struct PML4 *) (currentTask->cr3);
+	if (!FScr3) return;
+	struct PML4 *currentPT = (struct PML4 *) (FScr3);
 	int i;
 	for (i = 256; i < 512; i++)
 	{
-		struct PDP *pdp = (struct PDP *)(PAGE(((VIRT(PDP, currentPT))->entries[i].value)));
+		struct PDP *pdp = (struct PDP *)(((VIRT(PDP, currentPT))->entries[i].value));
 		if (pdp)
 		{
+			if (!((long)pdp & 0x20))	// "accessed" bit is set? If not we don't need to process the entry.
+				continue;
+			(VIRT(PDP, currentPT)->entries[i].value) &= 0xFFFFFFFFFFFFFFDF;	// clear the "accessed" bit
 			int j;
 			for (j = 0; j < 512; j++)
 			{
-				struct PD *pd = (struct PD *)(PAGE(((VIRT(PD, pdp))->entries[j].value)));
+				pdp = (struct PDP *)(PAGE((long)pdp));
+				struct PD *pd = (struct PD *)(((VIRT(PD, pdp))->entries[j].value));
 				if (pd)
 				{
+					if (!((long)pd & 0x20))
+						continue;
+					(VIRT(PD, pdp)->entries[j].value) &= 0xFFFFFFFFFFFFFFDF;
 					int k;
 					for (k = 0; k < 512; k++)
 					{
-						struct PT *pt = (struct PT *)(PAGE(((VIRT(PT, pd))->entries[k].value)));
+						pd = (struct PD *)(PAGE((long)pd));
+						struct PT *pt = (struct PT *)(((VIRT(PT, pd))->entries[k].value));
 						if (pt)
 						{
+							if (!((long)pt & 0x20))
+								continue;
+							(VIRT(PT, pd)->entries[k].value) &= 0xFFFFFFFFFFFFFFDF;
 							int l;
 							for (l = 0; l < 512; l++)
 							{
+								pt = (struct PT *)(PAGE((long)pt));
 								long entry = ((VIRT(PT, pt))->entries[l].value);
-								if (entry & 0x40)	// "Dirty" bit is set
+								if (entry)
 								{
-									long address = i << 9;
-									address = (address + j) << 9;
-									address = (address + k) << 9;
-									address = (address + l) << 12;
-									address = address | 0xFFFF000000000000;
-									WritePageToDisk(address);
-									InvalidatePage(address);
+									if (entry & 0x40)	// "Dirty" bit is set
+									{
+										long address = i << 9;
+										address = (address + j) << 9;
+										address = (address + k) << 9;
+										address = (address + l) << 12;
+										address = address | 0xFFFF000000000000;
+										WritePageToDisk(address);
+										(VIRT(PT, pt)->entries[l].value) &= 0xFFFFFFFFFFFFFFBF;	// Clear the "dirty" bit
+										InvalidatePage(address);
+									}
 								}
 							}
 						}

@@ -49,7 +49,7 @@ struct FCB
 	int bufCursor;
 	char *buffer;
 	char deviceType;
-	char bufferIsDirty;
+//	char bufferIsDirty;
 	char inodeIsDirty;
 	unsigned char openCount;
 	long (*read)(struct FCB *, char *, long);

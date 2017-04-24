@@ -1,5 +1,4 @@
 #include <kernel.h>
-//#include <linux/types.h>
 #include <errno.h>
 #include "ext2_fs.h"
 #include "blocks.h"
@@ -16,6 +15,9 @@ extern struct ext2_group_desc *group_descriptors;
 extern struct MessagePort *FSPort;
 extern long unixtime;
 extern unsigned int PartitionStart;
+extern struct Task * currentTask;
+
+long FScr3;
 
 long ReadFromFile(struct FCB *, char *, long);
 long WriteToFile(struct FCB *, char *, long);
@@ -31,7 +33,7 @@ struct FCB *OpenFileByInodeNumber(u_int32_t inode)
 	GetINode(inode, fcb->inode);
 	fcb->fileCursor = 0;
 	fcb->bufCursor = 0;
-	fcb->bufferIsDirty = 0;
+//	fcb->bufferIsDirty = 0;
 	fcb->inodeIsDirty = 0;
 	fcb->openCount = 1;
 	fcb->index1 = fcb->index2 = fcb->index3 = fcb->index4 = 0;
@@ -157,7 +159,7 @@ struct FCB *OpenFile(char *path)
 	fcb->openCount = 1;
 	fcb->fileCursor = 0;
 	fcb->bufCursor = 0;
-	fcb->bufferIsDirty = 0;
+//	fcb->bufferIsDirty = 0;
 	fcb->inodeIsDirty = 0;
 	fcb->index1 = fcb->index2 = fcb->index3 = fcb->index4 = 0;
 	fcb->currentBlock = fcb->inode->i_block[0];
@@ -236,7 +238,7 @@ long WriteFile(struct FCB *fcb, char *buffer, long noBytes)
 		// Increment the bufCursor and copy the byte to the file buffer
 		fcb->buffer[fcb->bufCursor++] = buffer[i];
 		// Mark the current buffer as dirty and increment the fileCursor
-		fcb->bufferIsDirty = 1;
+//		fcb->bufferIsDirty = 1;
 		fcb->fileCursor++;
 		// If at the end of the file increment the file size in the inode and mark the inode as dirty
 		if (fcb->fileCursor > (int) (fcb->inode->i_size))
@@ -505,6 +507,7 @@ void fsTaskCode(void)
 
 	FSPort = AllocMessagePort();
 	FSMsg = ALLOCMSG;
+	FScr3 = currentTask->cr3;
 
 	kprintf(3, 0, "Starting Filesystem Task");
 
