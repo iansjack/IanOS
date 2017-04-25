@@ -134,6 +134,7 @@ struct FCB *CreateFileWithType(char *name, long type)
 	fcb->index1 = fcb->index2 = fcb->index3 = fcb->index4 = 0;
 	fcb->read = ReadFromFile;
 	fcb->write = WriteToFile;
+	FlushDisk();
 	return fcb;
 }
 
@@ -247,6 +248,7 @@ long WriteFile(struct FCB *fcb, char *buffer, long noBytes)
 			fcb->inodeIsDirty = 1;
 		}
 	}
+	FlushDisk();
 	return noBytes;
 }
 
@@ -491,6 +493,7 @@ long Truncate(struct FCB *fcb, u_int32_t length)
 	}
 	else
 		return -EPERM;
+	FlushDisk();
 	return 0;
 }
 

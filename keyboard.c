@@ -51,7 +51,7 @@ unsigned char KbdTableU[] =
 		0 /*scrolllock */, 0 /*home */, 21 /*uarrow */, 0 /*pup */,
 		0 /*numminus */, 12 /*larrow */, 0 /*num5 */, 18 /*rarrow */,
 		0 /*numplus */, 0 /*end */, 4 /*darrow */, 0 /*pdown */, 0 /*ins */,
-		0 /*del */, 0, 0, '\\', 0 /*F11 */, 0 /*F12 */
+		127 /*del */, 0, 0, '\\', 0 /*F11 */, 0 /*F12 */
 };
 
 //==============================
@@ -69,7 +69,7 @@ unsigned char KbdTableS[] =
 		0 /*scrolllock */, 0 /*home */, 0 /*uarrow */, 0 /*pup */,
 		'-' /*numminus */, 0 /*larrow */, '5' /*num5 */, 0 /*rarrow */,
 		'+' /*numplus */, 0 /*end */, 0 /*darrow */, 0 /*pdown */, 0 /*ins */,
-		0 /*del */, 0, 0, '|', 0 /*F11 */, 0 /*F12 */
+		127 /*del */, 0, 0, '|', 0 /*F11 */, 0 /*F12 */
 };
 
 //==============================
@@ -87,7 +87,7 @@ unsigned char KbdTableC[] =
 		0 /*scrolllock */, 0 /*home */, 0 /*uarrow */, 0 /*pup */,
 		'-' /*numminus */, 0 /*larrow */, '5' /*num5 */, 0 /*rarrow */,
 		'+' /*numplus */, 0 /*end */, 0 /*darrow */, 0 /*pdown */, 0 /*ins */,
-		0 /*del */, 0, 0, '|', 0 /*F11 */, 0 /*F12 */
+		127 /*del */, 0, 0, '|', 0 /*F11 */, 0 /*F12 */
 };
 
 //==========================================================

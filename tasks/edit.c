@@ -297,6 +297,18 @@ int main(int argc, char **argv)
 				Position_Cursor;
 			}
 			break;
+		case 127: // Delete
+				if (column)
+				{
+					int i;
+					for (i = column; i < 80 - 1; i++)
+						currentLineBuffer[i] = currentLineBuffer[i + 1];
+				//	column--;
+				//	printf("%c[1D", ESC);						// Cursor left
+					printf("%s ", currentLineBuffer + column);
+					Position_Cursor;
+				}
+				break;
 		default:
 			if (mode == Insert)
 			{
