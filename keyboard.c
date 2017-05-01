@@ -48,9 +48,9 @@ unsigned char KbdTableU[] =
 		'n', 'm', ',', '.', '/', 0 /*rshift */, 0 /*sysreq */, 0 /*alt */, ' ',
 		0 /*capslock */, 0 /*F1 */, 0 /*F2 */, 0 /*F3 */, 0 /*F4 */, 0 /*F5 */,
 		0 /*F6 */, 0 /*F7 */, 0 /*F8 */, 0 /*F9 */, 0 /*F10 */, 0 /*numlock */,
-		0 /*scrolllock */, 0 /*home */, 21 /*uarrow */, 0 /*pup */,
+		0 /*scrolllock */, 0 /*home */, 21 /*uarrow */, 129 /*pup */,
 		0 /*numminus */, 12 /*larrow */, 0 /*num5 */, 18 /*rarrow */,
-		0 /*numplus */, 0 /*end */, 4 /*darrow */, 0 /*pdown */, 0 /*ins */,
+		0 /*numplus */, 0 /*end */, 4 /*darrow */, 128 /*pdown */, 0 /*ins */,
 		127 /*del */, 0, 0, '\\', 0 /*F11 */, 0 /*F12 */
 };
 
@@ -66,9 +66,9 @@ unsigned char KbdTableS[] =
 		'N', 'M', '<', '>', '?', 0 /*rshift */, 0 /*sysreq */, 0 /*alt */, ' ',
 		0 /*capslock */, 0 /*F1 */, 0 /*F2 */, 0 /*F3 */, 0 /*F4 */, 0 /*F5 */,
 		0 /*F6 */, 0 /*F7 */, 0 /*F8 */, 0 /*F9 */, 0 /*F10 */, 0 /*numlock */,
-		0 /*scrolllock */, 0 /*home */, 0 /*uarrow */, 0 /*pup */,
+		0 /*scrolllock */, 0 /*home */, 0 /*uarrow */, 129 /*pup */,
 		'-' /*numminus */, 0 /*larrow */, '5' /*num5 */, 0 /*rarrow */,
-		'+' /*numplus */, 0 /*end */, 0 /*darrow */, 0 /*pdown */, 0 /*ins */,
+		'+' /*numplus */, 0 /*end */, 0 /*darrow */, 128 /*pdown */, 0 /*ins */,
 		127 /*del */, 0, 0, '|', 0 /*F11 */, 0 /*F12 */
 };
 
@@ -84,9 +84,9 @@ unsigned char KbdTableC[] =
 		0 /*rshift */, 0 /*sysreq */, 0 /*alt */, ' ', 0 /*capslock */,
 		0 /*F1 */, 0 /*F2 */, 0 /*F3 */, 0 /*F4 */, 0 /*F5 */, 0 /*F6 */,
 		0 /*F7 */, 0 /*F8 */, 0 /*F9 */, 0 /*F10 */, 0 /*numlock */,
-		0 /*scrolllock */, 0 /*home */, 0 /*uarrow */, 0 /*pup */,
+		0 /*scrolllock */, 0 /*home */, 0 /*uarrow */, 129 /*pup */,
 		'-' /*numminus */, 0 /*larrow */, '5' /*num5 */, 0 /*rarrow */,
-		'+' /*numplus */, 0 /*end */, 0 /*darrow */, 0 /*pdown */, 0 /*ins */,
+		'+' /*numplus */, 0 /*end */, 0 /*darrow */, 128 /*pdown */, 0 /*ins */,
 		127 /*del */, 0, 0, '|', 0 /*F11 */, 0 /*F12 */
 };
 

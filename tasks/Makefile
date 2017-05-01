@@ -1,6 +1,6 @@
 include ../Flags.mak
 INC = -I /home/ian/IanOS/include
-CFLAGS = -fno-stack-protector -fno-builtin -ffixed-r15 -mno-red-zone -g \
+CFLAGS = -option -std=c99 -fno-stack-protector -fno-builtin -ffixed-r15 -mno-red-zone -g \
 		-I $(CROSS)/include $(INC) 
 LDFLAGS = -Xlinker -Tlinker.script -lc
 

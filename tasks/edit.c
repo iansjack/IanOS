@@ -19,9 +19,11 @@ void sys_truncate(int, int); // Defined in sys_truncate.s
 #define Clear_Buffer	for (count = 0; count < 80; count++) currentLineBuffer[count] = 0
 #define Clear_Screen	printf("%c[2J", ESC)
 #define Position_Cursor printf("%c[%d;%dH", ESC, line, column)
+#define RVideo			printf("%c[?5h", ESC)
+#define NVideo			printf("%c[?5l", ESC)
 #define Overwrite	0
 #define Insert		1
-#define WINDOWSIZE	23
+#define WINDOWSIZE	20
 
 struct line
 {
@@ -36,12 +38,13 @@ struct line *windowStart;
 int line, column;
 char mode;
 int count;
+char *filename;
 
 int ReadFile(int file)
 {
 	struct line *currline;
 	size_t filesize;
-	char *buffer, *line;
+	char *buffer, *bufferstart, *line;
 	int linecount = 0;
 
 	// First read the whole file into a buffer
@@ -49,6 +52,7 @@ int ReadFile(int file)
 	fstat(file, &info);
 	filesize = (size_t) (info.st_size);
 	buffer = malloc(filesize + 1);
+	bufferstart = buffer;
 	if (!buffer)
 	{
 		printf("Buffer allocation failed.\n");
@@ -71,9 +75,15 @@ int ReadFile(int file)
 	lines->lineno = 0;
 	currline = lines;
 
-	line = strtok(buffer, "\n");
-	while (line)
+	char *nextret;
+	line = malloc(256);
+	while (filesize)
 	{
+		nextret = strstr(buffer, "\n");
+		filesize -= nextret - buffer + 1;
+		strncpy(line, buffer, nextret - buffer);
+		line[nextret - buffer] = 0;
+		buffer = nextret + 1;
 		currline->line = malloc(strlen(line) + 1);
 		if (!currline->line)
 		{
@@ -84,53 +94,90 @@ int ReadFile(int file)
 		strcpy(currline->line, line);
 		linecount++;
 		currline->lineno = linecount;
-		line = strtok(NULL, "\n");
-		if (line)
+		currline->next = malloc(sizeof(struct line));
+		if (!currline->next)
 		{
-			currline->next = malloc(sizeof(struct line));
-			if (!currline->next)
-			{
-				printf("Allocation of currline->next failed for line %d.\n", linecount);
-				printf("Errno: %d\n", errno);
-				close(file);
-				return 1;
-			}
-			currline->next->prev = currline;
-			currline = currline->next;
+			printf("Allocation of currline->next failed for line %d.\n", linecount);
+			printf("Errno: %d\n", errno);
+			close(file);
+			return 1;
 		}
+		currline->next->prev = currline;
+		currline = currline->next;
 	}
-	free(buffer);
+	free(line);
+	free(bufferstart);
 	return 0;
 }
 
-void PrintStatusLine()
+void PrintStatusLines()
 {
-	if (mode == Insert)
-	{
-		printf(
-				"%c[24;1H%c[?5h^Q Quit  ^I Insert toggle  Insert on                                          ",
-				ESC, ESC);
-		printf("%c[%d;%dH%c[?5l", ESC, line, column, ESC);
-	}
-	else
-	{
-		// Print status line
-		printf(
-				"%c[24;1H%c[?5h^Q Quit  ^I Insert toggle  Insert off                                          ",
-				ESC, ESC);
-		printf("%c[%d;%dH%c[?5l", ESC, line, column, ESC);
-
-	}
+	printf("%c[0;0H", ESC);
+	RVideo;
+	printf("  Ian's edit 0.0.1                  File: %s                     Modified  ", filename);
+	printf("%c[23;0H", ESC);
+	RVideo;
+	printf("^G");
+	NVideo;
+	printf(" Get Help  ");
+	RVideo;
+	printf("^O");
+	NVideo;
+	printf(" Write Out ");
+	RVideo;
+	printf("^W");
+	NVideo;
+	printf(" Where Is  ");
+	RVideo;
+	printf("^K");
+	NVideo;
+	printf(" Cut Text   ");
+	RVideo;
+	printf("^T");
+	NVideo;
+	printf(" To Spell  ");
+	RVideo;
+	printf("^Y");
+	NVideo;
+	printf(" Prev Page ");
+	printf("%c[24;0H", ESC);
+	RVideo;
+	printf("^X");
+	NVideo;
+	printf(" Exit      ");
+	RVideo;
+	printf("^R");
+	NVideo;
+	printf(" Read File ");
+	RVideo;
+	printf("^\\");
+	NVideo;
+	printf(" Replace   ");
+	RVideo;
+	printf("^U");
+	NVideo;
+	printf(" Uncut Text ");
+	RVideo;
+	printf("^C");
+	NVideo;
+	printf(" Cur Pos   ");
+	RVideo;
+	printf("^V");
+	NVideo;
+	printf(" Next Page ");
+	NVideo;
+	printf("%c[%d;%dH", ESC, line, column);
 }
 
 void RedrawScreen()
 {
 	struct line *tempcurrline = lines;
 	Clear_Screen;
+	printf("%c[2;0H", ESC);
 	tempcurrline = windowStart;
 	if (!windowStart)
 		return;
-	for (count = 0; count <= WINDOWSIZE; count++)
+	for (count = 0; count < WINDOWSIZE; count++)
 	{
 		if (tempcurrline->line)
 			printf("%s\n", tempcurrline->line);
@@ -138,14 +185,14 @@ void RedrawScreen()
 			break;
 		tempcurrline = tempcurrline->next;
 	}
-	PrintStatusLine();
+	PrintStatusLines();
 }
 
 int main(int argc, char **argv)
 {
 	int file;
 	struct line *currline, *temp;
-	char currentLineBuffer[80], c;
+	unsigned char currentLineBuffer[80], c;
 	int count, done, linelength;
 
 	if (argc ==1)
@@ -155,7 +202,7 @@ int main(int argc, char **argv)
 	}
 
 	lines = 0;
-	line = 0;
+	line = 2;
 	column = 0;
 	mode = Insert;
 	Clear_Screen;
@@ -164,6 +211,7 @@ int main(int argc, char **argv)
 	if (argc == 2)
 	{
 		file = open(argv[1], O_RDWR | O_CREAT);
+		filename = argv[1];
 		if (ReadFile(file))
 			return 1;
 		windowStart = lines;
@@ -172,7 +220,7 @@ int main(int argc, char **argv)
 		currline = lines;
 	}
 	done = 0;
-	PrintStatusLine();
+	PrintStatusLines();
 	Clear_Buffer;
 	if (currline->line)
 		strcpy(currentLineBuffer, currline->line);
@@ -182,6 +230,7 @@ int main(int argc, char **argv)
 		c = getchar();
 		switch (c)
 		{
+		case ctrl('X'):
 		case ctrl('Q'):
 			done = 1;
 			break;
@@ -190,17 +239,16 @@ int main(int argc, char **argv)
 				mode = Overwrite;
 			else
 				mode = Insert;
-			PrintStatusLine();
+			PrintStatusLines();
 			break;
 		case ctrl('M'): // Return
 			;
 			linelength = (int) strlen(currentLineBuffer);
-			currentLineBuffer[column] = 0;
 			// Copy the line up to cursor back to currline->line
 			free(currline->line);
-			currline->line = malloc(strlen(currentLineBuffer) + 1);
-			currentLineBuffer[column] = 0;
-			strcpy(currline->line, currentLineBuffer);
+			currline->line = malloc(strlen(currentLineBuffer - column) + 1);
+			strncpy(currline->line, currentLineBuffer, column);
+			currline->line[column] = 0;
 			// Create a new struct line for the new line
 			temp = malloc(sizeof(struct line));
 			// Link it into the list
@@ -211,8 +259,8 @@ int main(int argc, char **argv)
 			temp->prev = currline;
 			if (column < linelength)
 			{
-				temp->line = malloc(strlen(currentLineBuffer + column) + 1);
-				strcpy(temp->line, currentLineBuffer + column + 1);
+				temp->line = malloc(strlen(currentLineBuffer - column) + 1);
+				strcpy(temp->line, currentLineBuffer + column);
 			}
 			else
 			{
@@ -225,7 +273,8 @@ int main(int argc, char **argv)
 			column = 0;
 			line++;
 			currline = currline->next;
-			RedrawScreen(windowStart);
+			Position_Cursor;
+			RedrawScreen();
 			break;
 		case ctrl('U'): // Up Arrow
 			if (currline->prev)
@@ -241,7 +290,7 @@ int main(int argc, char **argv)
 				if (column > (int) strlen(currentLineBuffer))
 					column = (int) strlen(currentLineBuffer);
 				Position_Cursor;
-				if (line < 0)
+				if (line < 2)
 				{
 					windowStart = windowStart->prev;
 					line++;
@@ -263,7 +312,7 @@ int main(int argc, char **argv)
 				if (column > (int) strlen(currentLineBuffer))
 					column = (int) strlen(currentLineBuffer);
 				Position_Cursor;
-				if (line > WINDOWSIZE)
+				if (line > WINDOWSIZE + 1)
 				{
 					windowStart = windowStart->next;
 					line--;
@@ -292,10 +341,26 @@ int main(int argc, char **argv)
 				for (i = column; i < 80; i++)
 					currentLineBuffer[i - 1] = currentLineBuffer[i];
 				column--;
-				printf("%c[1D", ESC);						// Cursor left
-				printf("%s ", currentLineBuffer + column);
-				Position_Cursor;
+				strcpy(currline->line, currentLineBuffer);
 			}
+			else
+			{
+				if (currline->prev)
+				{
+					column = strlen(currline->prev->line);
+					line--;
+					strcat(currline->prev->line, currline->line);
+					strcpy(currentLineBuffer, currline->prev->line);
+					currline->prev->next = currline->next;
+					currline->next->prev = currline->prev;
+					struct line *temp = currline->prev;
+					free(currline->line);
+					free(currline);
+					currline = temp;
+				}
+			}
+			Position_Cursor;
+			RedrawScreen();
 			break;
 		case 127: // Delete
 				if (column)
@@ -303,12 +368,54 @@ int main(int argc, char **argv)
 					int i;
 					for (i = column; i < 80 - 1; i++)
 						currentLineBuffer[i] = currentLineBuffer[i + 1];
-				//	column--;
-				//	printf("%c[1D", ESC);						// Cursor left
 					printf("%s ", currentLineBuffer + column);
 					Position_Cursor;
 				}
 				break;
+		case ctrl('V'):
+		case 128: // PgDn
+			if (currline->line)
+				free(currline->line);
+			currline->line = (char *) malloc(strlen(currentLineBuffer) + 1);
+			strcpy(currline->line, currentLineBuffer);
+			for (int i = 0; i < 17; i++)
+			{
+				if (!currline->next) break;
+				currline = currline->next;
+				if (windowStart->next)
+					windowStart = windowStart->next;
+			}
+			Clear_Buffer;
+			if (currline->line)
+					strcpy(currentLineBuffer, currline->line);
+			if (column > (int) strlen(currentLineBuffer))
+				column = (int) strlen(currentLineBuffer);
+			RedrawScreen();
+			Position_Cursor;
+			break;
+		case ctrl('Y'):
+		case 129: // PgUp
+			if (currline->line)
+				free(currline->line);
+			currline->line = malloc(strlen(currentLineBuffer) + 1);
+			strcpy(currline->line, currentLineBuffer);
+			for (int i = 0; i < 17; i++)
+			{
+				if (!currline->prev) break;
+				currline = currline->prev;
+				if (windowStart->prev)
+					windowStart = windowStart->prev;
+				else
+					line--;
+			}
+			Clear_Buffer;
+			if (currline->line)
+				strcpy(currentLineBuffer, currline->line);
+			if (column > (int) strlen(currentLineBuffer))
+				column = (int) strlen(currentLineBuffer);
+			RedrawScreen();
+			Position_Cursor;
+			break;
 		default:
 			if (mode == Insert)
 			{
